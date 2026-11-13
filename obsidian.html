@@ -146,6 +146,8 @@ button{font:inherit;cursor:pointer}
     <div class="field">
       <label for="graph">الغراف:</label>
       <select id="graph"></select>
+      <button class="ghost" id="btnPages" title="تحديث قائمة الصفحات من Roam (F9)">↻</button>
+      <span class="hint" id="pagesInfo"></span>
     </div>
     <div class="field" id="pagefield">
       <label>الصفحة:</label>
@@ -296,6 +298,25 @@ function saveState(){
   if (CFG.dest==="roam") g.header = S.header;
   g.tpl = S.tpl; CFG.dir = S.dir; CFG.wide = S.wide; saveCfg();
 }
+function pagesInfo(){
+  const el2 = $("#pagesInfo"); if (!el2) return;
+  if (CFG.dest!=="roam"){ el2.textContent = ""; return; }
+  const raw = store.get("rq-pages:"+S.graph);
+  el2.textContent = raw ? S.pages.length.toLocaleString("ar-EG")+" صفحة" : "صفحات تجريبية";
+}
+async function refreshPages(){
+  const g = curGraph(), tok = getToken();
+  if (!g){ toast("لا يوجد غراف"); return; }
+  if (!tok){ toast("أضف رمز الغراف في ⚙ الإعدادات أولاً"); return; }
+  const btn = $("#btnPages"); btn.disabled = true; btn.textContent = "…";
+  try {
+    const list = await fetchRoamPages(g.name, tok);
+    if (!store.set("rq-pages:"+g.name, list.join("\n"))) throw new Error("لم تُحفظ القائمة (المساحة ممتلئة)");
+    loadPages(); pagesInfo();
+    toast("حُدِّثت الصفحات: "+list.length.toLocaleString("ar-EG"));
+  } catch(e){ toast("تعذّر الجلب: "+e.message); }
+  finally { btn.disabled = false; btn.textContent = "↻"; }
+}
 function loadPages(){
   if (CFG.dest==="obsidian"){ S.pages = OBS.names; S.pagesN = S.pages.map(norm); return; }
   const raw = store.get("rq-pages:"+S.graph);
@@ -318,12 +339,16 @@ function snap(){
   return {m:JSON.parse(JSON.stringify(model)), n:nextId, id:editingId,
           c: ed ? t.selectionStart : null, e: ed ? t.selectionEnd : null};
 }
+const HIST_MAX_KB = 6000;                          // سقف ذاكرة التراجع: ٦ م.ب تقريباً
 function pushHist(coalesce){                       // الكتابة المتتابعة خطوة واحدة
   const now = Date.now();
   if (coalesce && HIST.past.length && now-HIST.mark < 700){ HIST.mark = now; HIST.future.length = 0; return; }
   HIST.mark = coalesce ? now : 0;
-  HIST.past.push(snap());
-  if (HIST.past.length > 150) HIST.past.shift();
+  const st = snap();
+  st.kb = Math.ceil(JSON.stringify(st.m).length/1024);
+  HIST.past.push(st);
+  let kb = HIST.past.reduce((a,x) => a + (x.kb||1), 0);
+  while (HIST.past.length > 1 && (HIST.past.length > 150 || kb > HIST_MAX_KB)) kb -= (HIST.past.shift().kb||1);
   HIST.future.length = 0;
 }
 function histBreak(){ HIST.mark = 0; }
@@ -351,9 +376,10 @@ function headerText(){
   const now = new Date();
   return S.tpl.replace(/\{date\}/g, dailyTitle(now)).replace(/\{time\}/g, timeStr(now)).replace(/\{iso\}/g, isoStr(now));
 }
+function mkHeader(kids){ const h = mk(headerText(), kids); h.auto = true; return h; }   // رأس تلقائي: لا يُعدّ إدخالاً وحده
 function freshModel(){
   nextId = 1;
-  if (S.header){ const child = mk(""); model=[mk(headerText(), [child])]; editingId = child.id; }
+  if (S.header){ const child = mk(""); model=[mkHeader([child])]; editingId = child.id; }
   else { const b = mk(""); model=[b]; editingId = b.id; }
   pendingCaret = 0; pendingCaretEnd = 0;
 }
@@ -694,7 +720,7 @@ function onBlur(n,t){
 let suppressBlur = false;
 document.addEventListener("mouseup", () => { setTimeout(() => { suppressBlur = false; }, 0); }, true);
 function onInput(n,t){
-  n.text = t.value;
+  n.text = t.value; n.auto = false;                  // ما كتبتَ فيه لم يعد رأساً تلقائياً
   if (isOb()){ OBFD = obsFileDir(); t.dir = obsBlockDir(n.text); t.style.textAlign = OBFD==="ltr" ? "left" : "right"; }
   autosize(t); checkSug(n,t);
 }
@@ -1283,9 +1309,8 @@ function toMd(nodes, depth=0){
   return out;
 }
 function hasContent(tree){
-  // الرأس وحده (بلا أبناء) لا يُعدّ إدخالاً
-  if (S.header){ return tree.length && tree[0].children.length>0 ? true : tree.length>1; }
-  return tree.length>0;
+  // يوجد نص إن كان في أي كتلة كلام، ما عدا كتلة الرأس التلقائية إن لم تُمسّ
+  return flat(model).some(n => (n.text.trim()!=="" || n.keep) && !n.auto);
 }
 /* ---------- الإرسال الفعلي إلى Roam ---------- */
 let sending = false;
@@ -1438,12 +1463,12 @@ function adaptModel(oldHeader){
   if (oldHeader && model.length===1 && model[0].children.length) content = model[0].children;
   const pristine = flat(content).every(n => !n.text.trim());
   if (pristine) freshModel();
-  else if (S.header) model = [mk(headerText(), content)];
+  else if (S.header) model = [mkHeader(content)];
   else model = content;
   render();
 }
 function graphChanged(oldHeader){
-  syncS(); loadPages(); refreshPageButton(); fillGraphSelect(); saveCfg();
+  syncS(); loadPages(); pagesInfo(); refreshPageButton(); fillGraphSelect(); saveCfg();
   if (CFG.dest==="roam" && S.header!==oldHeader) adaptModel(oldHeader);
 }
 function switchDest(d){
@@ -1460,16 +1485,16 @@ function switchDest(d){
     else { freshModel(); render(); }
   }
   else {
-    if (obsTxt.trim()){ const roots = parseMarkdown(obsTxt); model = S.header ? [mk(headerText(), roots)] : roots; render(); }
+    if (obsTxt.trim()){ const roots = parseMarkdown(obsTxt); model = S.header ? [mkHeader(roots)] : roots; render(); }
     else { freshModel(); render(); }
   }
   focusLastBlock();
 }
 function applyDest(){
   const ob = CFG.dest==="obsidian";
-  $("#roamBox").hidden = ob; $("#obsBox").hidden = !ob; $("#outline").hidden = false; $("#obsWrap").hidden = true;
+  $("#roamBox").hidden = ob; $("#obsBox").hidden = !ob; pagesInfo(); $("#outline").hidden = false; $("#obsWrap").hidden = true;
   document.querySelectorAll("#destbar button").forEach(b => b.classList.toggle("on", b.dataset.dest===CFG.dest));
-  syncS(); loadPages(); refreshPageButton();
+  syncS(); loadPages(); pagesInfo(); refreshPageButton();
   document.title = ob ? "المحرر — Obsidian" : "المحرر — Roam";
   if (ob){ fillVaultSelect(); if (!$("#oFolder").value) $("#oFolder").value = CFG.obs.lastFolder || ""; renderMeta(); loadVault(false).then(obsStatus); }
   renderSettings();
@@ -1489,7 +1514,7 @@ function renderSettings(){
     ["Ctrl+B / Ctrl+I","غامق / مائل"],["Ctrl+Shift+H","تمييز"],["Ctrl+`","كود"],["Ctrl+K","رابط"],
     ["Tab / Shift+Tab", CFG.dest==="obsidian" ? "إزاحة السطر" : "تداخل الكتلة"],
     ["Alt+Shift+↑ / ↓","نقل السطر"],["Ctrl+A مرتين","تظليل كل النص"],["Ctrl+Shift+V","لصق بلا تحويل"],["Esc","خروج من السطر"]];
-  if (CFG.dest==="obsidian") KEYS.push(["F9","إعادة فهرسة الخزنة"]);
+  KEYS.push(["F9", CFG.dest==="obsidian" ? "إعادة فهرسة الخزنة" : "تحديث صفحات الغراف"]);
   box.appendChild(h("div", {class:"keys"}, ...KEYS.map(k => h("div", {}, h("b", {dir:"ltr"}, k[0]), " — "+k[1]))));
 
   if (CFG.dest==="roam"){
@@ -1994,6 +2019,7 @@ function init(){
 
   /* Obsidian */
   $("#vault").onchange = async () => { CFG.obs.current = $("#vault").value; saveCfg(); await loadVault(false); obsStatus(); };
+  $("#btnPages").onclick = refreshPages;
   $("#btnAddVault").onclick = addVault;
   $("#btnDelVault").onclick = async () => {
     const v = curVault(); if (!v) return;
@@ -2003,7 +2029,10 @@ function init(){
     await removeVault(v.name); toast("أُزيلت الخزنة من القائمة");
   };
   $("#btnRescan").onclick = reindex;
-  document.addEventListener("keydown", e => { if (e.key==="F9" && CFG.dest==="obsidian"){ e.preventDefault(); reindex(); } });
+  document.addEventListener("keydown", e => {
+    if (e.key!=="F9") return;
+    e.preventDefault(); CFG.dest==="obsidian" ? reindex() : refreshPages();
+  });
   $("#btnVaultPerm").onclick = async () => { await loadVault(true); obsStatus(); };
   attachSuggest($("#oFolder"), v => rankFilter(OBS.folders, v, x => x).map(f => ({label:f, apply(){ $("#oFolder").value = f; }})));
   attachSuggest($("#oName"), v => {
