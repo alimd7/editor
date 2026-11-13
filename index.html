@@ -1,0 +1,2050 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- أمان: لا يُسمح للصفحة بأي اتصال بالشبكة (لا fetch ولا XHR ولا مصادر خارجية) -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: 'self'; manifest-src 'self'; worker-src 'self'; connect-src https://api.roamresearch.com https://*.api.roamresearch.com:*;">
+<title>المحرر (Roam)</title>
+<link rel="manifest" href="manifest.webmanifest">
+<script>window.DEST_START="roam";</script>
+<meta name="theme-color" content="#1a7fc4">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231a7fc4'/%3E%3Ccircle cx='20' cy='20' r='5' fill='%23fff'/%3E%3Crect x='30' y='16' width='24' height='8' rx='4' fill='%23fff'/%3E%3Ccircle cx='20' cy='44' r='5' fill='%23fff'/%3E%3Crect x='30' y='40' width='24' height='8' rx='4' fill='%23fff'/%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#ffffff; --panel:#f6f8fa; --text:#1f2933; --muted:#7b8794; --line:#d9e0e6;
+  --accent:#1a7fc1; --accent-ink:#ffffff; --link:#1a7fc1; --bullet:#3c4a57; --halo:#d5dde3;
+  --danger:#d33; --mark:#fff3a3; --code:#eef1f4; --hover:#eef3f7;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#1f2428; --panel:#2a3036; --text:#e4e9ee; --muted:#8a96a3; --line:#3b444d;
+    --accent:#3b97d3; --accent-ink:#ffffff; --link:#58a9e0; --bullet:#c3ccd5; --halo:#3b444d;
+    --danger:#ff6b6b; --mark:#5c5420; --code:#2f363d; --hover:#2f363d;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#1f2428; --panel:#2a3036; --text:#e4e9ee; --muted:#8a96a3; --line:#3b444d;
+  --accent:#3b97d3; --accent-ink:#ffffff; --link:#58a9e0; --bullet:#c3ccd5; --halo:#3b444d;
+  --danger:#ff6b6b; --mark:#5c5420; --code:#2f363d; --hover:#2f363d;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--text);
+  font-family:"Segoe UI","Noto Naskh Arabic","Noto Sans Arabic",Tahoma,system-ui,sans-serif;font-size:16px;line-height:1.55}
+#app.wide{max-width:none}
+#app{max-width:640px;margin:0 auto;padding:14px 16px 24px;display:flex;flex-direction:column;gap:10px;min-height:100%}
+.field{position:relative;border:1px solid var(--line);border-radius:6px;background:var(--bg);display:flex;align-items:center;min-height:40px}
+.field label{color:var(--muted);padding:0 12px;white-space:nowrap;font-size:14px}
+.field select,.field .pick{flex:1;border:0;background:transparent;color:var(--text);font:inherit;padding:8px 4px;outline:none;text-align:start;cursor:pointer}
+.field .pick{display:flex;justify-content:space-between;gap:8px;align-items:center;padding-inline-end:12px}
+.pick .date{color:var(--muted);font-size:14px;direction:ltr}
+.field:focus-within{border-color:var(--accent)}
+#pagepanel{position:absolute;z-index:20;inset-inline:0;top:calc(100% + 4px);background:var(--bg);border:1px solid var(--line);border-radius:6px;
+  box-shadow:0 8px 24px rgba(0,0,0,.18);display:none;flex-direction:column;max-height:320px}
+#pagepanel.open{display:flex}
+#pq{border:0;border-bottom:1px solid var(--line);background:transparent;color:var(--text);font:inherit;padding:9px 12px;outline:none}
+#plist{list-style:none;margin:0;padding:4px;overflow:auto}
+#plist li,.sug li{padding:6px 10px;border-radius:4px;cursor:pointer;display:flex;justify-content:space-between;gap:10px}
+#plist li small,.sug li small{color:var(--muted);direction:ltr}
+#plist li.sel,.sug li.sel{background:var(--accent);color:var(--accent-ink)}
+#plist li.sel small,.sug li.sel small{color:var(--accent-ink);opacity:.85}
+#plist li.empty{color:var(--muted);cursor:default}
+
+#outline{padding:8px 2px 0;flex:1}
+.block{margin:0}
+.row{display:flex;align-items:flex-start;gap:6px;position:relative;border-radius:4px}
+.tg{width:14px;flex:none;color:var(--muted);font-size:11px;line-height:26px;text-align:center;cursor:pointer;opacity:0;user-select:none}
+.row:hover .tg{opacity:1}
+.bullet{flex:none;width:18px;height:26px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.bullet::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--bullet)}
+.bullet.collapsed::before{box-shadow:0 0 0 4px var(--halo)}
+.content{flex:1;min-width:0;position:relative}
+.view,textarea.ed{width:100%;min-height:26px;padding:0 2px;margin:0;font:inherit;line-height:26px;word-break:break-word;white-space:pre-wrap;cursor:text}
+textarea.ed{display:block;border:0;outline:0;background:transparent;color:var(--text);resize:none;overflow:hidden;line-height:26px}
+.view .ph{display:inline-block;min-width:1px}
+.children{margin-inline-start:9px;padding-inline-start:12px;border-inline-start:1px solid var(--line)}
+.link{color:var(--link);unicode-bidi:isolate}
+.link .br{color:var(--muted)}
+.ext{color:var(--link);text-decoration:underline}
+.view.h1{font-size:1.45em;font-weight:700}.view.h2{font-size:1.25em;font-weight:700}.view.h3{font-size:1.1em;font-weight:700}
+.view.quote{border-inline-start:3px solid var(--line);padding-inline-start:10px;color:var(--muted)}
+.view table.mdt{border-collapse:collapse;margin:3px 0}.view table.mdt th,.view table.mdt td{border:1px solid #cfd6dd;padding:3px 10px}.view table.mdt th{background:#eef1f4}
+#outline.plain .tg,#outline.plain .bullet{display:none}
+#outline.plain .row.hastg .tg{display:block;position:absolute;inset-inline-start:-16px;top:0;line-height:inherit}
+#outline.plain .row.col .tg{opacity:1}
+.fade{color:var(--muted);font-weight:400}
+#outline.plain .row{gap:0}
+#outline.plain .view,#outline.plain textarea.ed{padding:0 6px}
+.oli{display:flex;gap:.45em}.omk{flex:none;min-width:1.1em;text-align:center;color:var(--muted)}.otx{flex:1;min-width:0}
+.otag{color:var(--link)}
+#obsWrap{position:relative}#obsWrap[hidden]{display:none}
+#obsText{unicode-bidi:plaintext;text-align:right;display:block;width:100%;min-height:38vh;border:0;outline:0;background:transparent;color:var(--text);font:inherit;line-height:1.75;resize:none;overflow:hidden;padding:4px 6px}
+.view hr.hr{border:0;border-top:2px solid #cfd6dd;margin:12px 0;width:100%}
+.view pre{white-space:pre-wrap;direction:ltr;text-align:left;background:var(--code);padding:6px 10px;border-radius:6px;font-family:Consolas,monospace;font-size:.92em;margin:2px 0}
+.view mark{background:var(--mark);color:inherit;border-radius:2px}
+.view code{background:var(--code);border-radius:3px;padding:0 4px;font-family:Consolas,monospace;font-size:.92em;direction:ltr;unicode-bidi:isolate}
+
+.sug{position:absolute;z-index:30;list-style:none;margin:2px 0 0;padding:4px;background:var(--bg);border:1px solid var(--line);
+  border-radius:6px;box-shadow:0 8px 24px rgba(0,0,0,.2);min-width:240px;max-width:100%;max-height:260px;overflow:auto;inset-inline-start:0}
+
+.actions{display:flex;justify-content:flex-start;align-items:center;gap:12px;padding-top:8px;border-top:1px solid var(--line)}
+.actions button{white-space:nowrap}
+.keys{line-height:1.7}
+button{font:inherit;cursor:pointer}
+.send{background:var(--accent);color:var(--accent-ink);border:1px solid var(--accent);border-radius:4px;padding:6px 26px}
+.send:hover{filter:brightness(1.07)}
+.ghost{background:transparent;border:0;color:var(--muted);padding:6px 8px;border-radius:4px}
+.ghost:hover{background:var(--hover)}
+.ghost.danger{color:var(--danger)}
+.spacer{flex:1}
+.hint{color:var(--muted);font-size:12.5px}
+
+#settings{border:1px dashed var(--line);border-radius:6px;padding:10px 12px;display:none;flex-direction:column;gap:8px;font-size:14px}
+#settings.open{display:flex}
+#settings label{display:flex;gap:8px;align-items:center}
+#settings input[type=text]{flex:1;font:inherit;padding:4px 8px;border:1px solid var(--line);border-radius:4px;background:var(--bg);color:var(--text);direction:ltr}
+
+#toast{position:fixed;bottom:18px;inset-inline:0;margin:auto;width:max-content;max-width:90vw;background:#333;color:#fff;padding:8px 14px;border-radius:8px;
+  opacity:0;transition:opacity .2s;pointer-events:none;font-size:14px}
+#toast.show{opacity:.95}
+#out{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:50;padding:16px}
+#out.open{display:flex}
+#outbox{background:var(--bg);border-radius:10px;width:min(720px,100%);max-height:90vh;display:flex;flex-direction:column;gap:8px;padding:14px;border:1px solid var(--line)}
+#outbox h3{margin:0;font-size:16px}
+#outbox textarea{width:100%;height:170px;font-family:Consolas,monospace;font-size:13px;direction:ltr;background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:6px;padding:8px}
+#outbox .bar{display:flex;gap:8px;align-items:center}
+
+.view.h4{font-size:1.05em;font-weight:700}.view.h5{font-size:1em;font-weight:700}.view.h6{font-size:.95em;font-weight:700;color:var(--muted)}
+#destbar{display:flex;gap:0;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+#destbar button{flex:1;border:0;background:var(--bg);color:var(--muted);padding:7px 10px}
+#destbar button.on{background:var(--accent);color:var(--accent-ink)}
+.box{display:flex;flex-direction:column;gap:10px}
+.box[hidden]{display:none}
+.field input{flex:1;border:0;background:transparent;color:var(--text);font:inherit;padding:8px 4px;outline:none;min-width:0}
+.field .ghost{white-space:nowrap}
+.sbox{position:absolute;z-index:25;inset-inline:0;top:calc(100% + 4px);background:var(--bg);border:1px solid var(--line);border-radius:6px;margin:0;padding:4px;list-style:none;max-height:260px;overflow:auto;box-shadow:0 8px 24px rgba(0,0,0,.18);display:none}
+.sbox.open{display:block}
+.sbox li{padding:5px 9px;border-radius:4px;cursor:pointer;display:flex;justify-content:space-between;gap:10px}
+.sbox li small{color:var(--muted);direction:ltr}
+.sbox li.sel,.sbox li:hover{background:var(--hover)}
+#oStatus,#oScan{padding:0 4px}
+#settings h4{margin:6px 0 0;font-size:13px;color:var(--muted)}
+.srow{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.gform{border:1px solid var(--line);border-radius:6px;padding:8px 10px;display:flex;flex-direction:column;gap:8px}
+.gform label,#settings label{display:flex;gap:8px;align-items:center}
+#settings select{font:inherit;padding:4px;border:1px solid var(--line);border-radius:4px;background:var(--bg);color:var(--text)}
+#settings input[type=text],#settings input[type=password]{flex:1;font:inherit;padding:4px 8px;border:1px solid var(--line);border-radius:4px;background:var(--bg);color:var(--text)}
+.tout{white-space:pre-wrap;font-size:12px;margin:0}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="destbar"><button data-dest="roam">Roam Research</button><button data-dest="obsidian">Obsidian</button></div>
+
+  <div id="roamBox" class="box">
+    <div class="field">
+      <label for="graph">الغراف:</label>
+      <select id="graph"></select>
+    </div>
+    <div class="field" id="pagefield">
+      <label>الصفحة:</label>
+      <div class="pick" id="pagebtn" tabindex="0" role="button" aria-haspopup="listbox">
+        <span id="pagelabel">اليوم</span><span class="date" id="pagedate"></span>
+      </div>
+      <div id="pagepanel">
+        <input id="pq" placeholder="اكتب لتصفية الصفحات…" autocomplete="off">
+        <ul id="plist"></ul>
+      </div>
+    </div>
+  </div>
+
+  <div id="obsBox" class="box" hidden>
+    <div class="field">
+      <label for="vault">الخزنة:</label>
+      <select id="vault"></select>
+      <button class="ghost" id="btnVaultPerm" hidden title="يحتاج المتصفح إذنك مرة بعد كل فتح">تفعيل</button>
+      <button class="ghost" id="btnAddVault" title="إضافة خزنة">＋</button>
+      <button class="ghost danger" id="btnDelVault" title="إزالة هذه الخزنة من القائمة (لا يحذف ملفاتك)">✕</button>
+    </div>
+    <div class="srow"><span class="hint" id="oScan"></span><button class="ghost" id="btnRescan" title="إعادة الفهرسة (F9)">↻</button></div>
+    <div class="field"><label>المجلد:</label><input id="oFolder" dir="auto" autocomplete="off"></div>
+    <div class="field"><label>الملف:</label><input id="oName" dir="auto" autocomplete="off"><button class="ghost" id="oToday" title="ملاحظة اليوم">اليوم</button></div>
+    <div class="hint" id="oStatus"></div>
+    <div id="oMeta" class="box"></div>
+  </div>
+
+  <div id="outline"></div>
+  <div id="obsWrap" hidden></div>
+
+  <div class="actions">
+    <button class="send" id="btnSend" title="Ctrl+Enter">إرسال</button>
+    <button class="ghost danger" id="btnClear" title="مسح كل ما كتبت">🗑 مسح</button>
+    <span class="spacer"></span>
+    <button class="ghost" id="btnWide" title="عرض الصفحة كاملاً / عرض محدود">↔</button>
+    <button class="ghost" id="btnSettings" title="إعدادات">⚙</button>
+  </div>
+
+  <div id="settings"></div>
+</div>
+
+<div id="toast"></div>
+<div id="out">
+  <div id="outbox">
+    <h3>الناتج <span class="hint" id="outnote"></span></h3>
+    <div class="hint">Markdown:</div>
+    <textarea id="outMd" readonly></textarea>
+    <div class="bar"><button class="ghost" data-copy="outMd" style="border:1px solid var(--line)">نسخ Markdown</button></div>
+    <div class="hint">JSON (للإرسال البرمجي لاحقاً):</div>
+    <textarea id="outJson" readonly></textarea>
+    <div class="bar"><button class="ghost" data-copy="outJson" style="border:1px solid var(--line)">نسخ JSON</button>
+      <span class="spacer"></span><button class="ghost" id="outClose">إغلاق</button></div>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ============================================================
+   إعدادات يمكنك تعديلها
+   ============================================================ */
+const CONFIG = {
+  graphs: ["Qamos"],                 // أسماء الغرافات (لاحقاً يمررها AutoHotkey)
+  defaultHeader: true,
+  headerTemplate: "[[{date}]] at {time}",
+  demoPages: [                        // قائمة تجريبية حتى تحمّل قائمتك الحقيقية
+    "ج/ضرب","ج/ضرع","ج/ضرر","ج/ضبط","ج/كتب","ج/علم","ج/عرب","ج/قول",
+    "لسان العرب/1","لسان العرب/2","تاج العروس/1","القاموس المحيط/ض","الصحاح",
+    "حاشية ابن بري","مشروع المعاني","أفكار للبحث","November 12th, 2026","November 13th, 2026"
+  ]
+};
+
+/* ============================================================
+   أدوات عامة
+   ============================================================ */
+const $  = (s, r=document) => r.querySelector(s);
+const el = (tag, cls) => { const e = document.createElement(tag); if (cls) e.className = cls; return e; };
+const store = {
+  get(k){ try { return localStorage.getItem(k); } catch(e){ return null; } },
+  set(k,v){ try { localStorage.setItem(k,v); return true; } catch(e){ return false; } }
+};
+const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+function ord(d){ const r=d%10; if (d>=11&&d<=13) return d+"th"; return d+(r===1?"st":r===2?"nd":r===3?"rd":"th"); }
+function dailyTitle(dt=new Date()){ return MONTHS[dt.getMonth()]+" "+ord(dt.getDate())+", "+dt.getFullYear(); }
+const p2 = n => String(n).padStart(2,"0");
+function timeStr(dt=new Date()){ return p2(dt.getHours())+":"+p2(dt.getMinutes()); }
+function isoStr(dt=new Date()){ return dt.getFullYear()+"-"+p2(dt.getMonth()+1)+"-"+p2(dt.getDate()); }
+function norm(s){
+  return s.toLowerCase().replace(/[ً-ْٰـ]/g,"")
+    .replace(/[أإآٱ]/g,"ا").replace(/ى/g,"ي");
+}
+function esc(s){ return s.replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+let toastTimer;
+function toast(msg){ const t=$("#toast"); t.textContent=msg; t.classList.add("show"); clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove("show"),2600); }
+
+/* ============================================================
+   الحالة
+   ============================================================ */
+const DEFAULT_GRAPH = () => ({name:"Qamos", token:"", saveToken:false, header:true, tpl:CONFIG.headerTemplate, pageMode:"today", lastPage:{kind:"today",title:""}});
+const CFG = {
+  dest:"roam", dir:"rtl", wide:false,
+  roam:{current:"Qamos", graphs:[DEFAULT_GRAPH()]},
+  obs:{current:"", vaults:[], extra:[], paragraphs:true, dailyFolder:"", dailyFmt:"YYYY-MM-DD", lastFolder:""}
+};
+const S = {
+  graph:"Qamos", page:{kind:"today",title:""}, header:true, dir:"rtl", wide:false, tpl:CONFIG.headerTemplate,
+  pages:[], pagesN:[]               // صفحات Roam أو ملاحظات الخزنة (لاقتراح [[ ]])
+};
+const curGraph = () => CFG.roam.graphs.find(g => g.name===CFG.roam.current) || CFG.roam.graphs[0];
+function syncS(){
+  const g = curGraph(); CFG.roam.current = g.name;
+  S.graph = g.name; S.tpl = g.tpl || CONFIG.headerTemplate;
+  S.header = CFG.dest==="roam" ? !!g.header : false;
+  S.page = (g.pageMode==="last" && g.lastPage) ? g.lastPage : {kind:"today",title:""};
+  S.dir = CFG.dir; S.wide = CFG.wide;
+}
+function loadState(){
+  try{
+    const o = JSON.parse(store.get("rq-cfg") || "null");
+    if (o){
+      CFG.dest = o.dest==="obsidian" ? "obsidian" : "roam";
+      CFG.dir = o.dir==="auto" ? "auto" : "rtl"; CFG.wide = !!o.wide;
+      if (o.roam && Array.isArray(o.roam.graphs) && o.roam.graphs.length){
+        CFG.roam.graphs = o.roam.graphs.map(g => Object.assign(DEFAULT_GRAPH(), g));
+        CFG.roam.current = o.roam.current;
+      }
+      if (o.obs) Object.assign(CFG.obs, o.obs);
+    } else {                                           // ترحيل من النسخة السابقة
+      const old = JSON.parse(store.get("rq-state") || "{}"), g = CFG.roam.graphs[0];
+      if (typeof old.header==="boolean") g.header = old.header;
+      if (old.tpl) g.tpl = old.tpl;
+      if (old.page) g.lastPage = old.page;
+      const tk = store.get("rq-token:"+g.name); if (tk){ g.token = tk; g.saveToken = true; }
+      if (old.dir==="auto") CFG.dir = "auto";
+      if (typeof old.wide==="boolean") CFG.wide = old.wide;
+    }
+  }catch(e){}
+  if (window.DEST_START) CFG.dest = window.DEST_START;     // كل تطبيق مثبّت يفتح على وجهته
+  syncS();
+}
+function saveCfg(){
+  const c = JSON.parse(JSON.stringify(CFG));
+  c.roam.graphs.forEach(g => { if (!g.saveToken) g.token = ""; });   // الرمز لا يُحفظ إلا إن طلبت
+  store.set("rq-cfg", JSON.stringify(c));
+}
+function saveState(){
+  const g = curGraph(); g.lastPage = S.page;
+  if (CFG.dest==="roam") g.header = S.header;
+  g.tpl = S.tpl; CFG.dir = S.dir; CFG.wide = S.wide; saveCfg();
+}
+function loadPages(){
+  if (CFG.dest==="obsidian"){ S.pages = OBS.names; S.pagesN = S.pages.map(norm); return; }
+  const raw = store.get("rq-pages:"+S.graph);
+  S.pages = raw ? raw.split("\n").filter(Boolean) : CONFIG.demoPages.slice();
+  S.pagesN = S.pages.map(norm);
+}
+
+/* ============================================================
+   نموذج الكتل
+   ============================================================ */
+let nextId = 1;
+const mk = (text="", children=[]) => ({id: nextId++, text, children, collapsed:false});
+let model = [];
+let editingId = null, pendingCaret = null, pendingCaretEnd = null, rendering = false;
+
+/* ---------- التراجع والإعادة ---------- */
+const HIST = {past:[], future:[], mark:0};
+function snap(){
+  const t = document.activeElement, ed = t && t.tagName==="TEXTAREA" && t.classList.contains("ed");
+  return {m:JSON.parse(JSON.stringify(model)), n:nextId, id:editingId,
+          c: ed ? t.selectionStart : null, e: ed ? t.selectionEnd : null};
+}
+function pushHist(coalesce){                       // الكتابة المتتابعة خطوة واحدة
+  const now = Date.now();
+  if (coalesce && HIST.past.length && now-HIST.mark < 700){ HIST.mark = now; HIST.future.length = 0; return; }
+  HIST.mark = coalesce ? now : 0;
+  HIST.past.push(snap());
+  if (HIST.past.length > 150) HIST.past.shift();
+  HIST.future.length = 0;
+}
+function histBreak(){ HIST.mark = 0; }
+function applySnap(st){
+  model = st.m; nextId = st.n; editingId = st.id;
+  pendingCaret = st.c; pendingCaretEnd = st.e; closeSug(); render();
+}
+function undo(){ if (!HIST.past.length){ toast("لا يوجد ما يُتراجع عنه"); return; } HIST.future.push(snap()); histBreak(); applySnap(HIST.past.pop()); }
+function redo(){ if (!HIST.future.length) return; HIST.past.push(snap()); histBreak(); applySnap(HIST.future.pop()); }
+
+function loc(id, list=model, parent=null){
+  for (let i=0;i<list.length;i++){
+    if (list[i].id===id) return {list, index:i, parent, node:list[i]};
+    const r = loc(id, list[i].children, list[i]); if (r) return r;
+  }
+  return null;
+}
+function visible(list=model, out=[]){
+  if (typeof isOb==="function" && isOb() && list===model && !out.length) return obsVisible();
+  for (const n of list){ out.push(n); if(!n.collapsed) visible(n.children,out);} return out;
+}
+function depthOf(id){ let d=0, L=loc(id); while(L && L.parent){ d++; L=loc(L.parent.id);} return d; }
+
+function headerText(){
+  const now = new Date();
+  return S.tpl.replace(/\{date\}/g, dailyTitle(now)).replace(/\{time\}/g, timeStr(now)).replace(/\{iso\}/g, isoStr(now));
+}
+function freshModel(){
+  nextId = 1;
+  if (S.header){ const child = mk(""); model=[mk(headerText(), [child])]; editingId = child.id; }
+  else { const b = mk(""); model=[b]; editingId = b.id; }
+  pendingCaret = 0; pendingCaretEnd = 0;
+}
+
+/* ============================================================
+   العرض
+   ============================================================ */
+function renderInline(text){
+  if (/^\s*---\s*$/.test(text)) return '<hr class="hr">';
+  const tr = tableRows(text);
+  if (tr){
+    const cell = (c,t) => "<"+t+">"+renderInline(mdInline(c))+"</"+t+">";
+    return '<table class="mdt"><thead><tr>'+tr[0].map(c=>cell(c,"th")).join("")+'</tr></thead><tbody>'+
+      tr.slice(1).map(r => "<tr>"+r.map(c=>cell(c,"td")).join("")+"</tr>").join("")+'</tbody></table>';
+  }
+  const parts = text.split(/(```[\s\S]*?```)/);
+  if (parts.length > 1){
+    return parts.map(pt => /^```[\s\S]*```$/.test(pt)
+      ? '<pre>' + esc(pt.replace(/^```[^\n]*\n?/,"").replace(/\n?```$/,"")) + '</pre>'
+      : (pt ? renderInline(pt) : "")).join("");
+  }
+  let h = esc(text);
+  h = h.replace(/`([^`\n]+)`/g, "<code>$1</code>");
+  h = h.replace(/\[\[([^\[\]\n]+)\]\]/g, '<span class="link" dir="auto"><span class="br">[[</span>$1<span class="br">]]</span></span>');
+  h = h.replace(/\[([^\[\]\n]+)\]\((https?:[^)\s]+)\)/g, '<span class="ext">$1</span>');
+  h = h.replace(/\*\*([^*\n]+)\*\*/g, "<strong>$1</strong>");
+  h = h.replace(/__([^_\n]+)__/g, "<em>$1</em>");
+  h = h.replace(/\^\^([^\^\n]+)\^\^/g, "<mark>$1</mark>");
+  h = h.replace(/~~([^~\n]+)~~/g, "<del>$1</del>");
+  h = h.replace(/\{\{\[\[TODO\]\]\}\}/g, "☐").replace(/\{\{\[\[DONE\]\]\}\}/g, "☑").replace(/\{\{\[\[table\]\]\}\}/g, "▦ جدول");
+  h = h.replace(/\n/g, "<br>");
+  return h || '<span class="ph">&#8203;</span>';
+}
+
+/* ============================================================
+   Obsidian: محرر حيّ — كل سطر كتلة بلا نقاط، والجدول وكتلة الكود كتلة واحدة
+   ============================================================ */
+const isOb = () => CFG.dest==="obsidian";
+let OBFD = "rtl";                                    // جهة الملف: بأول حرف مكتوب فيه
+function obsFileDir(){
+  for (const n of model){ const m = n.text.match(/[A-Za-z؀-ۿ]/); if (m) return /[A-Za-z]/.test(m[0]) ? "ltr" : "rtl"; }
+  return "rtl";
+}
+function obsBlockDir(text){
+  if (/^\s*```/.test(text)) return "ltr";
+  if (OBFD==="ltr") return "auto";
+  return /[؀-ۿ]/.test(text) ? "rtl" : (/[A-Za-z]/.test(text) ? "ltr" : "rtl");
+}
+function splitUnits(text){                           // نص ← وحدات (سطر، أو جدول كامل، أو كتلة كود كاملة)
+  const ls = text.split("\n"), out = [];
+  for (let i=0;i<ls.length;i++){
+    const l = ls[i];
+    if (/^\s*```/.test(l)){
+      const buf = [l]; i++;
+      while (i<ls.length){ buf.push(ls[i]); if (/^\s*```\s*$/.test(ls[i])) break; i++; }
+      out.push(buf.join("\n")); continue;
+    }
+    if (l.includes("|") && i+1<ls.length && isSep(ls[i+1])){
+      const buf = [l, ls[i+1]]; i += 2;
+      while (i<ls.length && ls[i].trim()!=="" && ls[i].includes("|")){ buf.push(ls[i]); i++; }
+      i--; out.push(buf.join("\n")); continue;
+    }
+    out.push(l);
+  }
+  return out;
+}
+const obsText = () => model.map(n => n.text).join("\n");
+const headLv = t => { const m = t.match(/^(#{1,6})[ \t]/); return m ? m[1].length : 0; };
+const indLv = t => Math.floor((t.match(/^[ \t]*/)[0].replace(/\t/g,"    ").length)/4);
+const blankLn = t => t.trim()==="";
+/* الطي نوعان: عنوان يطوي ما تحته حتى عنوان بمستواه أو أعلى، وسطرٌ يطوي ما بعده مما هو أكثر إزاحة منه */
+function obsVisible(){
+  const out = [], stack = [], eff = new Array(model.length);
+  let nh = 0, ni = 0;                                // السطر الفارغ يتبع أول سطر غير فارغ بعده
+  for (let k=model.length-1;k>=0;k--){
+    const t = model[k].text;
+    if (!blankLn(t)){ nh = headLv(t); ni = indLv(t); }
+    eff[k] = {h:nh, i:ni};
+  }
+  for (let k=0;k<model.length;k++){
+    const n = model[k], e = eff[k];
+    while (stack.length){
+      const top = stack[stack.length-1];
+      if (top.stop && top.stop===n.id){ stack.pop(); continue; }     // سطر كُتب بعد المطويّ
+      if (top.h ? (e.h && e.h<=top.h) : (e.h || e.i<=top.i)) stack.pop(); else break;
+    }
+    if (stack.length) continue;                      // مطويّ
+    out.push(n);
+    if (n.collapsed){ const h = headLv(n.text); stack.push(h ? {h, stop:n.foldStop} : {i:indLv(n.text), stop:n.foldStop}); }
+  }
+  return out;
+}
+function foldEnd(n){                                 // فهرس ما بعد آخر سطر مطويّ تحت هذا السطر
+  const k0 = model.indexOf(n); if (k0<0) return model.length;
+  const h = headLv(n.text), i = indLv(n.text);
+  let last = k0;
+  for (let k=k0+1;k<model.length;k++){
+    const t = model[k].text;
+    if (blankLn(t)) continue;
+    if (h ? (headLv(t) && headLv(t)<=h) : (headLv(t) || indLv(t)<=i)) break;
+    last = k;
+  }
+  return last+1;
+}
+function sibPrefix(txt){                             // بادئة السطر التالي: مثل هذا السطر مستوىً ونوعاً
+  if (headLv(txt)) return "";
+  const m = txt.match(/^([ \t]*)([-*+]|\d+[.)])([ \t]+)(\[[ xX]\][ \t]+)?/);
+  if (m){ let k = m[2]; const num = k.match(/^(\d+)([.)])$/); if (num) k = (+num[1]+1)+num[2];
+          return m[1]+k+m[3]+(m[4] ? "[ ] " : ""); }
+  return txt.match(/^[ \t]*/)[0];
+}
+function obsFoldable(n){
+  const k0 = model.indexOf(n); if (k0<0 || blankLn(n.text)) return false;
+  const h = headLv(n.text);
+  for (let k=k0+1;k<model.length;k++){
+    const t = model[k].text;
+    if (blankLn(t)) continue;
+    if (h) return !(headLv(t) && headLv(t)<=h);
+    return !headLv(t) && indLv(t) > indLv(n.text);
+  }
+  return false;
+}
+/* ---- موضع النقر → موضع المؤشر في النص الخام ---- */
+function shownOffset(v, x, y){                       // أقرب حرف إلى نقطة النقر (أدق من caretRangeFromPoint مع الاتجاهين)
+  const w = document.createTreeWalker(v, NodeFilter.SHOW_TEXT);
+  const RTL = /[\u0590-\u08FF\uFB1D-\uFEFC]/;
+  let t, pre = 0, best = null, bestD = Infinity;
+  while ((t = w.nextNode())){
+    const str = t.nodeValue;
+    for (let i=0;i<str.length;i++){
+      const r = document.createRange(); r.setStart(t,i); r.setEnd(t,i+1);
+      const b = r.getBoundingClientRect();
+      if (!b.width && !b.height) continue;
+      const dy = y<b.top ? b.top-y : (y>b.bottom ? y-b.bottom : 0);
+      const dx = x<b.left ? b.left-x : (x>b.right ? x-b.right : 0);
+      const d = dy*2000 + dx;
+      if (d < bestD){
+        const edge = RTL.test(str[i]) ? b.right : b.left;        // بداية الحرف بحسب اتجاهه
+        best = pre + i + (Math.abs(x-edge) > b.width/2 ? 1 : 0);
+        bestD = d;
+      }
+    }
+    pre += str.length;
+  }
+  return best;
+}
+function rawOffset(raw, shown, off){                 // محاذاة النص المعروض بالنص الخام (الرموز محذوفة)
+  let i = 0, j = 0;
+  while (j < off && i < raw.length){
+    const c = shown[j];
+    if (c===undefined) break;
+    if (/[\u200e\u2066-\u2069]/.test(c)){ j++; continue; }
+    if (raw[i]===c){ i++; j++; continue; }
+    const k = raw.indexOf(c, i);
+    if (k>=0 && k-i<=40){ i = k+1; j++; } else j++;
+  }
+  return i;
+}
+/* ---------- تظليل كل النص (Ctrl+Shift+A) ---------- */
+let selAll = false;
+function rawAll(){ return isOb() ? obsText() : toMd(prune(model, 6, true)).replace(/\s+$/,""); }
+function selectAll(){
+  editingId = null; closeSug(); render();
+  const host = $("#outline"), sel = window.getSelection();
+  const r = document.createRange(); r.selectNodeContents(host);
+  sel.removeAllRanges(); sel.addRange(r);
+  selAll = true;
+  toast("حُدِّد كل النص");
+}
+function clearSelAll(){ if (!selAll) return; selAll = false; const s = window.getSelection(); if (s) s.removeAllRanges(); }
+
+function clickCaret(v, raw, e){
+  try {
+    const off = shownOffset(v, e.clientX, e.clientY);
+    if (off==null) return null;
+    return rawOffset(raw, v.textContent || "", off);
+  } catch(err){ return null; }
+}
+function normalizeObs(id, caret){                    // يعيد تقسيم النص إلى وحدات مع حفظ موضع المؤشر
+  const texts = model.map(n => n.text), units = splitUnits(texts.join("\n"));
+  if (units.length===model.length && units.every((u,i) => u===texts[i])) return [id, caret];
+  let off = 0, g = null; const at = new Map();
+  for (const n of model){
+    if (n.id===id) g = off + Math.min(caret ?? n.text.length, n.text.length);
+    at.set(off+"|"+n.text, n); off += n.text.length+1;
+  }
+  const nm = []; off = 0; let rid = id, rc = caret;
+  for (const u of units){
+    const node = at.get(off+"|"+u) || mk(u); nm.push(node);
+    if (g!=null && g>=off && g<=off+u.length){ rid = node.id; rc = g-off; g = null; }
+    off += u.length+1;
+  }
+  model = nm; return [rid, rc];
+}
+function isoTok(s){                                  // عزل المقاطع اللاتينية داخل النص العربي (للعرض فقط)
+  return s.replace(/[^\s؀-ۿ]*[A-Za-z0-9][^\s؀-ۿ]*/g, w => {
+    const m = w.match(/^(.*?)([.,;:!?،؛؟]*)$/); return m[1] ? "⁦"+m[1]+"⁩"+m[2] : w;
+  });
+}
+function fmtObs(s){
+  let h = esc(s);
+  h = h.replace(/\[\[([^\[\]\n|]+)(?:\|([^\[\]\n]+))?\]\]/g, (m,a,b) => '<span class="link" dir="auto"><span class="br">[[</span>'+(b||a)+'<span class="br">]]</span></span>');
+  h = h.replace(/\[([^\[\]\n]+)\]\((https?:[^)\s]+)\)/g, '<span class="ext">$1</span>');
+  h = h.replace(/\*\*\*([^*\n]+)\*\*\*/g, "<strong><em>$1</em></strong>");
+  h = h.replace(/\*\*([^*\n]+)\*\*/g, "<strong>$1</strong>");
+  h = h.replace(/(?<![\p{L}\p{N}*])\*(?=[^\s*])([^*\n]+?)(?<=[^\s*])\*(?![\p{L}\p{N}*])/gu, "<em>$1</em>");
+  h = h.replace(/(?<![\p{L}\p{N}_])_(?=[^\s_])([^_\n]+?)(?<=[^\s_])_(?![\p{L}\p{N}_])/gu, "<em>$1</em>");
+  h = h.replace(/==([^=\n]+)==/g, "<mark>$1</mark>");
+  h = h.replace(/~~([^~\n]+)~~/g, "<del>$1</del>");
+  h = h.replace(/(^|[\s(،؛,;⁦])#([^\s#\[\](){}<>&.,،؛!?]+)/g, '$1<span class="otag">#$2</span>');
+  return h;
+}
+function renderObsInline(text){
+  const ar = /[؀-ۿ]/.test(text);
+  const h = text.split(/(`[^`\n]+`)/).map((p,i) => i%2 ? "<code>"+esc(p.slice(1,-1))+"</code>" : fmtObs(ar ? isoTok(p) : p)).join("");
+  return h.replace(/\n/g, "<br>") || '<span class="ph">&#8203;</span>';
+}
+function renderObs(text){
+  if (/^\s*([-*_])(\s*\1){2,}\s*$/.test(text)) return '<hr class="hr">';
+  const tr = tableRows(text);
+  if (tr){
+    const cell = (c,t) => "<"+t+">"+renderObsInline(c)+"</"+t+">";
+    return '<table class="mdt"><thead><tr>'+tr[0].map(c=>cell(c,"th")).join("")+'</tr></thead><tbody>'+
+      tr.slice(1).map(r => "<tr>"+r.map(c=>cell(c,"td")).join("")+"</tr>").join("")+'</tbody></table>';
+  }
+  if (/^\s*```/.test(text)) return '<pre>'+esc(text.replace(/^\s*```[^\n]*\n?/,"").replace(/\n?[ \t]*```[ \t]*$/,""))+'</pre>';
+  const lm = text.match(/^([ \t]*)([-*+]|\d+[.)])[ \t]+(\[[ xX]\][ \t]+)?([\s\S]*)$/);
+  if (lm){
+    const lvl = Math.ceil(lm[1].replace(/\t/g,"    ").length/4);
+    const mark = /\d/.test(lm[2]) ? esc(lm[2]) : "•";
+    const box = lm[3] ? (/\[ \]/.test(lm[3]) ? "☐ " : "☑ ") : "";
+    return '<div class="oli" style="padding-inline-start:'+(lvl*1.6)+'em"><span class="omk">'+mark+'</span><span class="otx">'+box+renderObsInline(lm[4])+'</span></div>';
+  }
+  const im = text.match(/^([ \t]+)(\S[\s\S]*)$/);
+  if (im) return '<div class="oin" style="padding-inline-start:'+(indLv(text)*1.6)+'em">'+renderObsInline(im[2])+'</div>';
+  return renderObsInline(text);
+}
+function bidiStrip(t){ return t.replace(/[‎⁦-⁩]/g, ""); }
+
+function renderList(nodes, top){
+  const wrap = el("div", top ? "" : "children");
+  for (const n of nodes) wrap.appendChild(renderBlock(n));
+  return wrap;
+}
+function renderBlock(n){
+  const b = el("div","block"); b.dataset.id = n.id;
+  const row = el("div","row");
+  const ob = isOb();
+  const hasKids = ob ? obsFoldable(n) : n.children.length>0;
+  if (ob && hasKids){ row.classList.add("hastg"); if (n.collapsed) row.classList.add("col"); }
+  const toggle = () => {
+    const y0 = b.getBoundingClientRect().top;
+    const host = $("#outline"), sy = window.scrollY;
+    host.style.minHeight = host.offsetHeight + "px";      // لا ينكمش المستند فيتحرك التمرير
+    n.foldStop = null; n.collapsed = !n.collapsed; render();
+    const nb = document.querySelector('.block[data-id="'+n.id+'"]');
+    window.scrollTo(0, sy);
+    if (nb) window.scrollBy(0, nb.getBoundingClientRect().top - y0);
+    host.style.minHeight = "";
+  };
+  const tg = el("span","tg"); tg.textContent = hasKids ? (n.collapsed ? "◂" : "▾") : "";
+  tg.onmousedown = e => { e.preventDefault(); if(hasKids) toggle(); };
+  const bullet = el("span","bullet"+(hasKids&&n.collapsed?" collapsed":""));
+  bullet.onmousedown = e => { e.preventDefault(); if(hasKids) toggle(); };
+  const content = el("div","content");
+  if (editingId === n.id){
+    const t = el("textarea","ed");
+    t.dir = isOb() ? obsBlockDir(n.text) : S.dir; if (isOb()) t.style.textAlign = OBFD==="ltr" ? "left" : "right";
+    t.rows = 1; t.value = n.text; t.spellcheck = false; t.dataset.id = n.id;
+    t.addEventListener("input", () => onInput(n,t));
+    t.addEventListener("keydown", e => onKey(e,n,t));
+    t.addEventListener("beforeinput", e => onBeforeInput(e,n,t));
+    t.addEventListener("paste", e => onPaste(e,n,t));
+    t.addEventListener("click", () => checkSug(n,t));
+    t.addEventListener("keyup", e => { if (["ArrowLeft","ArrowRight","Home","End"].includes(e.key)) checkSug(n,t); });
+    t.addEventListener("blur", () => onBlur(n,t));
+    content.appendChild(t);
+  } else {
+    let cls = "view", txt = n.text;
+    const hm = txt.match(/^(#{1,6})[ \t]+([\s\S]*)$/);
+    if (hm){ cls += " h"+Math.min(6,hm[1].length); txt = hm[2]; }
+    else if (/^>[ \t]?/.test(txt)){ cls += " quote"; txt = txt.replace(/^>[ \t]?/,""); }
+    const v = el("div",cls);
+    if (isOb()){ v.dir = obsBlockDir(n.text); v.style.textAlign = OBFD==="ltr" ? "left" : "right"; v.innerHTML = (hm || cls!=="view") ? renderObsInline(txt) : renderObs(txt);
+      if (hasKids && n.collapsed){ const tail = v.querySelector(".otx") || v.querySelector(".oin") || v; tail.insertAdjacentHTML("beforeend", ' <span class="fade">\u2026</span>'); } }
+    else { v.dir = S.dir; v.innerHTML = renderInline(txt); }
+    let downX = 0, downY = 0;
+    v.onmousedown = e => { if (e.button===0){ suppressBlur = true; downX = e.clientX; downY = e.clientY; } };   // لا نعيد الرسم أثناء التظليل
+    v.onclick = e => {
+      suppressBlur = false;
+      const moved = Math.hypot(e.clientX-downX, e.clientY-downY) > 4;       // سحب = تظليل، وإلا نقرة = تحرير
+      const sel = window.getSelection();
+      if (moved && sel && !sel.isCollapsed && sel.toString().trim() !== "") return;   // تظليل: اتركه للنسخ
+      const c = clickCaret(v, n.text, e);
+      startEdit(n.id, c==null ? n.text.length : Math.min(c, n.text.length));
+    };
+    content.appendChild(v);
+  }
+  row.append(tg, bullet, content);
+  b.appendChild(row);
+  if (hasKids && !n.collapsed) b.appendChild(renderList(n.children,false));
+  return b;
+}
+function render(){
+  rendering = true; OBFD = obsFileDir();
+  $("#outline").classList.toggle("plain", isOb());
+  const host = $("#outline"); host.innerHTML = "";
+  host.appendChild(renderList(isOb() ? obsVisible() : model, true));
+  rendering = false;
+  if (editingId != null){
+    const t = host.querySelector('textarea[data-id="'+editingId+'"]');
+    if (t){
+      t.focus();
+      const c = Math.min(pendingCaret ?? t.value.length, t.value.length);
+      const ce = Math.min(pendingCaretEnd ?? c, t.value.length);
+      t.setSelectionRange(c, ce); autosize(t);
+    }
+  }
+  pendingCaret = pendingCaretEnd = null;
+}
+function obsDir(t){
+  // اتجاه المحاذاة بحسب أول حرف مكتوب؛ أما ترتيب كل سطر فبحسب لغته (unicode-bidi:plaintext)
+  const m = t.value.match(/[A-Za-z\u0600-\u06FF]/);
+  const d = m ? (/[A-Za-z]/.test(m[0]) ? "ltr" : "rtl") : (CFG.dir==="auto" ? "rtl" : "rtl");
+  if (t.dir !== d){ t.dir = d; t.style.textAlign = d==="ltr" ? "left" : "right"; }
+}
+function autosize(t){ if (t.id==="obsText") obsDir(t); t.style.height="0"; t.style.height = Math.max(26,t.scrollHeight)+"px"; }
+function startEdit(id, caret, caretEnd){
+  if (isOb() && id != null){ const r = normalizeObs(id, caret); if (r[0]!==id || r[1]!==caret){ id = r[0]; caret = r[1]; caretEnd = caret; } }
+  editingId = id; pendingCaret = caret; pendingCaretEnd = caretEnd ?? caret; render(); }
+function onBlur(n,t){
+  if (rendering) return;
+  setTimeout(()=>{
+    if (document.activeElement !== t && editingId === n.id && !suppressBlur){ editingId = null; closeSug(); if (isOb()) normalizeObs(null, 0); render(); }
+  },0);
+}
+let suppressBlur = false;
+document.addEventListener("mouseup", () => { setTimeout(() => { suppressBlur = false; }, 0); }, true);
+function onInput(n,t){
+  n.text = t.value;
+  if (isOb()){ OBFD = obsFileDir(); t.dir = obsBlockDir(n.text); t.style.textAlign = OBFD==="ltr" ? "left" : "right"; }
+  autosize(t); checkSug(n,t);
+}
+
+/* ============================================================
+   الأقواس التلقائية
+   ============================================================ */
+const OPEN = {"[":"]","(":")","{":"}"};
+const CLOSE = "])}";
+function insertText(t, str, caretFromStart){
+  pushHist(true);
+  const s = t.selectionStart;
+  t.focus();
+  document.execCommand("insertText", false, str);
+  if (caretFromStart != null) t.setSelectionRange(s+caretFromStart, s+caretFromStart);
+}
+function onBeforeInput(e,n,t){
+  if (!e.isComposing && e.inputType && e.inputType!=="insertCompositionText") pushHist(/^(insertText|deleteContent)/.test(e.inputType));
+  if (e.isComposing || e.inputType !== "insertText" || !e.data || e.data.length !== 1) return;
+  const ch = e.data, v = t.value, s = t.selectionStart, en = t.selectionEnd;
+  if (OPEN[ch]){
+    const close = OPEN[ch];
+    if (s !== en){                         // تغليف المحدد
+      e.preventDefault();
+      const sel = v.slice(s,en);
+      pushHist(true); document.execCommand("insertText", false, ch+sel+close);
+      t.setSelectionRange(s+1, s+1+sel.length);
+      return;
+    }
+    const prev = v[s-1] || "", after = v.slice(s,s+2);
+    let need;
+    if (prev === ch) need = (after === close+close) ? "" : (after[0] === close ? close : close+close);
+    else need = (after[0] === close) ? "" : close;
+    if (need){ e.preventDefault(); insertText(t, ch+need, 1); }
+  } else if (CLOSE.includes(ch) && s === en && v[s] === ch){
+    e.preventDefault(); t.setSelectionRange(s+1, s+1);   // تخطَّ القوس الموجود
+    checkSug(n,t);
+  }
+}
+
+/* ============================================================
+   لصق متعدد الأسطر → كتل
+   ============================================================ */
+/* ---- Markdown ← Roam: تحويل التنسيق داخل السطر ---- */
+// ملاحظة: في Markdown القياسي __x__ غامق و*x* و_x_ مائل. أما في Roam فالمائل __x__ والغامق **x**.
+function mdInline(s){
+  const keep = [];
+  s = s.replace(/`[^`\n]+`/g, m => { keep.push(m); return "\u0000"+(keep.length-1)+"\u0000"; });
+  s = s.replace(/\\([\\`*_{}\[\]()#+\-.!~|>=])/g, (m,c) => "\u0001"+c.charCodeAt(0)+"\u0001");
+  s = s.replace(/(\*\*\*|___)(?=\S)([^\n]+?)(?<=\S)\1/g, "\u0002$2\u0003");                   // غامق+مائل
+  s = s.replace(/(^|[^\w])__(?=\S)([^\n_]+?)(?<=\S)__(?!\w)/g, "$1**$2**");              // __x__ غامق في Markdown
+  s = s.replace(/(^|[^*\w])\*(?=[^\s*])([^*\n]+?)(?<=[^\s*])\*(?!\*)/g, "$1__$2__");     // *x* مائل
+  s = s.replace(/(^|[^\w_])_(?=[^\s_])([^_\n]+?)(?<=[^\s_])_(?![\w_])/g, "$1__$2__");    // _x_ مائل
+  s = s.replace(/==(?=\S)([^=\n]+?)(?<=\S)==/g, "^^$1^^");                              // تمييز
+  s = s.replace(/<(https?:\/\/[^>\s]+)>/g, "$1").replace(/<br\s*\/?>/gi, "\n");
+  s = s.replace(/\u0002/g, "**__").replace(/\u0003/g, "__**");
+  s = s.replace(/\u0001(\d+)\u0001/g, (m,c) => String.fromCharCode(+c));
+  s = s.replace(/\u0000(\d+)\u0000/g, (m,i) => keep[+i]);
+  return s;
+}
+function buildTable(rows){                           // جدول Roam: كل صف سلسلة خلايا متداخلة
+  const root = mk("{{[[table]]}}"); root.keep = true;
+  for (const r of rows){
+    if (!r.length) continue;
+    const first = mk(r[0]); first.keep = true; let cur = first;
+    for (let i=1;i<r.length;i++){ const c = mk(r[i]); c.keep = true; cur.children.push(c); cur = c; }
+    root.children.push(first);
+  }
+  return root;
+}
+const splitRow = l => l.trim().replace(/^\|/,"").replace(/\|$/,"").split(/(?<!\\)\|/).map(c => c.trim().replace(/\\\|/g,"|"));
+function tableRows(text){                          // نص جدول Markdown ← صفوف (أو null)
+  if (text.indexOf("\n")<0) return null;
+  const ls = text.split("\n").filter(l => l.trim()!=="");
+  if (ls.length<2 || !ls[0].includes("|") || !isSep(ls[1])) return null;
+  return [splitRow(ls[0]), ...ls.slice(2).map(splitRow)];
+}
+function rowsToMd(rows){
+  const n = Math.max(...rows.map(r => r.length));
+  const f = r => "| " + Array.from({length:n}, (_,i) => (r[i]||"").replace(/\|/g,"\\|").replace(/\n/g," ")).join(" | ") + " |";
+  return [f(rows[0]), "|" + Array(n).fill("---").join("|") + "|", ...rows.slice(1).map(f)].join("\n");
+}
+function nestHeadings(list){                       // ما بعد العنوان يصير ابناً له حتى عنوان بمستواه أو أعلى
+  const out = []; let cur = null;
+  for (const n of list){
+    const m = n.text.match(/^(#{1,6})[ \t]/);
+    const lv = n.hl || (m ? m[1].length : 0);
+    if (lv){
+      while (cur && cur.lv >= lv) cur = cur.up;
+      (cur ? cur.n.children : out).push(n);
+      cur = {n, lv, up:cur};
+    } else (cur ? cur.n.children : out).push(n);
+  }
+  for (const n of list) n.children = nestHeadings(n.children);
+  return out;
+}
+const isSep = l => /^\s*\|?\s*:?-{2,}:?\s*(\|\s*:?-{2,}:?\s*)*\|?\s*$/.test(l) && l.includes("-");
+
+/* ---- Markdown نصي ← كتل (عناوين 1-3، قوائم، فقرات، جداول، مهام، أكواد، اقتباس) ---- */
+function parseMarkdown(text){
+  const lines = text.replace(/\r/g,"").split("\n");
+  const items = [];
+  for (let i=0;i<lines.length;i++){
+    const l = lines[i];
+    if (/^\s*```/.test(l)){                       // كتلة كود (تبقى كما هي)
+      const buf = [l.trim()]; i++;
+      while (i<lines.length && !/^\s*```/.test(lines[i])){ buf.push(lines[i]); i++; }
+      buf.push("```");
+      items.push({kind:"p", w:0, s:buf.join("\n")}); continue;
+    }
+    if (l.trim()==="") continue;
+    if (l.includes("|") && i+1<lines.length && isSep(lines[i+1])){   // جدول
+      const rows = [splitRow(l)]; i += 2;
+      while (i<lines.length && lines[i].trim()!=="" && lines[i].includes("|")){ rows.push(splitRow(lines[i])); i++; }
+      i--; items.push({kind:"p", w:0, s:rowsToMd(rows)}); continue;
+    }
+    if (/^\s*([-*_])(\s*\1){2,}\s*$/.test(l)){ items.push({kind:"p", w:0, s:"---"}); continue; }   // خط فاصل
+    const hm = l.match(/^\s{0,3}(#{1,6})[ \t]+(.*?)[ \t]*#*[ \t]*$/);
+    if (hm){                                       // عنوان: Roam فيه 3 مستويات فقط
+      let t = mdInline(hm[2]).replace(/^\*\*(.+)\*\*$/,"$1");
+      items.push({kind:"p", w:0, hl:hm[1].length, s:"#".repeat(hm[1].length)+" "+t}); continue;
+    }
+    const qm = l.match(/^\s*>+[ \t]?(.*)$/);
+    if (qm){ items.push({kind:"p", w:0, s:"> "+mdInline(qm[1])}); continue; }
+    const m = l.match(/^([ \t]*)([-*•+][ \t]+|\d+[.)][ \t]+)?(.*)$/);
+    const w = m[1].replace(/\t/g,"    ").length;
+    let body = m[3];
+    const tk = body.match(/^\[([ xX])\][ \t]+(.*)$/);              // قائمة مهام
+    if (tk) body = (tk[1]===" " ? "{{[[TODO]]}} " : "{{[[DONE]]}} ") + tk[2];
+    body = mdInline(body);
+    if (m[2]) items.push({kind:"li", w, s:(/\d/.test(m[2]) ? m[2].trim()+" " : "")+body});
+    else if (w>0) items.push({kind:"li", w, s:body});
+    else items.push({kind:"p", w:0, s:body});
+  }
+  const ws = items.filter(i => i.kind==="li" && i.w>0).map(i => i.w);
+  const unit = ws.length ? Math.min(...ws) : 1;
+  const roots = []; let stack = []; let anchored = false;
+  for (const it of items){
+    const node = it.node || mk(it.s); if (it.hl) node.hl = it.hl; if (it.kind==="li") node.li = true;
+    if (it.kind==="p"){ roots.push(node); stack = [node]; anchored = true; continue; }
+    let lvl = (anchored ? 1 : 0) + Math.round(it.w/unit);
+    lvl = Math.min(lvl, stack.length);
+    if (lvl===0) roots.push(node); else stack[lvl-1].children.push(node);
+    stack.length = lvl; stack.push(node);
+  }
+  return nestHeadings(roots);
+}
+
+/* ---- HTML (من المتصفح أو محادثة الذكاء) ← كتل بتنسيق Roam ---- */
+const INLINE_TAGS = new Set(["A","B","STRONG","I","EM","CODE","SPAN","DEL","S","STRIKE","MARK","U","SUP","SUB","BR","FONT","SMALL","KBD","ABBR","LABEL","CITE","Q","TIME","BDI","BDO","WBR"]);
+function inl(node, o){
+  if (node.nodeType===3) return o.pre ? node.nodeValue : node.nodeValue.replace(/\s+/g," ");
+  if (node.nodeType!==1) return "";
+  const tag = node.tagName;
+  if (tag==="BR") return "\n";
+  if (tag==="SCRIPT"||tag==="STYLE"||tag==="IMG"||tag==="SVG") return "";
+  let inner = ""; for (const c of node.childNodes) inner += inl(c,o);
+  if (o.noFmt) return inner;
+  const wrap = m => { const x = inner.match(/^(\s*)([\s\S]*?)(\s*)$/); return x[2] ? x[1]+m+x[2]+m+x[3] : inner; };
+  switch (tag){
+    case "STRONG": case "B": return (node.style && /^(normal|400)$/.test(node.style.fontWeight)) ? inner : wrap("**");
+    case "EM": case "I": return wrap("__");
+    case "CODE": case "KBD": return o.pre ? inner : wrap("`");
+    case "DEL": case "S": case "STRIKE": return wrap("~~");
+    case "MARK": return wrap("^^");
+    case "A": { const h = node.getAttribute("href") || ""; const t = inner.trim();
+      return (/^https?:/i.test(h) && t) ? "["+t.replace(/[\[\]]/g,"")+"]("+h+")" : inner; }
+    default: return inner;
+  }
+}
+const isBlockEl = el => el.nodeType===1 && !INLINE_TAGS.has(el.tagName);
+function listTarget(out){ const last = out[out.length-1]; return (last && last.para) ? last.children : out; }
+function listInto(listEl, target){
+  const ordered = listEl.tagName==="OL"; let i = 0;
+  for (const li of listEl.children){
+    if (li.tagName!=="LI") continue; i++;
+    let buf = ""; const nested = [];
+    for (const c of li.childNodes){
+      if (c.nodeType===1 && (c.tagName==="UL"||c.tagName==="OL")) nested.push(c);
+      else buf += inl(c,{}) + ((c.nodeType===1 && (c.tagName==="P"||c.tagName==="DIV")) ? "\n" : "");
+    }
+    const b = mk((ordered ? i+". " : "") + buf.replace(/[ \t]+\n/g,"\n").trim());
+    b.li = true; target.push(b);
+    nested.forEach(l => listInto(l, b.children));
+  }
+}
+let codeLang = "";
+function walkInto(parent, out){
+  let buf = "";
+  const flush = () => { const t = buf.replace(/[ \t]+\n/g,"\n").trim(); if (t){ const b = mk(t); b.para = true; out.push(b); } buf = ""; };
+  for (const c of parent.childNodes){
+    if (c.nodeType===3 || (c.nodeType===1 && !isBlockEl(c))){ buf += inl(c,{}); continue; }
+    if (c.nodeType!==1) continue;
+    flush();
+    const tag = c.tagName;
+    // وسم اللغة فوق الكود (vba، python…) يُدمج في سياج الكود
+    if (tag!=="PRE" && !c.querySelector("pre") && c.nextElementSibling && c.nextElementSibling.tagName==="PRE" && /^[A-Za-z][\w+#.-]{0,14}$/.test(c.textContent.trim())){ codeLang = c.textContent.trim(); continue; }
+    if (/^H[1-6]$/.test(tag)){
+      const t = inl(c,{noFmt:true}).trim();
+      if (t){ const b = mk("#".repeat(+tag[1])+" "+t); b.hl = +tag[1]; b.para = true; out.push(b); }
+    } else if (tag==="UL"||tag==="OL") listInto(c, listTarget(out));
+    else if (tag==="PRE"){
+      const cm = (c.querySelector("code")||c).className.match(/(?:language|lang)-([\w+#.-]+)/);
+      const lg = codeLang || (cm ? cm[1] : ""); codeLang = "";
+      const b = mk("```"+lg+"\n"+c.textContent.replace(/\n$/,"")+"\n```"); b.para = true; out.push(b);
+    }
+    else if (tag==="HR"){ const b = mk("---"); b.para = true; out.push(b); }
+    else if (tag==="BLOCKQUOTE"){ const tmp = []; walkInto(c,tmp); for (const b of tmp){ b.text = "> "+b.text; out.push(b); } }
+    else if (tag==="TABLE"){
+      const rows = [...c.querySelectorAll("tr")].map(tr => [...tr.children].map(x => inl(x,{}).trim()));
+      if (rows.length){ const tb = mk(rowsToMd(rows)); tb.para = true; out.push(tb); }
+    } else if (tag==="STYLE"||tag==="SCRIPT"||tag==="HEAD"){ /* تجاهل */ }
+    else walkInto(c,out);
+  }
+  flush();
+}
+function htmlToBlocks(html){
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  const roots = []; walkInto(doc.body, roots); return nestHeadings(roots);
+}
+
+let plainNext = false;       // Ctrl+Shift+V: لصق كنص خام
+function onPaste(e,n,t){
+  if (plainNext){ plainNext = false; return; }
+  const cd = e.clipboardData || window.clipboardData;
+  const txt = cd.getData("text/plain") || "", html = cd.getData("text/html") || "";
+  const mdLike = /(\*\*|^#{1,6}[ \t]|^\s*[-*•][ \t]|^\s*>|^\s*\|.*\||```)/m.test(txt);   // النص العادي نفسه Markdown
+  if (isOb()){                                         // Obsidian: نص Markdown يُقسم إلى أسطر
+    let md = null;
+    if (html && !mdLike && /<(strong|b|em|i|h[1-6]|ul|ol|li|a|code|pre|table|blockquote|p|div|br)\b/i.test(html)){
+      try { md = toObsidian(prune(htmlToBlocks(html), 6, true), true); } catch(err){ md = null; }
+    } else if (txt) md = bidiStrip(txt.replace(/\r\n?/g,"\n")).replace(/\n+$/,"");
+    if (!md || !md.trim()) return;
+    e.preventDefault(); pushHist();
+    if (!md.includes("\n")){ pushHist(); document.execCommand("insertText", false, md); return; }
+    const s = t.selectionStart, en = t.selectionEnd, v = t.value;
+    const nodes = splitUnits(v.slice(0,s)+md+v.slice(en)).map(u => mk(u)), L = loc(n.id);
+    L.list.splice(L.index, 1, ...nodes);
+    let g = s+md.length, off = 0, target = nodes[nodes.length-1], c = target.text.length;
+    for (const nd of nodes){ if (g <= off+nd.text.length){ target = nd; c = g-off; break; } off += nd.text.length+1; }
+    startEdit(target.id, c); return;
+  }
+  let roots = null;
+  if (html && !mdLike && /<(strong|b|em|i|h[1-6]|ul|ol|li|a|code|pre|table|blockquote|p|div|br)\b/i.test(html)){
+    try { roots = htmlToBlocks(html); } catch(err){ roots = null; }
+  } else if (/\r?\n/.test(txt.trim())) roots = parseMarkdown(txt);
+  if (!roots || !roots.length) return;                     // لصق عادي
+  e.preventDefault(); pushHist();
+  if (roots.length===1 && roots[0].children.length===0){   // كتلة واحدة: أدخلها داخل السطر الحالي
+    pushHist(); document.execCommand("insertText", false, roots[0].text); return;
+  }
+  const L = loc(n.id);
+  if (n.text.trim()==="" && n.children.length===0) L.list.splice(L.index, 1, ...roots);
+  else L.list.splice(L.index+1, 0, ...roots);
+  let last = roots[roots.length-1]; while (last.children.length) last = last.children[last.children.length-1];
+  startEdit(last.id, last.text.length);
+}
+
+/* ============================================================
+   قائمة [[ المقترحة
+   ============================================================ */
+let sug = {open:false, items:[], sel:0, start:0, id:null, el:null, kind:"page"};
+function closeSug(){ if (sug.el){ sug.el.remove(); sug.el=null; } sug.open=false; }
+function checkSug(n,t){
+  const s = t.selectionStart, v = t.value;
+  if (s !== t.selectionEnd){ closeSug(); return; }
+  const before = v.slice(0,s);
+  const i = before.lastIndexOf("[[");
+  const pageCtx = i>=0 && !/\]\]|\n|\[/.test(before.slice(i+2));
+  if (!pageCtx && CFG.dest==="obsidian"){
+    const tm = before.match(/(^|[\s(،؛,;\u200e\u2066-\u2069])#([^\s#\[\](){}]*)$/);
+    const lineSoFar = before.slice(before.lastIndexOf("\n")+1);
+    if (tm && !/^\s*#{1,6}$/.test(lineSoFar)){
+      const q = tm[2], qn = normKey(q);
+      let items = rankFilter(OBS.tagList, q, x => x.t).map(x => ({title:x.t, kind:"tag", sub:String(x.c)}));
+      if (q && !OBS.tagKey.has(qn)) items.push({title:q, kind:"newtag"});
+      if (!items.length){ closeSug(); return; }
+      sug.items = items; sug.sel = 0; sug.start = s - q.length; sug.id = n.id; sug.open = true; sug.kind = "tag";
+      drawSug(t); return;
+    }
+  }
+  if (!pageCtx){ closeSug(); return; }
+  const q = before.slice(i+2);
+  const qn = norm(q.trim());
+  let first=[], rest=[];
+  for (let k=0;k<S.pages.length;k++){
+    const pn = S.pagesN[k];
+    if (qn === "") { first.push(S.pages[k]); }
+    else { const p = pn.indexOf(qn); if (p===0) first.push(S.pages[k]); else if (p>0) rest.push(S.pages[k]); }
+    if (first.length + rest.length >= 300) break;
+  }
+  let items = first.concat(rest).slice(0,12).map(x => ({title:x, kind:"page"}));
+  if (q.trim() && !items.some(it => norm(it.title) === qn)) items.push({title:q.trim(), kind:"new"});
+  if (!items.length){ closeSug(); return; }
+  sug.items = items; sug.sel = 0; sug.start = i+2; sug.id = n.id; sug.open = true; sug.kind = "page";
+  drawSug(t);
+}
+function drawSug(t){
+  if (sug.el) sug.el.remove();
+  const ul = el("ul","sug"); sug.el = ul;
+  sug.items.forEach((it,k) => {
+    const li = el("li", k===sug.sel ? "sel" : "");
+    li.innerHTML = "<span>"+esc(it.title)+"</span>" + (it.kind==="new"||it.kind==="newtag" ? "<small>جديد</small>" : (it.sub ? "<small>"+esc(it.sub)+"</small>" : ""));
+    li.onmousedown = e => { e.preventDefault(); pickSug(k); };
+    ul.appendChild(li);
+  });
+  t.parentElement.appendChild(ul);
+  if (t.id==="obsText"){
+    const c = caretXY(t);
+    ul.style.top = (c.y+34)+"px"; ul.style.insetInlineStart = "auto";
+    ul.style.left = Math.max(0, Math.min(c.x, t.clientWidth-250))+"px";
+  }
+  const sel = ul.querySelector(".sel"); if (sel) sel.scrollIntoView({block:"nearest"});
+}
+function caretXY(t){
+  const d = document.createElement("div"), cs = getComputedStyle(t);
+  ["direction","fontFamily","fontSize","fontWeight","lineHeight","letterSpacing","paddingTop","paddingRight","paddingBottom","paddingLeft","boxSizing","textAlign","unicodeBidi"].forEach(k => d.style[k] = cs[k]);
+  d.style.position = "absolute"; d.style.visibility = "hidden"; d.style.whiteSpace = "pre-wrap"; d.style.overflowWrap = "break-word";
+  d.style.width = t.clientWidth+"px"; d.style.top = "0"; d.style.left = "0";
+  d.textContent = t.value.slice(0, t.selectionStart);
+  const sp = document.createElement("span"); sp.textContent = "\u200b"; d.appendChild(sp);
+  t.parentElement.appendChild(d); const r = {x:sp.offsetLeft, y:sp.offsetTop}; d.remove(); return r;
+}
+function pickSug(k){
+  const it = sug.items[k]; if (!it) return;
+  const t = $('textarea[data-id="'+sug.id+'"]'); if (!t) return;
+  const s = t.selectionStart;
+  t.setSelectionRange(sug.start, s);
+  pushHist();
+  if (sug.kind==="tag"){ document.execCommand("insertText", false, it.title.replace(/\s+/g,"_")+" "); closeSug(); return; }
+  const after = t.value.slice(s, s+2);
+  const tail = after === "]]" ? "" : "]]";
+  document.execCommand("insertText", false, it.title + tail);
+  const pos = sug.start + it.title.length + 2;
+  t.setSelectionRange(pos, pos);
+  closeSug();
+}
+
+/* ============================================================
+   لوحة المفاتيح داخل الكتلة
+   ============================================================ */
+function caretPos(t){ return [t.selectionStart, t.selectionEnd]; }
+function indent(n,t){
+  const L = loc(n.id); if (!L || L.index===0) return;
+  pushHist();
+  const [s,e] = caretPos(t);
+  const prev = L.list[L.index-1];
+  L.list.splice(L.index,1); prev.children.push(n); prev.collapsed = false;
+  startEdit(n.id, s, e);
+}
+function outdent(n,t){
+  const L = loc(n.id); if (!L || !L.parent) return;
+  pushHist();
+  const P = loc(L.parent.id); const [s,e] = caretPos(t);
+  L.list.splice(L.index,1); P.list.splice(P.index+1,0,n);
+  startEdit(n.id, s, e);
+}
+function moveSibling(n,t,dir){
+  const L = loc(n.id); const j = L.index+dir; if (j<0 || j>=L.list.length) return;
+  pushHist();
+  const [s,e] = caretPos(t);
+  [L.list[L.index], L.list[j]] = [L.list[j], L.list[L.index]];
+  startEdit(n.id, s, e);
+}
+function gotoNeighbor(n, dir, atEnd){
+  const vis = visible(); const i = vis.findIndex(x => x.id===n.id); const j = i+dir;
+  if (j<0 || j>=vis.length) return false;
+  startEdit(vis[j].id, atEnd ? vis[j].text.length : 0);
+  return true;
+}
+function linkWrap(t){                              // Ctrl+K: [نص](رابط)
+  pushHist();
+  const s=t.selectionStart, e=t.selectionEnd, v=t.value, sel=v.slice(s,e);
+  document.execCommand("insertText", false, "["+sel+"]()");
+  const pos = s+sel.length+3; t.setSelectionRange(pos,pos);
+}
+function wrapSel(t, mark){
+  pushHist();
+  const s=t.selectionStart, e=t.selectionEnd, v=t.value;
+  if (s===e){ insertText(t, mark+mark, mark.length); return; }
+  document.execCommand("insertText", false, mark+v.slice(s,e)+mark);
+  t.setSelectionRange(s+mark.length, e+mark.length);
+}
+function onKey(e,n,t){
+  if (e.isComposing) return;
+  const s=t.selectionStart, en=t.selectionEnd, v=t.value;
+
+  if (sug.open){                                     // قائمة الاقتراحات لها الأولوية
+    if (e.key==="ArrowDown"){ e.preventDefault(); sug.sel=(sug.sel+1)%sug.items.length; drawSug(t); return; }
+    if (e.key==="ArrowUp"){ e.preventDefault(); sug.sel=(sug.sel-1+sug.items.length)%sug.items.length; drawSug(t); return; }
+    if ((e.key==="Enter" && !e.ctrlKey) || e.key==="Tab"){ e.preventDefault(); pickSug(sug.sel); return; }
+    if (e.key==="Escape"){ e.preventDefault(); closeSug(); return; }
+  }
+  if (e.ctrlKey && e.shiftKey && e.code==="KeyV") plainNext = true;
+  if ((e.ctrlKey||e.metaKey) && e.key==="Enter"){ e.preventDefault(); doSend(); return; }
+
+  if ((e.ctrlKey||e.metaKey) && e.code==="KeyA" && !e.altKey){
+    if (e.shiftKey || v.length===0 || (s===0 && en===v.length)){ e.preventDefault(); selectAll(); return; }
+    return;                                        // الضغطة الأولى: السطر كله (تحديد المتصفح)
+  }
+  if ((e.ctrlKey||e.metaKey) && !e.altKey){
+    if (e.code==="KeyZ"){ e.preventDefault(); e.shiftKey ? redo() : undo(); return; }
+    if (e.code==="KeyY"){ e.preventDefault(); redo(); return; }
+    if (e.code==="KeyS"){ e.preventDefault(); doSend(); return; }
+    if (e.code==="KeyK" && !e.shiftKey){ e.preventDefault(); histBreak(); linkWrap(t); return; }
+  }
+  if (e.ctrlKey && !e.shiftKey && !e.altKey){
+    if (e.code==="KeyB"){ e.preventDefault(); histBreak(); wrapSel(t,"**"); return; }
+    if (e.code==="KeyI"){ e.preventDefault(); histBreak(); wrapSel(t, isOb() ? "*" : "__"); return; }
+    if (e.code==="Backquote"){ e.preventDefault(); histBreak(); wrapSel(t,"`"); return; }
+  }
+  if (e.ctrlKey && e.shiftKey && e.code==="KeyH"){ e.preventDefault(); histBreak(); wrapSel(t, isOb() ? "==" : "^^"); return; }
+
+  if (e.altKey && e.shiftKey && e.key==="ArrowUp"){ e.preventDefault(); moveSibling(n,t,-1); return; }
+  if (e.altKey && e.shiftKey && e.key==="ArrowDown"){ e.preventDefault(); moveSibling(n,t,1); return; }
+
+  if (e.key==="Tab" && isOb()){                      // Obsidian: إزاحة السطر بمسافات (للقوائم المتداخلة)
+    e.preventDefault(); pushHist();
+    const ls = v.lastIndexOf("\n", s-1)+1;
+    if (e.shiftKey){
+      const m = v.slice(ls).match(/^( {1,4}|\t)/);
+      if (m){ pushHist(true); t.setSelectionRange(ls, ls+m[0].length); document.execCommand("delete"); const p = Math.max(ls, s-m[0].length); t.setSelectionRange(p,p); }
+    } else { pushHist(true); t.setSelectionRange(ls, ls); document.execCommand("insertText", false, "    "); t.setSelectionRange(s+4, en+4); }
+    return;
+  }
+  if (e.key==="Tab"){ e.preventDefault(); e.shiftKey ? outdent(n,t) : indent(n,t); return; }
+
+  if (e.key==="Enter" && !e.shiftKey && isOb()){
+    e.preventDefault(); pushHist();
+    const L = loc(n.id);
+    const inFence = ((v.slice(0,s).match(/^\s*```/gm)||[]).length % 2)===1;
+    if (inFence || (v.includes("\n") && en < v.length)){ pushHist(true); document.execCommand("insertText", false, "\n"); autosize(t); return; }   // داخل كود أو جدول
+    if (n.collapsed && !v.includes("\n") && obsFoldable(n)){      // سطر مطويّ: اكتب بعد كل ما تحته، ويبقى مطوياً
+      const at = foldEnd(n), pre = sibPrefix(v);
+      n.text = v.slice(0,en);
+      const nn = mk(pre + v.slice(en));
+      model.splice(at, 0, nn);
+      if (headLv(n.text)) n.foldStop = nn.id;        // يبقى العنوان مطوياً والسطر الجديد ظاهراً بعده
+      startEdit(nn.id, pre.length); return;
+    }
+    const m = v.includes("\n") ? null : v.slice(0,s).match(/^([ \t]*)([-*+]|\d+[.)])([ \t]+)(\[[ xX]\][ \t]+)?/);
+    if (m && s===en){                                // تكملة القوائم كما في Obsidian
+      if (v.slice(m[0].length).trim()===""){        // بند فارغ: اخرج مستوىً واحداً ثم أنهِ القائمة
+        const pad = m[1].replace(/\t/g,"    ");
+        n.text = pad.length>=4 ? pad.slice(4)+m[2]+m[3] : "";
+        startEdit(n.id, n.text.length); return;
+      }
+      let mark = m[2]; const num = mark.match(/^(\d+)([.)])$/); if (num) mark = (+num[1]+1)+num[2];
+      const pre = m[1]+mark+m[3]+(m[4] ? "[ ] " : "");
+      n.text = v.slice(0,s); const li = mk(pre+v.slice(s)); n.collapsed = false;
+      L.list.splice(L.index+1, 0, li); startEdit(li.id, pre.length); return;
+    }
+    const ind = (!v.includes("\n") && s===en) ? v.match(/^[ \t]+/) : null;
+    if (ind){                                        // سطر مزاح بلا نقطة: يبقى السطر التالي بإزاحته
+      if (blankLn(v)){                               // سطر فارغ مزاح: اخرج مستوىً
+        const pad = ind[0].replace(/\t/g,"    ");
+        n.text = pad.length>=4 ? pad.slice(4) : "";
+        startEdit(n.id, n.text.length); return;
+      }
+      n.text = v.slice(0,en); const nn = mk(ind[0]+v.slice(en)); n.collapsed = false;
+      L.list.splice(L.index+1, 0, nn); startEdit(nn.id, ind[0].length); return;
+    }
+    n.collapsed = false;
+    n.text = v.slice(0,en); const nn = mk(v.slice(en)); L.list.splice(L.index+1, 0, nn); startEdit(nn.id, 0); return;
+  }
+  if (e.key==="Enter" && !e.shiftKey){
+    e.preventDefault(); pushHist();
+    const L = loc(n.id);
+    if (v.trim()==="" && n.children.length===0 && L.parent){ outdent(n,t); return; }
+    const before = v.slice(0,en), after = v.slice(en);   // لا نحذف المحدد: ننقسم عند نهايته
+    n.text = before;
+    const nn = mk(after);
+    if (after==="" && n.children.length && !n.collapsed) n.children.unshift(nn);
+    else L.list.splice(L.index+1,0,nn);
+    startEdit(nn.id, 0);
+    return;
+  }
+
+  if (e.key==="Backspace" && s===en){
+    if (s>0 && OPEN[v[s-1]] === v[s]){               // حذف زوج الأقواس الفارغ
+      e.preventDefault(); pushHist(); t.setSelectionRange(s-1,s+1); document.execCommand("delete"); return;
+    }
+    if (s===0){
+      const L = loc(n.id), vis = visible(), i = vis.findIndex(x => x.id===n.id);
+      if (i===0) return;
+      e.preventDefault(); pushHist();
+      const prev = vis[i-1];
+      if (n.children.length===0){
+        const joinAt = prev.text.length;
+        prev.text += n.text;
+        L.list.splice(L.index,1);
+        startEdit(prev.id, joinAt);
+      } else if (v===""){ /* كتلة فارغة لها أبناء: لا نحذفها */ }
+      return;
+    }
+  }
+
+  if (e.key==="ArrowUp" || e.key==="ArrowDown"){
+    const up = e.key==="ArrowUp";
+    const lh = 26, single = !v.includes("\n") && t.scrollHeight <= lh*1.6;
+    if (single){ if (gotoNeighbor(n, up?-1:1, up)) e.preventDefault(); return; }
+    const before = s;
+    setTimeout(() => { if (t.selectionStart===before && t.selectionEnd===before) gotoNeighbor(n, up?-1:1, up); }, 0);
+    return;
+  }
+  if (e.key==="Escape"){ t.blur(); return; }
+}
+
+/* ============================================================
+   اختيار الغراف والصفحة
+   ============================================================ */
+function refreshPageButton(){
+  if (S.page.kind==="today"){ $("#pagelabel").textContent="اليوم"; $("#pagedate").textContent=dailyTitle(); }
+  else { $("#pagelabel").textContent=S.page.title; $("#pagedate").textContent=""; }
+}
+let pSel = 0, pItems = [];
+function drawPageList(){
+  const q = norm($("#pq").value.trim());
+  pItems = [];
+  if (q==="" || "اليوم".includes(q) || "today".includes(q)) pItems.push({kind:"today", title:"اليوم", sub:dailyTitle()});
+  let first=[], rest=[];
+  for (let k=0;k<S.pages.length;k++){
+    if (q==="") first.push(S.pages[k]);
+    else { const p = S.pagesN[k].indexOf(q); if (p===0) first.push(S.pages[k]); else if (p>0) rest.push(S.pages[k]); }
+    if (first.length+rest.length>=400) break;
+  }
+  first.concat(rest).slice(0,100).forEach(x => pItems.push({kind:"page", title:x}));
+  if (q!=="" && !pItems.some(it => norm(it.title)===q)) pItems.push({kind:"page", title:$("#pq").value.trim(), sub:"جديد"});
+  if (pSel >= pItems.length) pSel = 0;
+  const ul = $("#plist"); ul.innerHTML = "";
+  if (!pItems.length){ const li=el("li","empty"); li.textContent="لا نتائج"; ul.appendChild(li); return; }
+  pItems.forEach((it,k) => {
+    const li = el("li", k===pSel ? "sel":"");
+    li.innerHTML = "<span>"+esc(it.title)+"</span>"+(it.sub?"<small>"+esc(it.sub)+"</small>":"");
+    li.onmousedown = e => { e.preventDefault(); choosePage(k); };
+    ul.appendChild(li);
+  });
+  const sel = ul.querySelector(".sel"); if (sel) sel.scrollIntoView({block:"nearest"});
+}
+function openPagePanel(){ $("#pagepanel").classList.add("open"); $("#pq").value=""; pSel=0; drawPageList(); $("#pq").focus(); }
+function closePagePanel(){ $("#pagepanel").classList.remove("open"); }
+function choosePage(k){
+  const it = pItems[k]; if (!it) return;
+  S.page = it.kind==="today" ? {kind:"today",title:""} : {kind:"page",title:it.title};
+  saveState(); refreshPageButton(); closePagePanel();
+  focusLastBlock();
+}
+function clearAll(){
+  if (!flat(model).some(n => n.text.trim())){ freshModel(); render(); return; }
+  pushHist(); selAll = false; freshModel(); render();
+  toast("مُسح — Ctrl+Z للتراجع");
+}
+function focusLastBlock(){
+  const vis = visible(); const last = vis[vis.length-1]; if (last) startEdit(last.id, last.text.length);
+}
+
+/* ============================================================
+   الناتج والإرسال
+   ============================================================ */
+function prune(nodes, cap=3, md=false){
+  const out = [];
+  for (const n of nodes){
+    const kids = prune(n.children, cap, md);
+    const tr = md ? null : tableRows(n.text);
+    if (tr){ const tb = prune([buildTable(tr.map(r => r.map(mdInline)))]); tb[0].children.push(...kids); out.push(...tb); continue; }
+    if (n.text.trim()!=="" || kids.length || n.keep){
+      let str = n.text.replace(/\s+$/,""), heading = 0;
+      const hm = str.match(/^(#{1,6})[ \t]+([\s\S]*)$/);
+      if (hm){ heading = Math.min(cap,hm[1].length); str = hm[2]; }
+      const o = heading ? {string:str, heading, children:kids} : {string:str, children:kids};
+      if (n.li) o.li = true;
+      if (n.collapsed && kids.length) o.open = false;          // يبقى مطوياً في Roam
+      out.push(o);
+    }
+  }
+  return out;
+}
+function toMd(nodes, depth=0){
+  const pad = "    ".repeat(depth); let out = "";
+  for (const n of nodes){
+    const ls = ((n.heading ? "#".repeat(n.heading)+" " : "") + n.string).split("\n");
+    out += pad + "- " + ls[0] + "\n";
+    for (let i=1;i<ls.length;i++) out += pad + "  " + ls[i] + "\n";
+    out += toMd(n.children, depth+1);
+  }
+  return out;
+}
+function hasContent(tree){
+  // الرأس وحده (بلا أبناء) لا يُعدّ إدخالاً
+  if (S.header){ return tree.length && tree[0].children.length>0 ? true : tree.length>1; }
+  return tree.length>0;
+}
+/* ---------- الإرسال الفعلي إلى Roam ---------- */
+let sending = false;
+const getToken = () => (curGraph().token || "").trim();
+async function roamCall(kind, body){
+  const r = await fetch("https://api.roamresearch.com/api/graph/"+encodeURIComponent(S.graph)+"/"+kind,
+    {method:"POST", headers:{"X-Authorization":"Bearer "+getToken(), "Content-Type":"application/json"}, body:JSON.stringify(body)});
+  const t = await r.text();
+  return {ok:r.ok, status:r.status, text:t};
+}
+const UID_CH = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-";
+function newUid(){ const a = crypto.getRandomValues(new Uint8Array(9)); return [...a].map(x => UID_CH[x%64]).join(""); }
+function flattenActions(nodes, parent, out){
+  for (const n of nodes){
+    const uid = newUid(), blk = {uid, string:n.string};
+    if (n.heading) blk.heading = n.heading;
+    if (n.open === false) blk.open = false;
+    out.push({action:"create-block", location:{"parent-uid":parent, order:"last"}, block:blk});
+    flattenActions(n.children, uid, out);
+  }
+  return out;
+}
+async function sendToRoam(payload){
+  let pageUid;
+  if (payload.page.kind==="today"){
+    pageUid = payload.page.uid;
+    await roamCall("write", {action:"create-page", page:{title:payload.page.daily, uid:pageUid}});   // 400 إن وُجدت: عادي
+  } else {
+    const ti = payload.page.title.replace(/\\/g,"\\\\").replace(/"/g,'\\"');
+    const q = await roamCall("q", {query:'[:find ?u . :where [?e :node/title "'+ti+'"] [?e :block/uid ?u]]'});
+    if (!q.ok) throw new Error("استعلام الصفحة فشل ("+q.status+"): "+q.text.slice(0,150));
+    pageUid = (JSON.parse(q.text).result) || null;
+    if (!pageUid){
+      pageUid = newUid();
+      const c = await roamCall("write", {action:"create-page", page:{title:payload.page.title, uid:pageUid}});
+      if (!c.ok) throw new Error("إنشاء الصفحة فشل ("+c.status+"): "+c.text.slice(0,150));
+    }
+  }
+  const acts = flattenActions(payload.blocks, pageUid, []);
+  for (let i=0;i<acts.length;i+=100){
+    const w = await roamCall("write", {action:"batch-actions", actions:acts.slice(i,i+100)});
+    if (!w.ok) throw new Error("الكتابة فشلت ("+w.status+") بعد "+i+" كتلة: "+w.text.slice(0,150));
+  }
+  return acts.length;
+}
+async function doSend(){
+  if (sending) return;
+  const ob = CFG.dest==="obsidian";
+  if (ob){
+    const body = bidiStrip(obsText()).replace(/^\s*\n/,"").replace(/\s+$/,"");
+    if (!body.trim()){ toast("لا يوجد نص للإرسال"); return; }
+    sending = true; const btn = $("#btnSend"), old = btn.textContent; btn.textContent = "جارٍ الحفظ…"; btn.disabled = true;
+    try {
+      const r = await sendToObsidian(body);
+      OBS.vals = {}; renderMeta(); pushHist(); freshModel(); render(); obsStatus();
+      toast((r.isNew ? "أُنشئ: " : "أُضيف إلى: ")+r.file+" ✓");
+    } catch(e){
+      console.error(e);
+      $("#outMd").value = body; $("#outJson").value = "";
+      $("#outnote").textContent = "— فشل الحفظ: "+e.message+" (نصك محفوظ، لم يُمسح)";
+      $("#out").classList.add("open");
+    } finally { sending = false; btn.textContent = old; btn.disabled = false; }
+    return;
+  }
+  const tree = prune(model, 3);
+  if (!hasContent(tree)){ toast("لا يوجد نص للإرسال"); return; }
+  const payload = {graph:S.graph, page:S.page.kind==="today" ? {kind:"today", daily:dailyTitle(), uid:p2(new Date().getMonth()+1)+"-"+p2(new Date().getDate())+"-"+new Date().getFullYear()} : {kind:"page", title:S.page.title}, blocks:tree};
+  if (getToken()){
+    sending = true; const btn = $("#btnSend"), old = btn.textContent; btn.textContent = "جارٍ الإرسال…"; btn.disabled = true;
+    try {
+      const n = await sendToRoam(payload);
+      pushHist(); freshModel(); render(); toast("أُرسل إلى Roam ✓ ("+n+" كتلة)");
+    } catch(e){
+      console.error(e);
+      $("#outMd").value = toMd(tree); $("#outJson").value = JSON.stringify(payload, null, 2);
+      $("#outnote").textContent = "— فشل الإرسال: "+e.message+" (نصك محفوظ، لم يُمسح)";
+      $("#out").classList.add("open");
+    } finally { sending = false; btn.textContent = old; btn.disabled = false; }
+    return;
+  }
+  $("#outMd").value = toMd(tree);
+  $("#outJson").value = JSON.stringify(payload, null, 2);
+  $("#outnote").textContent = "— لا يوجد رمز Roam (من ⚙ الإعدادات)، فهذا الناتج للنسخ فقط";
+  $("#out").classList.add("open");
+}
+function copyText(text){
+  const ta = el("textarea"); ta.value = text; ta.style.position="fixed"; ta.style.opacity="0";
+  document.body.appendChild(ta); ta.select();
+  let ok=false; try{ ok = document.execCommand("copy"); }catch(e){}
+  ta.remove(); return ok;
+}
+
+/* ============================================================
+   ربط الواجهة
+   ============================================================ */
+/* ============================================================
+   الإعدادات والوجهات
+   ============================================================ */
+function h(tag, attrs, ...kids){
+  const e = document.createElement(tag);
+  for (const [k,v] of Object.entries(attrs||{})){
+    if (k==="class") e.className = v;
+    else if (k.startsWith("on")) e[k] = v;
+    else if (k==="value") e.value = v;
+    else if (k==="checked") e.checked = v;
+    else if (k==="hidden") e.hidden = v;
+    else e.setAttribute(k, v);
+  }
+  kids.flat().forEach(c => { if (c!=null) e.append(c); });
+  return e;
+}
+async function roamFetch(graph, token, kind, body){
+  const r = await fetch("https://api.roamresearch.com/api/graph/"+encodeURIComponent(graph)+"/"+kind,
+    {method:"POST", headers:{"X-Authorization":"Bearer "+token, "Content-Type":"application/json"}, body:JSON.stringify(body)});
+  return {ok:r.ok, status:r.status, text:await r.text()};
+}
+async function fetchRoamPages(graph, token){
+  const r = await roamFetch(graph, token, "q", {query:"[:find ?t :where [?e :node/title ?t]]"});
+  if (!r.ok) throw new Error("status "+r.status+": "+r.text.slice(0,150));
+  return JSON.parse(r.text).result.map(x => x[0]).filter(Boolean);
+}
+function fillGraphSelect(){
+  const gs = $("#graph"); gs.innerHTML = "";
+  CFG.roam.graphs.forEach(g => { const o = el("option"); o.value = g.name; o.textContent = g.name; gs.appendChild(o); });
+  gs.value = CFG.roam.current;
+}
+const flat = (list, out=[]) => { for (const n of list){ out.push(n); flat(n.children, out); } return out; };
+function adaptModel(oldHeader){
+  let content = model;
+  if (oldHeader && model.length===1 && model[0].children.length) content = model[0].children;
+  const pristine = flat(content).every(n => !n.text.trim());
+  if (pristine) freshModel();
+  else if (S.header) model = [mk(headerText(), content)];
+  else model = content;
+  render();
+}
+function graphChanged(oldHeader){
+  syncS(); loadPages(); refreshPageButton(); fillGraphSelect(); saveCfg();
+  if (CFG.dest==="roam" && S.header!==oldHeader) adaptModel(oldHeader);
+}
+function switchDest(d){
+  if (d===CFG.dest) return;
+  const oldHeader = S.header, prev = CFG.dest;
+  let md = "", obsTxt = prev==="obsidian" ? bidiStrip(obsText()) : "";
+  if (prev==="roam"){
+    const content = (oldHeader && model.length===1 && model[0].children.length) ? model[0].children : model;
+    if (!flat(content).every(n => !n.text.trim())) md = toObsidian(prune(content, 6, true), true);
+  }
+  pushHist(); CFG.dest = d; saveCfg(); applyDest();
+  if (d==="obsidian"){
+    if (md.trim()){ model = splitUnits(md).map(u => mk(u)); editingId = null; render(); }
+    else { freshModel(); render(); }
+  }
+  else {
+    if (obsTxt.trim()){ const roots = parseMarkdown(obsTxt); model = S.header ? [mk(headerText(), roots)] : roots; render(); }
+    else { freshModel(); render(); }
+  }
+  focusLastBlock();
+}
+function applyDest(){
+  const ob = CFG.dest==="obsidian";
+  $("#roamBox").hidden = ob; $("#obsBox").hidden = !ob; $("#outline").hidden = false; $("#obsWrap").hidden = true;
+  document.querySelectorAll("#destbar button").forEach(b => b.classList.toggle("on", b.dataset.dest===CFG.dest));
+  syncS(); loadPages(); refreshPageButton();
+  document.title = ob ? "المحرر — Obsidian" : "المحرر — Roam";
+  if (ob){ fillVaultSelect(); if (!$("#oFolder").value) $("#oFolder").value = CFG.obs.lastFolder || ""; renderMeta(); loadVault(false).then(obsStatus); }
+  renderSettings();
+}
+
+let editingGraph = null;
+function renderSettings(){
+  const box = $("#settings"); box.innerHTML = "";
+  const title = t => box.appendChild(h("h4", {}, t));
+
+  title("عام");
+  const auto = h("input", {type:"checkbox", checked:CFG.dir==="auto", onchange:e => { S.dir = CFG.dir = e.target.checked ? "auto" : "rtl"; saveCfg(); render(); }});
+  box.appendChild(h("label", {}, auto, "اتجاه الكتل تلقائي بحسب لغتها (الافتراضي: يمين←يسار دائماً)"));
+
+  title("الاختصارات");
+  const KEYS = [["Ctrl+Enter / Ctrl+S","إرسال"],["Ctrl+Z","تراجع"],["Ctrl+Shift+Z / Ctrl+Y","إعادة"],
+    ["Ctrl+B / Ctrl+I","غامق / مائل"],["Ctrl+Shift+H","تمييز"],["Ctrl+`","كود"],["Ctrl+K","رابط"],
+    ["Tab / Shift+Tab", CFG.dest==="obsidian" ? "إزاحة السطر" : "تداخل الكتلة"],
+    ["Alt+Shift+↑ / ↓","نقل السطر"],["Ctrl+A مرتين","تظليل كل النص"],["Ctrl+Shift+V","لصق بلا تحويل"],["Esc","خروج من السطر"]];
+  if (CFG.dest==="obsidian") KEYS.push(["F9","إعادة فهرسة الخزنة"]);
+  box.appendChild(h("div", {class:"keys"}, ...KEYS.map(k => h("div", {}, h("b", {dir:"ltr"}, k[0]), " — "+k[1]))));
+
+  if (CFG.dest==="roam"){
+    title("غرافات Roam");
+    CFG.roam.graphs.forEach(g => {
+      box.appendChild(h("div", {class:"srow"},
+        h("b", {dir:"ltr"}, g.name+(g.token ? "" : "  (بلا رمز)")), h("span", {class:"spacer"}),
+        h("button", {class:"ghost", onclick:() => { editingGraph = g.name; renderSettings(); }}, "تعديل"),
+        h("button", {class:"ghost danger", onclick:e => {
+          if (CFG.roam.graphs.length<2){ toast("لا يمكن حذف الغراف الوحيد"); return; }
+          if (e.target.dataset.arm!=="1"){ e.target.dataset.arm = "1"; e.target.textContent = "تأكيد؟"; return; }
+          const old = S.header; CFG.roam.graphs = CFG.roam.graphs.filter(x => x.name!==g.name);
+          if (CFG.roam.current===g.name) CFG.roam.current = CFG.roam.graphs[0].name;
+          graphChanged(old); renderSettings();
+        }}, "حذف")));
+    });
+    if (editingGraph) box.appendChild(graphForm(editingGraph));
+    else box.appendChild(h("button", {class:"ghost", style:"align-self:flex-start;border:1px solid var(--line)", onclick:() => { editingGraph = "__new__"; renderSettings(); }}, "＋ إضافة غراف"));
+  } else {
+    title("خزائن Obsidian");
+    CFG.obs.vaults.forEach(v => {
+      box.appendChild(h("div", {class:"srow"}, h("b", {}, v.name), h("span", {class:"spacer"}),
+        h("button", {class:"ghost danger", onclick:async e => {
+          if (e.target.dataset.arm!=="1"){ e.target.dataset.arm = "1"; e.target.textContent = "تأكيد؟ (لا يحذف ملفاتك)"; return; }
+          CFG.obs.vaults = CFG.obs.vaults.filter(x => x.name!==v.name); await idbDel("vault:"+v.name); await idbDel("scan:"+v.name);
+          CFG.obs.current = CFG.obs.vaults[0] ? CFG.obs.vaults[0].name : ""; saveCfg(); fillVaultSelect(); await loadVault(false); renderSettings();
+        }}, "إزالة")));
+    });
+    box.appendChild(h("div", {class:"srow"},
+      h("button", {class:"ghost", style:"border:1px solid var(--line)", onclick:addVault}, "＋ إضافة خزنة (اختيار مجلدها)"),
+      h("button", {class:"ghost", style:"border:1px solid var(--line)", onclick:reindex}, "↻ إعادة الفهرسة (F9)")));
+    box.appendChild(h("div", {class:"hint"}, "الفهرسة يدوية: تقرأ أسماء الملفات والمجلدات والوسوم لتقترحها عليك، ولا يُرسل شيء من الخزنة إلى أي مكان."));
+    box.appendChild(h("label", {}, "حقول ترويسة إضافية:",
+      h("input", {type:"text", dir:"auto", value:CFG.obs.extra.join("، "), placeholder:"مثل: aliases، author (المصدر والوسوم موجودان دائماً)",
+        onchange:e => { CFG.obs.extra = e.target.value.split(/[,،؛;]/).map(s => s.trim()).filter(Boolean); saveCfg(); renderMeta(); }})));
+    box.appendChild(h("label", {}, "مجلد ملاحظة اليوم:", h("input", {type:"text", dir:"auto", value:CFG.obs.dailyFolder, placeholder:"فارغ = جذر الخزنة", onchange:e => { CFG.obs.dailyFolder = e.target.value.trim(); saveCfg(); }})));
+    box.appendChild(h("label", {}, "صيغة اسم ملف اليوم:", h("input", {type:"text", dir:"ltr", value:CFG.obs.dailyFmt, onchange:e => { CFG.obs.dailyFmt = e.target.value.trim() || "YYYY-MM-DD"; saveCfg(); }})));
+    box.appendChild(h("div", {class:"hint"}, "الرموز: YYYY السنة · MM الشهر · DD اليوم"));
+  }
+}
+function graphForm(gname){
+  const isNew = gname==="__new__";
+  const src = isNew ? null : CFG.roam.graphs.find(x => x.name===gname);
+  const g = src ? Object.assign({}, src) : Object.assign(DEFAULT_GRAPH(), {name:"", token:"", saveToken:true});
+  const nm = h("input", {type:"text", dir:"ltr", value:g.name, placeholder:"اسم الغراف كما في عنوان Roam"});
+  const tk = h("input", {type:"password", dir:"ltr", value:g.token||"", placeholder:"رمز Roam (token)"});
+  const sv = h("input", {type:"checkbox", checked:g.saveToken});
+  const hd = h("input", {type:"checkbox", checked:g.header});
+  const tp = h("input", {type:"text", dir:"ltr", value:g.tpl});
+  const md = h("select", {}, h("option", {value:"today"}, "صفحة اليوم دائماً"), h("option", {value:"last"}, "آخر صفحة استُخدمت")); md.value = g.pageMode;
+  const out = h("pre", {class:"tout", dir:"ltr"});
+  const pages = h("span", {class:"hint"}, store.get("rq-pages:"+(g.name||"")) ? "" : "");
+  const fileIn = h("input", {type:"file", accept:".txt,text/plain", hidden:true, onchange:e => {
+    const f = e.target.files[0]; if (!f) return; const r = new FileReader();
+    r.onload = () => { const lines = String(r.result).replace(/^﻿/,"").split(/\r?\n/).filter(Boolean);
+      store.set("rq-pages:"+nm.value.trim(), lines.join("\n")); if (nm.value.trim()===S.graph) loadPages(); out.textContent = "حُمّلت "+lines.length+" صفحة من الملف"; };
+    r.readAsText(f, "utf-8"); }});
+  return h("div", {class:"gform"},
+    h("label", {}, "الاسم:", nm), h("label", {}, "الرمز:", tk),
+    h("label", {}, sv, "حفظ الرمز على هذا الجهاز (بنص صريح في المتصفح)"),
+    h("label", {}, hd, "سطر رأس تلقائي، تكون كتابتك ابناً له"), h("label", {}, "قالب الرأس:", tp),
+    h("div", {class:"hint"}, "الرموز: {date} عنوان صفحة اليوم · {time} الوقت · {iso} التاريخ yyyy-mm-dd"),
+    h("label", {}, "الصفحة الافتراضية:", md),
+    h("div", {class:"srow"},
+      h("button", {class:"ghost", style:"border:1px solid var(--line)", onclick:async () => {
+        const name = nm.value.trim(), token = tk.value.trim(); if (!name || !token){ out.textContent = "اكتب الاسم والرمز أولاً"; return; }
+        out.textContent = "جارٍ الاختبار…";
+        try { const r = await roamFetch(name, token, "q", {query:"[:find (count ?e) . :where [?e :node/title]]"}); out.textContent = (r.ok ? "نجح الاتصال\n" : "رفض Roam الطلب\n")+"status "+r.status+"\n"+r.text.slice(0,200); }
+        catch(e){ out.textContent = "فشل الاتصال: "+e.message; }
+      }}, "اختبار الاتصال"),
+      h("button", {class:"ghost", style:"border:1px solid var(--line)", onclick:async () => {
+        const name = nm.value.trim(), token = tk.value.trim(); if (!name || !token){ out.textContent = "اكتب الاسم والرمز أولاً"; return; }
+        out.textContent = "جارٍ جلب أسماء الصفحات…";
+        try { const list = await fetchRoamPages(name, token); const ok = store.set("rq-pages:"+name, list.join("\n"));
+          if (name===S.graph) loadPages(); out.textContent = "جُلبت "+list.length+" صفحة"+(ok ? "" : " (لم تُحفظ: المساحة ممتلئة)"); }
+        catch(e){ out.textContent = "تعذّر الجلب: "+e.message; }
+      }}, "تحديث قائمة الصفحات من Roam"),
+      h("button", {class:"ghost", style:"border:1px solid var(--line)", onclick:() => fileIn.click()}, "من ملف .txt"), fileIn),
+    out,
+    h("div", {class:"srow"},
+      h("button", {class:"send", onclick:() => {
+        const name = nm.value.trim(); if (!name){ out.textContent = "اكتب اسم الغراف"; return; }
+        if (CFG.roam.graphs.some(x => x.name===name && x.name!==gname)){ out.textContent = "اسم مستعمل"; return; }
+        const old = S.header;
+        const nv = {name, token:tk.value.trim(), saveToken:sv.checked, header:hd.checked, tpl:tp.value.trim() || CONFIG.headerTemplate, pageMode:md.value};
+        if (isNew){ CFG.roam.graphs.push(Object.assign(DEFAULT_GRAPH(), nv)); CFG.roam.current = name; }
+        else { const t = CFG.roam.graphs.find(x => x.name===gname); if (CFG.roam.current===gname) CFG.roam.current = name; Object.assign(t, nv);
+          if (gname!==name){ const p = store.get("rq-pages:"+gname); if (p){ store.set("rq-pages:"+name, p); } } }
+        editingGraph = null; graphChanged(old); renderSettings(); toast("حُفظ الغراف");
+      }}, "حفظ"),
+      h("button", {class:"ghost", onclick:() => { editingGraph = null; renderSettings(); }}, "إلغاء")));
+}
+
+/* ============================================================
+   Obsidian: الخزنة والفهرسة والكتابة
+   ============================================================ */
+const OBS = {
+  handle:null, ready:false, scanning:false, status:"",
+  folders:[], notes:[], names:[], tagList:[], tagKey:new Map(), folderMap:new Map(), noteMap:new Map(),
+  vals:{}                                     // قيم خانات الترويسة
+};
+function idbOpen(){ return new Promise((res,rej) => { const r = indexedDB.open("rqe",1); r.onupgradeneeded = () => r.result.createObjectStore("kv"); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }); }
+async function idbGet(k){ try { const db = await idbOpen(); return await new Promise(res => { const q = db.transaction("kv").objectStore("kv").get(k); q.onsuccess = () => res(q.result); q.onerror = () => res(undefined); }); } catch(e){ return undefined; } }
+async function idbSet(k,v){ try { const db = await idbOpen(); return await new Promise(res => { const tx = db.transaction("kv","readwrite"); tx.objectStore("kv").put(v,k); tx.oncomplete = () => res(true); tx.onerror = () => res(false); }); } catch(e){ return false; } }
+async function idbDel(k){ try { const db = await idbOpen(); await new Promise(res => { const tx = db.transaction("kv","readwrite"); tx.objectStore("kv").delete(k); tx.oncomplete = res; tx.onerror = res; }); } catch(e){} }
+
+const normKey = s => norm(String(s).trim()).replace(/\s+/g," ");
+function cleanName(raw){
+  let n = String(raw).replace(/[​-‏‪-‮⁠﻿]/g,"").replace(/[\x00-\x1f\\\/:*?"<>|]/g," ");
+  n = n.replace(/\s+/g," ").trim().slice(0,80);
+  return n.replace(/^[ .]+|[ .]+$/g,"");
+}
+function cleanTag(s){ return String(s).trim().replace(/^["']|["']$/g,"").replace(/^#+/,"").trim(); }
+const curVault = () => CFG.obs.vaults.find(v => v.name===CFG.obs.current) || CFG.obs.vaults[0] || null;
+
+async function vaultPerm(h, ask){
+  const o = {mode:"readwrite"};
+  try {
+    if ((await h.queryPermission(o))==="granted") return true;
+    if (!ask) return false;
+    return (await h.requestPermission(o))==="granted";
+  } catch(e){ return false; }
+}
+function obsUI(){
+  const v = curVault();
+  $("#btnVaultPerm").hidden = !(v && OBS.handle && !OBS.ready);
+  $("#oScan").textContent = !v ? "لا توجد خزنة: اضغط + لإضافة مجلد الخزنة"
+    : (OBS.status || (OBS.ready ? "" : "الخزنة تحتاج إذن الوصول"));
+}
+async function removeVault(name){
+  CFG.obs.vaults = CFG.obs.vaults.filter(x => x.name!==name);
+  await idbDel("vault:"+name); await idbDel("scan:"+name); await idbDel("index:"+name);
+  CFG.obs.current = CFG.obs.vaults[0] ? CFG.obs.vaults[0].name : ""; saveCfg();
+  fillVaultSelect(); await loadVault(false); obsStatus();
+}
+async function addVault(){
+  if (!window.showDirectoryPicker){ toast("هذا المتصفح لا يدعم اختيار المجلدات (استخدم Chrome أو Edge)"); return; }
+  let h; try { h = await showDirectoryPicker({mode:"readwrite", id:"rqe-vault"}); } catch(e){ return; }
+  let name = h.name || "vault", k = 2; const base = name;
+  while (CFG.obs.vaults.some(x => x.name===name)) name = base+" ("+(k++)+")";
+  await idbSet("vault:"+name, h);
+  CFG.obs.vaults.push({name}); CFG.obs.current = name; saveCfg();
+  fillVaultSelect(); await loadVault(true); await scanVault(); renderSettings(); focusLastBlock();   // فهرسة أولى لمرة واحدة عند الإضافة
+}
+function fillVaultSelect(){
+  $("#btnDelVault").hidden = CFG.obs.vaults.length===0;
+  const vs = $("#vault"); vs.innerHTML = "";
+  CFG.obs.vaults.forEach(v => { const o = el("option"); o.value = v.name; o.textContent = v.name; vs.appendChild(o); });
+  if (!CFG.obs.vaults.length){ const o = el("option"); o.textContent = "— لا توجد خزنة —"; vs.appendChild(o); }
+  else vs.value = CFG.obs.current;
+}
+async function loadVault(ask){
+  const v = curVault();
+  OBS.handle = null; OBS.ready = false; OBS.status = "";
+  OBS.folders = []; OBS.notes = []; OBS.names = []; OBS.tagList = []; OBS.tagKey = new Map(); OBS.folderMap = new Map(); OBS.noteMap = new Map();
+  if (!v){ obsUI(); loadPages(); return; }
+  CFG.obs.current = v.name;
+  OBS.handle = (await idbGet("vault:"+v.name)) || null;
+  if (!OBS.handle){ OBS.status = "تعذّر استرجاع الخزنة: أضفها من جديد (+)"; obsUI(); return; }
+  OBS.ready = await vaultPerm(OBS.handle, ask);
+  const ix = await idbGet("index:"+v.name);                 // الفهرس المحفوظ: لا نمسح الخزنة تلقائياً
+  if (ix){ OBS.folders = ix.folders; OBS.notes = ix.notes; OBS.indexTime = ix.time; rebuildIndex(); OBS.status = indexInfo(); }
+  else OBS.status = "لم تُفهرس بعد: اضغط ↻ أو F9";
+  obsUI(); loadPages();
+}
+function indexInfo(){
+  const t = OBS.indexTime ? new Date(OBS.indexTime) : null;
+  return OBS.notes.length+" ملف · "+OBS.tagList.length+" وسماً · "+OBS.folders.length+" مجلداً"+(t ? " · فُهرست "+isoStr(t)+" "+timeStr(t) : "");
+}
+async function saveIndex(){ const v = curVault(); if (v) await idbSet("index:"+v.name, {folders:OBS.folders, notes:OBS.notes, time:OBS.indexTime || Date.now()}); }
+async function reindex(){
+  if (CFG.dest!=="obsidian") return;
+  if (!curVault()){ toast("أضف خزنة أولاً"); return; }
+  if (!OBS.handle) await loadVault(true);
+  else if (!OBS.ready){ OBS.ready = await vaultPerm(OBS.handle, true); obsUI(); }
+  if (!OBS.ready){ toast("لم يُمنح إذن الوصول إلى الخزنة"); return; }
+  await scanVault(); obsStatus(); toast("تمت الفهرسة: "+OBS.notes.length+" ملف");
+}
+
+/* ---- الوسوم ---- */
+function splitInlineList(rest, spaceSplit){
+  let inner = rest.trim(); if (inner.startsWith("[")) inner = inner.replace(/^\[|\]$/g,"").trim();
+  const parts = inner.includes(",") ? inner.split(",") : (spaceSplit ? inner.split(/\s+/) : [inner]);
+  return parts.map(cleanTag).filter(Boolean);
+}
+function fmTags(fm){
+  const lines = fm.split("\n"); const out = [];
+  for (let i=0;i<lines.length;i++){
+    const m = lines[i].match(/^tags\s*:(.*)$/i); if (!m) continue;
+    const rest = m[1].trim();
+    if (rest){ out.push(...splitInlineList(rest, true)); }
+    else { for (let j=i+1;j<lines.length;j++){ const mm = lines[j].match(/^\s*-\s+(.+?)\s*$/); if (!mm) break; out.push(cleanTag(mm[1])); } }
+    break;
+  }
+  return out.filter(Boolean);
+}
+function extractTags(tx){
+  const tags = [], add = t => { t = cleanTag(t); if (t && /\D/.test(t) && !tags.some(x => normKey(x)===normKey(t))) tags.push(t); };
+  let body = tx.replace(/\r/g,"");
+  const fm = body.match(/^---\n([\s\S]*?)\n---[ \t]*(\n|$)/);
+  if (fm){ fmTags(fm[1]).forEach(add); body = body.slice(fm[0].length); }
+  body = body.replace(/```[\s\S]*?```/g,"").replace(/`[^`\n]*`/g,"");
+  const re = /(?:^|[\s(])#([\p{L}\p{N}_\/\-]+)/gu; let m;
+  while ((m = re.exec(body))) add(m[1]);
+  return tags;
+}
+
+/* ---- الفهرسة (تزايدية بحسب وقت التعديل) ---- */
+async function scanVault(){
+  if (OBS.scanning || !OBS.handle) return;
+  OBS.scanning = true;
+  const name = curVault().name, root = OBS.handle;
+  const cache = (await idbGet("scan:"+name)) || {};
+  const folders = [], notes = [], seen = {}; let n = 0, dirty = false;
+  async function walk(dir, rel){
+    for await (const [nm, eh] of dir.entries()){
+      if (nm.startsWith(".")) continue;
+      const r = rel ? rel+"/"+nm : nm;
+      if (eh.kind==="directory"){ folders.push(r); await walk(eh, r); }
+      else if (/\.md$/i.test(nm)){
+        const f = await eh.getFile(); n++;
+        let c = cache[r];
+        if (!c || c[0]!==f.lastModified || c[1]!==f.size){ c = [f.lastModified, f.size, extractTags(await f.text())]; cache[r] = c; dirty = true; }
+        seen[r] = 1; notes.push({path:r, dir:rel, name:nm.slice(0,-3), tags:c[2]});
+        if (n % 40 === 0){ OBS.status = "جارٍ الفهرسة… "+n; obsUI(); }
+      }
+    }
+  }
+  try { await walk(root, ""); }
+  catch(e){ OBS.scanning = false; OBS.status = "تعذّرت الفهرسة: "+e.message; obsUI(); return; }
+  for (const k of Object.keys(cache)) if (!seen[k]){ delete cache[k]; dirty = true; }
+  if (dirty) await idbSet("scan:"+name, cache);
+  OBS.folders = folders.sort((a,b) => a.localeCompare(b,"ar")); OBS.notes = notes;
+  rebuildIndex(); OBS.scanning = false;
+  OBS.indexTime = Date.now(); await saveIndex();
+  OBS.status = indexInfo();
+  obsUI(); loadPages(); obsStatus();
+}
+function rebuildIndex(){
+  OBS.folderMap = new Map(OBS.folders.map(f => [normKey(f), f]));
+  OBS.noteMap = new Map(OBS.notes.map(x => [normKey(x.dir)+"|"+normKey(x.name), x]));
+  OBS.names = [...new Set(OBS.notes.map(x => x.name))];
+  const cnt = new Map();
+  OBS.notes.forEach(x => (x.tags||[]).forEach(t => cnt.set(t, (cnt.get(t)||0)+1)));
+  OBS.tagList = [...cnt.entries()].sort((a,b) => b[1]-a[1]).map(([t,c]) => ({t,c}));
+  OBS.tagKey = new Map(OBS.tagList.map(x => [normKey(x.t), x.t]));
+}
+
+/* ---- مسار الهدف: المجلد والملف ---- */
+function resolveFolderSync(text){
+  let rel = "", created = false; const newParts = [];
+  for (const seg0 of String(text).replace(/\\/g,"/").split("/")){
+    const seg = cleanName(seg0); if (!seg) continue;
+    const cand = rel ? rel+"/"+seg : seg, hit = OBS.folderMap.get(normKey(cand));
+    if (hit && !created){ rel = hit; }
+    else { created = true; newParts.push(seg); rel = cand; }
+  }
+  return {rel, created, newParts:newParts.join("/")};
+}
+function resolveNoteSync(rel, text){
+  const clean = cleanName(String(text).replace(/\.md$/i,"")); if (!clean) return {name:"", exists:false};
+  const hit = OBS.noteMap.get(normKey(rel)+"|"+normKey(clean));
+  return {name: hit ? hit.name : clean, exists: !!hit};
+}
+function obsStatus(){
+  const f = $("#oFolder").value.trim(), nm = $("#oName").value.trim(), parts = [];
+  const fr = resolveFolderSync(f);
+  parts.push(!f ? "المجلد الجذر" : (fr.created ? "سيُنشأ مجلد جديد: "+fr.newParts : "مجلد موجود"));
+  const nr = resolveNoteSync(fr.rel, nm);
+  if (nr.name) parts.push(nr.exists ? "سيُضاف إلى ملف موجود: "+nr.name+".md" : "ملف جديد: "+nr.name+".md");
+  $("#oStatus").textContent = "← "+parts.join(" · ");
+}
+
+/* ---- مربع اقتراحات للحقول ---- */
+function attachSuggest(input, getItems){
+  const wrap = input.closest(".field"), box = el("ul","sbox"); wrap.appendChild(box);
+  let items = [], sel = -1;
+  const close = () => { box.classList.remove("open"); sel = -1; };
+  const draw = () => {
+    box.innerHTML = "";
+    items.forEach((it,k) => {
+      const li = el("li", k===sel ? "sel" : "");
+      li.innerHTML = "<span>"+esc(it.label)+"</span>"+(it.sub ? "<small>"+esc(it.sub)+"</small>" : "");
+      li.onmousedown = e => { e.preventDefault(); it.apply(); close(); input.dispatchEvent(new Event("rqchange")); };
+      box.appendChild(li);
+    });
+    box.classList.toggle("open", items.length>0);
+    const s = box.querySelector(".sel"); if (s) s.scrollIntoView({block:"nearest"});
+  };
+  const refresh = () => { items = getItems(input.value) || []; sel = -1; draw(); };
+  input.addEventListener("input", refresh); input.addEventListener("focus", refresh);
+  input.addEventListener("blur", () => setTimeout(close, 130));
+  input.addEventListener("keydown", e => {
+    if (!box.classList.contains("open")) return;
+    if (e.key==="ArrowDown"){ e.preventDefault(); sel = (sel+1) % items.length; draw(); }
+    else if (e.key==="ArrowUp"){ e.preventDefault(); sel = (sel-1+items.length) % items.length; draw(); }
+    else if ((e.key==="Enter" || e.key==="Tab") && sel>=0){ e.preventDefault(); items[sel].apply(); close(); input.dispatchEvent(new Event("rqchange")); }
+    else if (e.key==="Escape"){ e.preventDefault(); e.stopPropagation(); close(); }
+  });
+}
+function rankFilter(list, q, get, limit=12){
+  const nq = normKey(q), pre = [], mid = [];
+  for (const x of list){
+    if (!nq){ pre.push(x); }
+    else { const p = normKey(get(x)).indexOf(nq); if (p===0) pre.push(x); else if (p>0) mid.push(x); }
+    if (pre.length >= limit && !nq) break;
+  }
+  return pre.concat(mid).slice(0, limit);
+}
+const lastSegment = v => { const m = v.match(/[^,،؛;]*$/); return (m ? m[0] : v).trim(); };
+
+/* ---- حقول الترويسة ---- */
+function metaFields(){
+  const f = [{key:"source", label:"المصدر"}, {key:"tags", label:"الوسوم"}];
+  CFG.obs.extra.forEach(k => { if (k && !f.some(x => x.key.toLowerCase()===k.toLowerCase())) f.push({key:k, label:k}); });
+  return f;
+}
+function renderMeta(){
+  const host = $("#oMeta"); host.innerHTML = "";
+  metaFields().forEach(f => {
+    const row = el("div","field"), lb = el("label"), inp = el("input");
+    lb.textContent = f.label+":"; inp.dataset.key = f.key; inp.autocomplete = "off"; inp.dir = "auto";
+    inp.value = OBS.vals[f.key] || "";
+    inp.addEventListener("input", () => { OBS.vals[f.key] = inp.value; });
+    row.append(lb, inp); host.appendChild(row);
+    if (f.key==="tags") attachSuggest(inp, v => {
+      const seg = lastSegment(v);
+      return rankFilter(OBS.tagList, seg, x => x.t).map(x => ({label:x.t, sub:String(x.c), apply(){
+        const i = v.search(/[^,،؛;]*$/); inp.value = v.slice(0,i) + (i>0 ? " " : "") + x.t + ", "; OBS.vals.tags = inp.value; }}));
+    });
+    inp.addEventListener("keydown", e => { if (e.key==="Enter" && !e.defaultPrevented){ e.preventDefault(); focusNextField(inp); } });
+  });
+}
+function focusNextField(cur){
+  const all = [...document.querySelectorAll("#obsBox input")]; const i = all.indexOf(cur);
+  if (i>=0 && i<all.length-1) all[i+1].focus(); else focusLastBlock();
+}
+
+/* ---- YAML ---- */
+function yamlScalar(v){
+  if (v !== "" && !/^[\s\-?]|\s$|[:#\[\]{},&*!|>'"%@]/.test(v)) return v;
+  return '"'+v.replace(/\\/g,"\\\\").replace(/"/g,'\\"')+'"';
+}
+const escRe = s => s.replace(/[.*+?^${}()|[\]\\]/g,"\\$&");
+function mergeList(text, key, values){
+  const nl = text.includes("\r\n") ? "\r\n" : "\n", lines = text.split(/\r?\n/);
+  if (!/^---\s*$/.test(lines[0])) return text;
+  let end = -1; for (let i=1;i<lines.length;i++) if (/^---\s*$/.test(lines[i])){ end = i; break; }
+  if (end<0) return text;
+  const isTags = key==="tags", fmt = v => isTags ? v : yamlScalar(v);
+  const kre = new RegExp("^"+escRe(key)+"\\s*:","i"); let ki = -1;
+  for (let i=1;i<end;i++) if (kre.test(lines[i])){ ki = i; break; }
+  const notIn = ex => values.filter(v => !ex.some(e => normKey(e)===normKey(v)));
+  if (ki<0){ lines.splice(end, 0, key+":", ...values.map(v => "  - "+fmt(v))); }
+  else {
+    const rest = lines[ki].replace(kre,"").trim();
+    if (rest){
+      const ex = splitInlineList(rest, isTags), add = notIn(ex); if (!add.length) return text;
+      lines[ki] = key+": ["+ex.concat(add).map(fmt).join(", ")+"]";
+    } else {
+      let last = ki, indent = "  ", j = ki+1; const ex = [];
+      while (j<end){ const m = lines[j].match(/^(\s*)-\s+(.+?)\s*$/); if (!m) break; ex.push(cleanTag(m[2])); indent = m[1]; last = j; j++; }
+      const add = notIn(ex); if (!add.length) return text;
+      lines.splice(last+1, 0, ...add.map(v => indent+"- "+fmt(v)));
+    }
+  }
+  return lines.join(nl);
+}
+function buildFm(fields, nl){
+  const out = ["---"];
+  fields.forEach(f => { out.push(f.key+":"); f.values.forEach(v => out.push("  - "+(f.key==="tags" ? v : yamlScalar(v)))); });
+  out.push("---"); return out.join(nl)+nl;
+}
+function applyFields(text, fields){
+  if (!fields.length) return text;
+  const nl = text.includes("\r\n") ? "\r\n" : "\n";
+  const has = /^---[ \t]*\r?\n[\s\S]*?\r?\n---[ \t]*(\r?\n|$)/.test(text);
+  if (!has) return buildFm(fields, nl) + nl + text;
+  fields.forEach(f => { text = mergeList(text, f.key, f.values); });
+  return text;
+}
+function filledFields(){
+  const out = [];
+  metaFields().forEach(f => {
+    const raw = (OBS.vals[f.key] || "").trim(); if (!raw) return;
+    let vals = raw.split(/[,،؛;]/).map(s => s.trim()).filter(Boolean);
+    if (f.key==="tags") vals = vals.map(s => cleanTag(s).replace(/\s+/g,"_")).filter(Boolean).map(t => OBS.tagKey.get(normKey(t)) || t);
+    const uniq = []; vals.forEach(v => { if (!uniq.some(u => normKey(u)===normKey(v))) uniq.push(v); });
+    if (uniq.length) out.push({key:f.key, values:uniq});
+  });
+  return out;
+}
+
+/* ---- تحويل الكتل (صيغة المحرر/Roam) إلى Markdown لـ Obsidian ---- */
+function oblInline(s){
+  const keep = [];
+  s = s.replace(/`[^`\n]+`/g, m => { keep.push(m); return "\u0000"+(keep.length-1)+"\u0000"; });
+  s = s.replace(/__(?=\S)([^_\n]+?)(?<=\S)__/g, "*$1*");                 // مائل Roam → *x*
+  s = s.replace(/\^\^(?=\S)([^\^\n]+?)(?<=\S)\^\^/g, "==$1==");          // تمييز
+  s = s.replace(/\u0000(\d+)\u0000/g, (m,i) => keep[+i]);
+  return s;
+}
+let OBS_TIGHT = false;     // فقرات متلاصقة بسطر واحد بينها (كما يلصق Obsidian) بدل سطر فارغ
+const LIST_LINE = /^\s*([-*+]|\d+[.)])\s|^\s*\|/;
+function obsEmit(nodes, depth, para, out, forceList){
+  const blank = () => { if (out.length && out[out.length-1] !== "") out.push(""); };
+  for (const n of nodes){
+    let s = n.string;
+    const task = s.match(/^\{\{\[\[(TODO|DONE)\]\]\}\}\s*([\s\S]*)$/);
+    if (task) s = (task[1]==="DONE" ? "[x] " : "[ ] ") + task[2];
+    const trs = tableRows(n.string);
+    const pad = "    ".repeat(depth);
+    if (n.heading && depth===0 && !forceList){
+      blank(); out.push("#".repeat(n.heading)+" "+oblInline(s)); blank();
+      obsEmit(n.children, 0, para, out, false); continue;
+    }
+    if (trs){ blank(); n.string.split("\n").forEach(l => out.push(pad+oblInline(l))); blank(); obsEmit(n.children, depth+((depth||forceList) ? 1 : 0), para, out, true); continue; }
+    if (s.trim()==="---"){ blank(); out.push("---"); blank(); obsEmit(n.children, 0, para, out, true); continue; }
+    s = oblInline(s);
+    const listy = depth>0 || !para || n.li || forceList || !!task;
+    const lines = s.split("\n");
+    if (listy){
+      const ordered = /^\d+[.)]\s/.test(lines[0]);
+      if (OBS_TIGHT && depth===0 && out.length && out[out.length-1]!=="" && !LIST_LINE.test(out[out.length-1])) out.push("");
+      const mark = ordered ? "" : "- ", cont = pad + (ordered ? "   " : "  ");
+      out.push(pad + mark + (n.heading ? "#".repeat(n.heading)+" " : "") + lines[0]);
+      for (let i=1;i<lines.length;i++) out.push(lines[i]==="" ? "" : cont + lines[i]);
+      obsEmit(n.children, depth+1, para, out, true);
+    } else {
+      if (!OBS_TIGHT) blank();
+      else if (out.length && out[out.length-1]!=="" && LIST_LINE.test(out[out.length-1])) out.push("");
+      lines.forEach(l => out.push(l));
+      if (!OBS_TIGHT) blank();
+      obsEmit(n.children, 0, para, out, true);
+    }
+  }
+}
+function toObsidian(tree, tight){
+  OBS_TIGHT = !!tight;
+  const out = []; obsEmit(tree, 0, CFG.obs.paragraphs, out, false); OBS_TIGHT = false;
+  return out.join("\n").replace(/^\n+/,"").replace(/\n{3,}/g,"\n\n").replace(/\s+$/,"");
+}
+function stampStr(d=new Date()){ return isoStr(d)+" "+timeStr(d); }
+
+/* ---- الكتابة في الخزنة ---- */
+async function sendToObsidian(body){
+  const root = OBS.handle;
+  if (!root) throw new Error("لا توجد خزنة مختارة (أضفها من +)");
+  if (!(await vaultPerm(root, true))) throw new Error("لم يُمنح إذن الكتابة في الخزنة");
+  const fr = resolveFolderSync($("#oFolder").value), nr = resolveNoteSync(fr.rel, $("#oName").value);
+  if (!nr.name) throw new Error("اكتب اسماً للملف");
+  let dir = root;
+  for (const seg of fr.rel.split("/").filter(Boolean)) dir = await dir.getDirectoryHandle(seg, {create:true});
+  const fname = nr.name+".md"; let fh, existing = "", isNew = false;
+  try { fh = await dir.getFileHandle(fname); existing = await (await fh.getFile()).text(); }
+  catch(e){ if (e.name!=="NotFoundError") throw e; isNew = true; fh = await dir.getFileHandle(fname, {create:true}); }
+  const fields = filledFields();
+  let text;
+  if (isNew){
+    text = (fields.length ? buildFm(fields, "\n") + "\n" : "") + body + "\n";
+  } else {
+    const nl = existing.includes("\r\n") ? "\r\n" : "\n";
+    let base = applyFields(existing, fields);
+    if (base.trim()!==""){
+      const m = base.match(/(\r?\n)*$/)[0].replace(/\r/g,"").length;
+      base += "\n".repeat(Math.max(0, 2-m)) + "<!-- "+stampStr()+" -->\n\n";
+    }
+    text = base + body + "\n";
+    if (nl==="\r\n") text = text.replace(/\r?\n/g,"\r\n");
+  }
+  const w = await fh.createWritable(); await w.write(text); await w.close();
+  if (isNew){                                          // تحديث الفهرس في الذاكرة
+    let acc = ""; fr.rel.split("/").filter(Boolean).forEach(p => { acc = acc ? acc+"/"+p : p; if (!OBS.folderMap.has(normKey(acc))){ OBS.folders.push(acc); OBS.folderMap.set(normKey(acc), acc); } });
+    OBS.notes.push({path:(fr.rel ? fr.rel+"/" : "")+fname, dir:fr.rel, name:nr.name, tags:fields.filter(f => f.key==="tags").flatMap(f => f.values)});
+    rebuildIndex(); loadPages(); saveIndex();
+  }
+  CFG.obs.lastFolder = fr.rel; saveCfg();
+  return {file:(fr.rel ? fr.rel+"/" : "")+fname, isNew};
+}
+
+/* ============================================================
+   محرر Obsidian: نص Markdown عادي (سطور لا كتل)
+   ============================================================ */
+function init(){
+  loadState();
+  fillGraphSelect();
+  const gs = $("#graph");
+  gs.onchange = () => { const old = S.header; CFG.roam.current = gs.value; graphChanged(old); };
+
+  $("#pagebtn").onclick = () => $("#pagepanel").classList.contains("open") ? closePagePanel() : openPagePanel();
+  $("#pagebtn").onkeydown = e => { if (e.key==="Enter"||e.key===" "){ e.preventDefault(); openPagePanel(); } };
+  $("#pq").oninput = () => { pSel=0; drawPageList(); };
+  $("#pq").onkeydown = e => {
+    if (e.key==="ArrowDown"){ e.preventDefault(); pSel=Math.min(pItems.length-1,pSel+1); drawPageList(); }
+    else if (e.key==="ArrowUp"){ e.preventDefault(); pSel=Math.max(0,pSel-1); drawPageList(); }
+    else if (e.key==="Enter"){ e.preventDefault(); choosePage(pSel); }
+    else if (e.key==="Escape"){ e.preventDefault(); closePagePanel(); focusLastBlock(); }
+  };
+  document.addEventListener("mousedown", e => { if (!$("#pagefield").contains(e.target)) closePagePanel(); });
+
+  document.querySelectorAll("#destbar button").forEach(b => b.onclick = () => switchDest(b.dataset.dest));
+
+  /* Obsidian */
+  $("#vault").onchange = async () => { CFG.obs.current = $("#vault").value; saveCfg(); await loadVault(false); obsStatus(); };
+  $("#btnAddVault").onclick = addVault;
+  $("#btnDelVault").onclick = async () => {
+    const v = curVault(); if (!v) return;
+    const btn = $("#btnDelVault");
+    if (btn.dataset.arm!=="1"){ btn.dataset.arm = "1"; btn.title = "اضغط ثانية للتأكيد — لن يحذف ملفاتك"; btn.textContent="؟"; setTimeout(()=>{btn.dataset.arm="";btn.title="إزالة هذه الخزنة من القائمة (لا يحذف ملفاتك)";btn.textContent="✕";},2500); return; }
+    btn.dataset.arm = ""; btn.title = "إزالة هذه الخزنة من القائمة (لا يحذف ملفاتك)"; btn.textContent="✕";
+    await removeVault(v.name); toast("أُزيلت الخزنة من القائمة");
+  };
+  $("#btnRescan").onclick = reindex;
+  document.addEventListener("keydown", e => { if (e.key==="F9" && CFG.dest==="obsidian"){ e.preventDefault(); reindex(); } });
+  $("#btnVaultPerm").onclick = async () => { await loadVault(true); obsStatus(); };
+  attachSuggest($("#oFolder"), v => rankFilter(OBS.folders, v, x => x).map(f => ({label:f, apply(){ $("#oFolder").value = f; }})));
+  attachSuggest($("#oName"), v => {
+    const ft = $("#oFolder").value.trim(), fr = resolveFolderSync(ft);
+    let list = v.trim()==="" && ft ? OBS.notes.filter(x => x.dir===fr.rel) : rankFilter(OBS.notes, v, x => x.name, 60);
+    if (ft) list = list.slice().sort((a,b) => (b.dir===fr.rel) - (a.dir===fr.rel));
+    return list.slice(0,12).map(x => ({label:x.name, sub:x.dir, apply(){ $("#oFolder").value = x.dir; $("#oName").value = x.name; }}));
+  });
+  ["#oFolder","#oName"].forEach(id => { $(id).addEventListener("input", obsStatus); $(id).addEventListener("rqchange", obsStatus);
+    $(id).addEventListener("keydown", e => { if (e.key==="Enter" && !e.defaultPrevented){ e.preventDefault(); focusNextField($(id)); } }); });
+  $("#oToday").onclick = () => {
+    const d = new Date(); $("#oFolder").value = CFG.obs.dailyFolder || "";
+    $("#oName").value = CFG.obs.dailyFmt.replace(/YYYY/g, d.getFullYear()).replace(/MM/g, p2(d.getMonth()+1)).replace(/DD/g, p2(d.getDate()));
+    obsStatus(); focusLastBlock();
+  };
+  $("#obsBox").addEventListener("keydown", e => { if (e.ctrlKey && e.key==="Enter"){ e.preventDefault(); doSend(); } });
+
+  $("#btnSend").onclick = doSend;
+  $("#btnClear").onclick = () => { clearAll(); };
+  const applyWide = () => { $("#app").classList.toggle("wide", S.wide); $("#btnWide").style.color = S.wide ? "var(--accent)" : ""; };
+  applyWide();
+  $("#btnWide").onclick = () => { S.wide = !S.wide; saveState(); applyWide(); };
+  $("#btnSettings").onclick = () => $("#settings").classList.toggle("open");
+  $("#outClose").onclick = () => { $("#out").classList.remove("open"); focusLastBlock(); };
+  document.querySelectorAll("[data-copy]").forEach(b => b.onclick = () => { toast(copyText($("#"+b.dataset.copy).value) ? "تم النسخ" : "تعذّر النسخ"); });
+  document.addEventListener("keydown", e => { if (e.key==="Escape" && $("#out").classList.contains("open")) { $("#out").classList.remove("open"); } });
+
+  document.addEventListener("copy", e => {
+    if (!selAll || !e.clipboardData) return;
+    e.preventDefault(); e.clipboardData.setData("text/plain", rawAll());
+  });
+  document.addEventListener("cut", e => {
+    if (!selAll || !e.clipboardData) return;
+    e.preventDefault(); e.clipboardData.setData("text/plain", rawAll()); clearAll();
+  });
+  document.addEventListener("mousedown", () => clearSelAll(), true);
+
+  document.addEventListener("keydown", e => {
+    if (selAll){
+      if (e.key==="Escape"){ e.preventDefault(); clearSelAll(); focusLastBlock(); return; }
+      if (e.key==="Backspace" || e.key==="Delete"){ e.preventDefault(); clearAll(); focusLastBlock(); return; }
+      if (!e.ctrlKey && !e.metaKey && !e.altKey && e.key.length===1){ clearSelAll(); clearAll(); focusLastBlock(); return; }
+      if ((e.ctrlKey||e.metaKey) && e.code!=="KeyC" && e.code!=="KeyX" && e.code!=="KeyA") clearSelAll();
+    }
+    if ((e.ctrlKey||e.metaKey) && e.code==="KeyA" && !e.altKey){
+      const a = document.activeElement;
+      if (!(a && (a.tagName==="INPUT" || a.tagName==="TEXTAREA"))){ e.preventDefault(); selectAll(); return; }
+    }
+    if (e.defaultPrevented || !(e.ctrlKey||e.metaKey) || e.altKey) return;
+    const ae = document.activeElement, inField = ae && (ae.tagName==="INPUT" || (ae.tagName==="TEXTAREA" && !ae.classList.contains("ed")));
+    if (e.code==="KeyS"){ e.preventDefault(); doSend(); return; }
+    if (inField) return;
+    if (e.code==="KeyZ"){ e.preventDefault(); e.shiftKey ? redo() : undo(); }
+    else if (e.code==="KeyY"){ e.preventDefault(); redo(); }
+  });
+
+  applyDest();
+  freshModel(); render();
+  if (CFG.dest==="obsidian") focusLastBlock();
+}
+init();
+</script>
+<script>if("serviceWorker" in navigator && location.protocol.indexOf("http")===0){ navigator.serviceWorker.register("sw.js").catch(function(){}); }</script>
+</body>
+</html>
