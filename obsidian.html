@@ -521,7 +521,7 @@ function selectAll(){
   const r = document.createRange(); r.selectNodeContents(host);
   sel.removeAllRanges(); sel.addRange(r);
   selAll = true;
-  toast("حُدِّد كل النص");
+  toast("حُدِّد كل النص — Ctrl+C للنسخ");
 }
 function clearSelAll(){ if (!selAll) return; selAll = false; const s = window.getSelection(); if (s) s.removeAllRanges(); }
 
@@ -548,8 +548,9 @@ function normalizeObs(id, caret){                    // يعيد تقسيم ال
   }
   model = nm; return [rid, rc];
 }
-function isoTok(s){                                  // عزل المقاطع اللاتينية داخل النص العربي (للعرض فقط)
-  return s.replace(/[^\s؀-ۿ]*[A-Za-z0-9][^\s؀-ۿ]*/g, w => {
+const LAT_RUN = /[^\s؀-ۿ]*[A-Za-z0-9][^\s؀-ۿ]*(?:[ \t]+[^\s؀-ۿ]*[A-Za-z0-9][^\s؀-ۿ]*)*/g;
+function isoTok(s){     // تُعزل الجملة الإنجليزية كاملة، لا كل كلمة وحدها، لئلا ينعكس ترتيب كلماتها
+  return s.replace(LAT_RUN, w => {
     const m = w.match(/^(.*?)([.,;:!?،؛؟]*)$/); return m[1] ? "⁦"+m[1]+"⁩"+m[2] : w;
   });
 }
@@ -2021,11 +2022,12 @@ function init(){
   document.addEventListener("mousedown", () => clearSelAll(), true);
 
   document.addEventListener("keydown", e => {
-    if (selAll){
+    const modKey = /^(Control|Shift|Alt|Meta|OS)$/.test(e.key);
+    if (selAll && !modKey){                            // الضغط على Ctrl وحده لا يلغي التظليل
       if (e.key==="Escape"){ e.preventDefault(); clearSelAll(); focusLastBlock(); return; }
       if (e.key==="Backspace" || e.key==="Delete"){ e.preventDefault(); clearAll(); focusLastBlock(); return; }
       if (!e.ctrlKey && !e.metaKey && !e.altKey && e.key.length===1){ clearSelAll(); clearAll(); focusLastBlock(); return; }
-      if ((e.ctrlKey||e.metaKey) && e.code!=="KeyC" && e.code!=="KeyX" && e.code!=="KeyA") clearSelAll();
+      if (e.code!=="KeyC" && e.code!=="KeyX" && e.code!=="KeyA") clearSelAll();
     }
     if ((e.ctrlKey||e.metaKey) && e.code==="KeyA" && !e.altKey){
       const a = document.activeElement;
