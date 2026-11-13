@@ -1325,9 +1325,17 @@ async function sendToRoam(payload){
     }
   }
   const acts = flattenActions(payload.blocks, pageUid, []);
-  for (let i=0;i<acts.length;i+=100){
-    const w = await roamCall("write", {action:"batch-actions", actions:acts.slice(i,i+100)});
-    if (!w.ok) throw new Error("الكتابة فشلت ("+w.status+") بعد "+i+" كتلة: "+w.text.slice(0,150));
+  const btn = $("#btnSend");
+  let i = 0, size = 50;                              // دفعات أصغر: Roam يرفض الدفعات الكبيرة
+  while (i < acts.length){
+    const part = acts.slice(i, i+size);
+    const w = await roamCall("write", {action:"batch-actions", actions:part});
+    if (!w.ok){
+      if (size > 10){ size = Math.max(10, Math.floor(size/2)); continue; }   // جرّب دفعة أصغر
+      throw new Error("الكتابة فشلت ("+w.status+") بعد "+i+" كتلة: "+w.text.slice(0,150));
+    }
+    i += part.length;
+    if (acts.length > size && btn) btn.textContent = "جارٍ الإرسال… "+Math.round(i*100/acts.length)+"٪";
   }
   return acts.length;
 }
@@ -1344,9 +1352,7 @@ async function doSend(){
       toast((r.isNew ? "أُنشئ: " : "أُضيف إلى: ")+r.file+" ✓");
     } catch(e){
       console.error(e);
-      $("#outMd").value = body; $("#outJson").value = "";
-      $("#outnote").textContent = "— فشل الحفظ: "+e.message+" (نصك محفوظ، لم يُمسح)";
-      $("#out").classList.add("open");
+      showOut(body, null, "— فشل الحفظ: "+e.message+" (نصك محفوظ، لم يُمسح)");
     } finally { sending = false; btn.textContent = old; btn.disabled = false; }
     return;
   }
@@ -1360,22 +1366,36 @@ async function doSend(){
       pushHist(); freshModel(); render(); toast("أُرسل إلى Roam ✓ ("+n+" كتلة)");
     } catch(e){
       console.error(e);
-      $("#outMd").value = toMd(tree); $("#outJson").value = JSON.stringify(payload, null, 2);
-      $("#outnote").textContent = "— فشل الإرسال: "+e.message+" (نصك محفوظ، لم يُمسح)";
-      $("#out").classList.add("open");
+      showOut(toMd(tree), () => JSON.stringify(payload, null, 2), "— فشل الإرسال: "+e.message+" (نصك محفوظ، لم يُمسح)");
     } finally { sending = false; btn.textContent = old; btn.disabled = false; }
     return;
   }
-  $("#outMd").value = toMd(tree);
-  $("#outJson").value = JSON.stringify(payload, null, 2);
+  showOut(toMd(tree), () => JSON.stringify(payload, null, 2), $("#outnote").textContent);
   $("#outnote").textContent = "— لا يوجد رمز Roam (من ⚙ الإعدادات)، فهذا الناتج للنسخ فقط";
   $("#out").classList.add("open");
 }
-function copyText(text){
+async function copyText(text){                     // الحافظة مباشرة: بلا مربع نص مؤقت يُثقل الصفحة
+  try { await navigator.clipboard.writeText(text); return true; } catch(e){}
   const ta = el("textarea"); ta.value = text; ta.style.position="fixed"; ta.style.opacity="0";
   document.body.appendChild(ta); ta.select();
   let ok=false; try{ ok = document.execCommand("copy"); }catch(e){}
   ta.remove(); return ok;
+}
+/* نافذة الناتج: لا نضع النص كله في مربعين، بل مقتطفاً منه، والنسخ من الذاكرة */
+const OUT = {md:"", json:null, jsonFn:null};
+const OUT_PREVIEW = 4000;
+function showOut(md, jsonFn, note){
+  OUT.md = md || ""; OUT.json = null; OUT.jsonFn = jsonFn || null;
+  const cut = t => t.length>OUT_PREVIEW ? t.slice(0,OUT_PREVIEW)+"\n\n… (عُرض أول "+OUT_PREVIEW.toLocaleString("ar-EG")+" حرف من "+t.length.toLocaleString("ar-EG")+"؛ زر النسخ ينسخه كاملاً)" : t;
+  $("#outMd").value = cut(OUT.md);
+  $("#outJson").value = jsonFn ? "(يُبنى عند النسخ — " + "اضغط «نسخ JSON»)" : "";
+  $("#outnote").textContent = note || "";
+  $("#out").classList.add("open");
+}
+function outText(which){
+  if (which==="outMd") return OUT.md;
+  if (OUT.json==null && OUT.jsonFn) OUT.json = OUT.jsonFn();
+  return OUT.json || "";
 }
 
 /* ============================================================
@@ -2008,7 +2028,11 @@ function init(){
   $("#btnWide").onclick = () => { S.wide = !S.wide; saveState(); applyWide(); };
   $("#btnSettings").onclick = () => $("#settings").classList.toggle("open");
   $("#outClose").onclick = () => { $("#out").classList.remove("open"); focusLastBlock(); };
-  document.querySelectorAll("[data-copy]").forEach(b => b.onclick = () => { toast(copyText($("#"+b.dataset.copy).value) ? "تم النسخ" : "تعذّر النسخ"); });
+  document.querySelectorAll("[data-copy]").forEach(b => b.onclick = async () => {
+    const t = outText(b.dataset.copy);
+    if (!t){ toast("لا يوجد شيء للنسخ"); return; }
+    toast(await copyText(t) ? "تم النسخ ("+t.length.toLocaleString("ar-EG")+" حرف)" : "تعذّر النسخ");
+  });
   document.addEventListener("keydown", e => { if (e.key==="Escape" && $("#out").classList.contains("open")) { $("#out").classList.remove("open"); } });
 
   document.addEventListener("copy", e => {
