@@ -6,6 +6,12 @@
  "dir": "rtl",
  "lang": "ar",
  "background_color": "#ffffff",
+ "launch_handler": {
+  "client_mode": [
+   "focus-existing",
+   "auto"
+  ]
+ },
  "id": "./index.html",
  "name": "المحرر — Roam",
  "theme_color": "#1a7fc4",

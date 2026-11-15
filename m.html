@@ -1,0 +1,1074 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+<!-- أمان: لا اتصال إلا بخادم Roam -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: 'self'; manifest-src 'self'; worker-src 'self'; connect-src https://api.roamresearch.com https://*.api.roamresearch.com:*;">
+<title>المحرر (جوال)</title>
+<link rel="manifest" href="manifest-mobile.webmanifest">
+<meta name="theme-color" content="#0f8f7e">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230f8f7e'/%3E%3Ccircle cx='20' cy='20' r='5' fill='%23fff'/%3E%3Crect x='30' y='16' width='24' height='8' rx='4' fill='%23fff'/%3E%3Ccircle cx='20' cy='44' r='5' fill='%23fff'/%3E%3Crect x='30' y='40' width='24' height='8' rx='4' fill='%23fff'/%3E%3C/svg%3E">
+<style>
+:root{--bg:#fff;--fg:#1c2330;--mut:#7b8794;--line:#e3e7ec;--card:#f4f6f8;--acc:#0f8f7e;--accfg:#fff;--link:#1766b3;--mark:#fff1a6;--code:#eef1f4;--danger:#c0392b;--sel:#e3f4f1;--fs:17px;--lh:1.7}
+@media (prefers-color-scheme:dark){:root{--bg:#13171c;--fg:#e2e6ea;--mut:#8b96a3;--line:#2a313a;--card:#1b2128;--acc:#27b3a0;--accfg:#06201c;--link:#74b6f2;--mark:#6a5900;--code:#222a33;--sel:#17332f}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);overscroll-behavior-y:contain}
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans Arabic",sans-serif;font-size:16px;touch-action:manipulation}
+button,select,input,textarea{font:inherit;color:inherit}
+button{background:none;border:0;padding:0;margin:0;cursor:pointer}
+[hidden]{display:none!important}
+.scr{position:fixed;inset:0;height:100dvh;display:flex;flex-direction:column;background:var(--bg);padding-top:env(safe-area-inset-top)}
+.bar{flex:none;display:flex;align-items:center;gap:6px;padding:6px 8px;border-bottom:1px solid var(--line);min-height:50px;user-select:none;-webkit-user-select:none}
+.ic{flex:none;width:42px;height:42px;display:grid;place-items:center;border-radius:10px;color:var(--mut);font-size:17px;font-weight:600}
+.ic:active,.chip:active,.k:active{background:var(--card)}
+.ic svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.chip{height:38px;border:1px solid var(--line);border-radius:19px;padding:0 12px;background:var(--bg);max-width:38vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:14px}
+select.chip{appearance:none;-webkit-appearance:none;padding-inline-end:12px;text-align:center}
+.chip.grow{flex:1;max-width:none;text-align:start;min-width:0}
+.chip .tl{color:var(--mut);font-size:12px}
+#prog{position:fixed;top:0;inset-inline:0;height:3px;background:linear-gradient(90deg,transparent,var(--acc),transparent);background-size:40% 100%;background-repeat:no-repeat;animation:pr 1s linear infinite;z-index:50}
+@keyframes pr{from{background-position:140% 0}to{background-position:-40% 0}}
+
+/* ---- الالتقاط ---- */
+#ctx{flex:none;display:flex;align-items:center;gap:8px;padding:6px 12px;background:var(--sel);font-size:13px;border-bottom:1px solid var(--line)}
+#ctx div{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#ctx b{font-weight:600}
+#ta{flex:1;min-height:0;width:100%;border:0;outline:0;resize:none;background:var(--bg);padding:12px 14px;font-size:var(--fs);line-height:var(--lh);unicode-bidi:plaintext;text-align:right;white-space:pre-wrap}
+#ta.ltr{text-align:left}
+#err{flex:none;padding:8px 12px;background:#fdecea;color:#8c1d12;font-size:13px;display:flex;gap:8px;align-items:flex-start}
+@media (prefers-color-scheme:dark){#err{background:#3a1b17;color:#f3b4ab}}
+#err div{flex:1;word-break:break-word}
+#sugg{flex:none;display:flex;gap:6px;overflow-x:auto;padding:6px 8px;border-top:1px solid var(--line);scrollbar-width:none}
+#sugg::-webkit-scrollbar,#keys .ks::-webkit-scrollbar{display:none}
+.sg{flex:none;height:36px;padding:0 12px;border-radius:18px;background:var(--card);border:1px solid var(--line);font-size:14px;max-width:70vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sg.new{border-style:dashed;color:var(--mut)}
+#keys{flex:none;display:flex;align-items:stretch;border-top:1px solid var(--line);background:var(--card);padding-bottom:env(safe-area-inset-bottom);user-select:none;-webkit-user-select:none}
+#keys .ks{flex:1;min-width:0;display:flex;overflow-x:auto;scrollbar-width:none}
+.k{flex:none;min-width:46px;height:48px;padding:0 10px;display:grid;place-items:center;font-size:16px;font-weight:600;color:var(--fg);border-inline-end:1px solid var(--line);direction:ltr}
+.k.w{font-size:13px;font-weight:500;direction:rtl}
+#send{flex:none;min-width:86px;height:48px;background:var(--acc);color:var(--accfg);font-weight:700;font-size:15px}
+#send:disabled{opacity:.55}
+
+/* ---- البحث ---- */
+#sq{flex:1;min-width:0;height:40px;border:1px solid var(--line);border-radius:20px;padding:0 14px;background:var(--card);outline:0;font-size:16px}
+.hint{flex:none;padding:6px 14px;font-size:12px;color:var(--mut)}
+.list{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.it{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line);min-height:48px}
+.it:active{background:var(--card)}
+.it .t{flex:1;min-width:0;word-break:break-word;unicode-bidi:plaintext}
+.it .s{flex:none;font-size:12px;color:var(--mut)}
+.it.sp .t{color:var(--acc);font-weight:600}
+.sec{padding:8px 14px 4px;font-size:12px;color:var(--mut);background:var(--card)}
+
+/* ---- الصفحة ---- */
+.ttl{flex:1;min-width:0;font-weight:700;font-size:16px;line-height:1.3;max-height:2.6em;overflow:hidden;unicode-bidi:plaintext}
+.body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:10px 10px 96px 10px;font-size:var(--fs);line-height:var(--lh)}
+.blk{margin:0}
+.row{display:flex;align-items:flex-start;border-radius:6px}
+.row.sel{background:var(--sel)}
+.bul{flex:none;width:22px;align-self:stretch;position:relative}
+.bul::before{content:"";position:absolute;top:calc(var(--fs)*var(--lh)/2 - 3px);inset-inline-start:8px;width:6px;height:6px;border-radius:50%;background:var(--mut);opacity:.55}
+.bul.has::before{opacity:1;background:var(--fg)}
+.bul.closed::before{box-shadow:0 0 0 4px var(--line)}
+.bul.wait::before{animation:bl .6s linear infinite alternate}
+@keyframes bl{to{opacity:.2}}
+.txt{flex:1;min-width:0;padding:1px 2px;word-break:break-word;white-space:pre-wrap}
+.txt.h1{font-size:1.36em;font-weight:700;line-height:1.4}
+.txt.h2{font-size:1.2em;font-weight:700;line-height:1.45}
+.txt.h3{font-size:1.07em;font-weight:700}
+.kids{margin-inline-start:10px;padding-inline-start:2px;border-inline-start:1px solid var(--line)}
+.txt strong,.txt em,.txt code,.txt a,.txt mark{unicode-bidi:isolate}
+.txt code{background:var(--code);border-radius:4px;padding:0 4px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.9em;direction:ltr}
+.txt pre{background:var(--code);border-radius:8px;padding:8px 10px;margin:4px 0;overflow-x:auto;direction:ltr;text-align:left;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.86em;line-height:1.5;white-space:pre}
+.txt mark{background:var(--mark);color:inherit;border-radius:3px;padding:0 2px}
+a.pl{color:var(--link);text-decoration:none}
+a.pl .br{opacity:.35;font-size:.85em}
+a.ext{color:var(--link);text-decoration:underline;word-break:break-all}
+.bref{border-bottom:1px dashed var(--mut)}
+.pmsg{padding:28px 16px;text-align:center;color:var(--mut);font-size:15px}
+.pmsg button{display:inline-block;margin-top:12px;padding:8px 18px;border:1px solid var(--line);border-radius:18px;color:var(--fg)}
+.refs{margin-top:22px;border-top:2px solid var(--line);padding-top:6px}
+.rh{display:flex;align-items:center;gap:8px;padding:8px 4px;font-size:14px;color:var(--mut);font-weight:600;user-select:none}
+.rh .n{background:var(--card);border-radius:10px;padding:0 8px;font-size:12px}
+.rg{margin:6px 0 12px}
+.rgt{display:block;padding:4px 6px;font-size:.82em;font-weight:700;background:var(--card);border-radius:6px;margin-bottom:2px;unicode-bidi:plaintext}
+.selbar{position:fixed;inset-inline:8px;bottom:calc(10px + env(safe-area-inset-bottom));display:flex;gap:6px;background:var(--fg);color:var(--bg);border-radius:14px;padding:6px;box-shadow:0 6px 22px rgba(0,0,0,.3);z-index:20}
+.selbar button{flex:1;height:42px;border-radius:10px;font-size:14px;font-weight:600;color:inherit}
+.selbar button:active{background:rgba(127,127,127,.3)}
+.selbar button:disabled{opacity:.35}
+.selbar .x{flex:none;width:42px}
+.fab{position:fixed;inset-inline-end:16px;bottom:calc(18px + env(safe-area-inset-bottom));width:56px;height:56px;border-radius:50%;background:var(--acc);color:var(--accfg);display:grid;place-items:center;box-shadow:0 5px 16px rgba(0,0,0,.28);z-index:15}
+.fab svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round}
+
+/* ---- الخط ---- */
+#fontPop{position:fixed;top:calc(56px + env(safe-area-inset-top));inset-inline-end:8px;background:var(--bg);border:1px solid var(--line);border-radius:14px;box-shadow:0 8px 28px rgba(0,0,0,.22);padding:10px;z-index:40;width:236px;user-select:none}
+#fontPop .r{display:flex;align-items:center;gap:8px;margin:4px 0}
+#fontPop .r span{flex:1;font-size:13px;color:var(--mut)}
+#fontPop button{width:44px;height:40px;border:1px solid var(--line);border-radius:10px;font-size:18px;font-weight:700}
+#fontPop b{min-width:34px;text-align:center;font-size:14px}
+#fontPop .seg{display:flex;flex:2}
+#fontPop .seg button{flex:1;width:auto;font-size:12px;font-weight:500;border-radius:0}
+#fontPop .seg button:first-child{border-start-start-radius:10px;border-end-start-radius:10px}
+#fontPop .seg button:last-child{border-start-end-radius:10px;border-end-end-radius:10px}
+#fontPop .seg button.on{background:var(--acc);color:var(--accfg);border-color:var(--acc)}
+
+/* ---- الإعدادات ---- */
+.set{flex:1;overflow-y:auto;padding:10px 14px 40px}
+.set h3{font-size:13px;color:var(--mut);margin:18px 0 6px;font-weight:600}
+.card{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:8px}
+.card .gn{font-weight:700;direction:ltr;text-align:right;unicode-bidi:plaintext}
+.card .gs{font-size:12px;color:var(--mut);margin-top:2px}
+.btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.btn{height:40px;padding:0 16px;border:1px solid var(--line);border-radius:10px;font-size:14px;background:var(--bg)}
+.btn.p{background:var(--acc);color:var(--accfg);border-color:var(--acc);font-weight:700}
+.btn.d{color:var(--danger)}
+.f{display:block;margin:10px 0 0;font-size:13px;color:var(--mut)}
+.f input[type=text],.f input[type=password],.f select{display:block;width:100%;height:44px;margin-top:4px;border:1px solid var(--line);border-radius:10px;padding:0 12px;background:var(--bg);font-size:16px;color:var(--fg);direction:ltr;text-align:left}
+.f select{direction:rtl;text-align:right}
+.ck{display:flex;align-items:center;gap:10px;margin-top:12px;font-size:14px}
+.ck input{width:22px;height:22px;accent-color:var(--acc)}
+.note{font-size:12px;color:var(--mut);line-height:1.6;margin-top:6px}
+#toast{position:fixed;inset-inline:0;bottom:calc(72px + env(safe-area-inset-bottom));margin:auto;width:max-content;max-width:88vw;background:var(--fg);color:var(--bg);padding:9px 16px;border-radius:20px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:60;text-align:center}
+#toast.show{opacity:.96}
+</style>
+</head>
+<body>
+
+<!-- ============ الالتقاط ============ -->
+<div id="home" class="scr">
+  <header class="bar">
+    <select id="graph" class="chip" aria-label="الغراف"></select>
+    <button id="target" class="chip grow"><span class="tl">إلى </span><b id="targetName">اليوم</b></button>
+    <button id="bSearch" class="ic" aria-label="بحث عن صفحة"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></button>
+    <button class="ic bFont" aria-label="حجم الخط">Aa</button>
+    <button id="bSet" class="ic" aria-label="الإعدادات"><svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg></button>
+  </header>
+  <div id="ctx" hidden><div></div><button class="ic" id="ctxX" style="width:32px;height:32px" aria-label="إلغاء">✕</button></div>
+  <textarea id="ta" dir="rtl" placeholder="اكتب… كل سطر كتلة" autocomplete="off" autocapitalize="sentences" spellcheck="false"></textarea>
+  <div id="err" hidden><div></div><button id="errX" aria-label="إخفاء">✕</button></div>
+  <div id="sugg" hidden></div>
+  <div id="keys">
+    <div class="ks">
+      <button class="k" data-k="page">[[ ]]</button>
+      <button class="k" data-k="tag">#</button>
+      <button class="k w" data-k="in">أدخِل</button>
+      <button class="k w" data-k="out">أخرِج</button>
+      <button class="k" data-k="bold">**</button>
+      <button class="k" data-k="hl">^^</button>
+      <button class="k" data-k="ref">(( ))</button>
+      <button class="k" data-k="todo">☐</button>
+      <button class="k" data-k="undo">↶</button>
+      <button class="k" data-k="redo">↷</button>
+    </div>
+    <button id="send">إرسال</button>
+  </div>
+</div>
+
+<!-- ============ البحث ============ -->
+<div id="search" class="scr" hidden>
+  <header class="bar">
+    <button class="ic back" aria-label="رجوع"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
+    <input id="sq" type="search" enterkeyhint="go" placeholder="ابحث عن صفحة…" autocomplete="off" autocapitalize="off" spellcheck="false">
+    <button id="sRefresh" class="ic" aria-label="تحديث قائمة الصفحات"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.6-5.9M20 4v5h-5"/></svg></button>
+  </header>
+  <div id="sInfo" class="hint"></div>
+  <div id="sList" class="list"></div>
+</div>
+
+<!-- ============ الصفحة ============ -->
+<div id="page" class="scr" hidden>
+  <header class="bar">
+    <button class="ic back" aria-label="رجوع"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
+    <div id="pTitle" class="ttl"></div>
+    <button id="pFold" class="ic" aria-label="طيّ الكل ونشره"><svg viewBox="0 0 24 24"><path d="M7 9l5-5 5 5M7 15l5 5 5-5"/></svg></button>
+    <button class="ic bFont" aria-label="حجم الخط">Aa</button>
+    <button id="pReload" class="ic" aria-label="تحديث"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.6-5.9M20 4v5h-5"/></svg></button>
+  </header>
+  <div id="pBody" class="body"><div id="pTree"></div><div id="pRefs"></div></div>
+  <div id="pSel" class="selbar" hidden>
+    <button data-a="under">＋ تحتها</button>
+    <button data-a="after">＋ بعدها</button>
+    <button data-a="copy">نسخ</button>
+    <button data-a="x" class="x" aria-label="إلغاء">✕</button>
+  </div>
+  <button id="pAdd" class="fab" aria-label="اكتب في هذه الصفحة"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+</div>
+
+<!-- ============ الإعدادات ============ -->
+<div id="settings" class="scr" hidden>
+  <header class="bar">
+    <button class="ic back" aria-label="رجوع"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
+    <div class="ttl">الإعدادات</div>
+  </header>
+  <div id="setBody" class="set"></div>
+</div>
+
+<div id="fontPop" hidden>
+  <div class="r"><span>حجم الخط</span><button data-f="-">−</button><b id="fsVal"></b><button data-f="+">+</button></div>
+  <div class="r"><span>التباعد</span><div class="seg"><button data-l="1.45">ضيّق</button><button data-l="1.7">وسط</button><button data-l="1.95">واسع</button></div></div>
+</div>
+<div id="prog" hidden></div>
+<div id="toast"></div>
+
+<script>
+"use strict";
+/* ============================================================
+   أدوات عامة
+   ============================================================ */
+const $ = s => document.querySelector(s);
+const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
+const store = {
+  get(k){ try { return localStorage.getItem(k); } catch(e){ return null; } },
+  set(k,v){ try { localStorage.setItem(k,v); return true; } catch(e){ return false; } },
+  del(k){ try { localStorage.removeItem(k); } catch(e){} }
+};
+const esc = s => s.replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const AR = n => Number(n).toLocaleString("ar-EG");
+function norm(s){
+  return s.toLowerCase().replace(/[ً-ْٰـ]/g,"")
+    .replace(/[أإآٱ]/g,"ا").replace(/ى/g,"ي");
+}
+let toastTimer;
+function toast(msg, ms=2400){ const t = $("#toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("show"), ms); }
+let busyN = 0;
+function busy(on){ busyN = Math.max(0, busyN + (on ? 1 : -1)); $("#prog").hidden = busyN === 0; }
+
+/* ---- التاريخ (صفحات Roam اليومية) ---- */
+const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+const p2 = n => String(n).padStart(2,"0");
+function ord(d){ const r = d%10; if (d>=11 && d<=13) return d+"th"; return d+(r===1?"st":r===2?"nd":r===3?"rd":"th"); }
+function dailyTitle(dt=new Date()){ return MONTHS[dt.getMonth()]+" "+ord(dt.getDate())+", "+dt.getFullYear(); }
+function dailyUid(dt=new Date()){ return p2(dt.getMonth()+1)+"-"+p2(dt.getDate())+"-"+dt.getFullYear(); }
+function dailyUidFromTitle(t){                       // "November 15th, 2026" ← "11-15-2026"
+  const m = t.match(/^([A-Z][a-z]+) (\d{1,2})(?:st|nd|rd|th), (\d{4})$/); if (!m) return null;
+  const mi = MONTHS.indexOf(m[1]); if (mi < 0) return null;
+  return p2(mi+1)+"-"+p2(+m[2])+"-"+m[3];
+}
+const timeStr = (dt=new Date()) => p2(dt.getHours())+":"+p2(dt.getMinutes());
+const isoStr = (dt=new Date()) => dt.getFullYear()+"-"+p2(dt.getMonth()+1)+"-"+p2(dt.getDate());
+
+/* ============================================================
+   الإعدادات (مشتركة الصيغة مع نسخة الحاسوب: rq-cfg)
+   ============================================================ */
+const HEADER_TPL = "[[{date}]] at {time}";
+let RAW;
+function loadCfg(){
+  try { RAW = JSON.parse(store.get("rq-cfg") || "null"); } catch(e){ RAW = null; }
+  if (!RAW || typeof RAW !== "object") RAW = {dest:"roam", dir:"rtl", wide:false};
+  if (!RAW.roam || !Array.isArray(RAW.roam.graphs)) RAW.roam = {current:"", graphs:[]};
+  RAW.roam.graphs = RAW.roam.graphs.filter(g => g && g.name);
+  RAW.roam.graphs.forEach(g => { if (g.header == null) g.header = true; if (!g.tpl) g.tpl = HEADER_TPL; if (!g.pageMode) g.pageMode = "today"; });
+}
+function saveCfg(){
+  const c = JSON.parse(JSON.stringify(RAW));
+  c.roam.graphs.forEach(g => { if (!g.saveToken) g.token = ""; });      // الرمز لا يُحفظ إلا إن طلبت
+  store.set("rq-cfg", JSON.stringify(c));
+}
+const graphs = () => RAW.roam.graphs;
+const G = () => graphs().find(g => g.name === RAW.roam.current) || graphs()[0] || null;
+
+const PREFS = {fs:17, lh:1.7, autoRefs:true};
+function loadPrefs(){ try { Object.assign(PREFS, JSON.parse(store.get("rqm-prefs") || "{}")); } catch(e){} applyFont(); }
+function savePrefs(){ store.set("rqm-prefs", JSON.stringify(PREFS)); }
+function applyFont(){
+  PREFS.fs = Math.min(28, Math.max(12, +PREFS.fs || 17));
+  document.documentElement.style.setProperty("--fs", PREFS.fs+"px");
+  document.documentElement.style.setProperty("--lh", PREFS.lh);
+  $("#fsVal").textContent = AR(PREFS.fs);
+  document.querySelectorAll("#fontPop [data-l]").forEach(b => b.classList.toggle("on", +b.dataset.l === +PREFS.lh));
+}
+
+/* ---- قائمة الصفحات والأخيرة (لكل غراف) ---- */
+let PAGES = [], PAGESN = [];
+function loadPages(){
+  const g = G(), raw = g ? store.get("rq-pages:"+g.name) : null;
+  PAGES = raw ? raw.split("\n").filter(Boolean) : [];
+  PAGESN = PAGES.map(norm);
+}
+function recents(){ const g = G(); if (!g) return []; try { return JSON.parse(store.get("rqm-recent:"+g.name) || "[]"); } catch(e){ return []; } }
+function addRecent(title){
+  const g = G(); if (!g || !title) return;
+  const r = recents().filter(x => x !== title); r.unshift(title);
+  store.set("rqm-recent:"+g.name, JSON.stringify(r.slice(0, 14)));
+}
+function findPages(q, limit=60){
+  const nq = norm(q.trim()); if (!nq) return [];
+  const r0 = [], r1 = [], r2 = [], r3 = [];
+  for (let i=0;i<PAGESN.length;i++){
+    const s = PAGESN[i], p = s.indexOf(nq); if (p < 0) continue;
+    if (s.length === nq.length) r0.push(i);
+    else if (p === 0) r1.push(i);
+    else {
+      const c = s[p-1];
+      if (c==="/" || c===" " || c==="-" || c==="_" || c===":") (p+nq.length === s.length ? r1 : r2).push(i);
+      else if (r3.length < limit) r3.push(i);
+    }
+  }
+  const byLen = (a,b) => PAGESN[a].length - PAGESN[b].length;
+  return r0.concat(r1.sort(byLen), r2.sort(byLen), r3).slice(0, limit).map(i => PAGES[i]);
+}
+
+/* ============================================================
+   الاتصال بـ Roam
+   ============================================================ */
+const API = "https://api.roamresearch.com";
+const peers = {};                                    // عنوان الخادم الفعلي لكل غراف (يوفّر تحويلة في كل طلب)
+function peerOf(name){ if (!(name in peers)) peers[name] = store.get("rqm-peer:"+name) || ""; return peers[name]; }
+function setPeer(name, v){ peers[name] = v || ""; if (v) store.set("rqm-peer:"+name, v); else store.del("rqm-peer:"+name); }
+
+async function roam(kind, body, opt={}){
+  const g = opt.graph || G();
+  if (!g) throw new Error("أضف غرافاً من الإعدادات أولاً");
+  if (!g.token) throw new Error("لا رمز لهذا الغراف — أضفه من الإعدادات");
+  const path = "/api/graph/"+encodeURIComponent(g.name)+"/"+kind;
+  const ctrl = new AbortController(), timer = setTimeout(() => ctrl.abort(), opt.timeout || 40000);
+  const init = {method:"POST", headers:{"X-Authorization":"Bearer "+g.token, "Content-Type":"application/json"}, body:JSON.stringify(body), signal:ctrl.signal};
+  let r, usedPeer = peerOf(g.name);
+  busy(true);
+  try {
+    try { r = await fetch((usedPeer || API)+path, init); }
+    catch(e){ if (usedPeer && e.name !== "AbortError"){ setPeer(g.name, ""); usedPeer = ""; r = await fetch(API+path, init); } else throw e; }
+    if (usedPeer && !r.ok && ![400,401,403,429].includes(r.status)){   // عنوان محفوظ قديم: أعد عبر العنوان الأصلي
+      setPeer(g.name, ""); usedPeer = ""; r = await fetch(API+path, init);
+    }
+    try { const u = new URL(r.url); if (r.ok && u.origin !== API && u.origin !== usedPeer) setPeer(g.name, u.origin); } catch(e){}
+    const text = await r.text();
+    if (opt.soft) return {ok:r.ok, status:r.status, text};
+    if (!r.ok){
+      let m = "خطأ من Roam ("+r.status+")";
+      if (r.status === 401 || r.status === 403) m = "الرمز غير صالح أو لا يملك الصلاحية ("+r.status+")";
+      else if (r.status === 429) m = "تجاوزت حدّ الطلبات، انتظر قليلاً ثم أعد";
+      else if (r.status >= 500) m = "خادم Roam لا يستجيب ("+r.status+")";
+      const d = text.replace(/\s+/g," ").slice(0,140);
+      throw new Error(m + (d ? " — "+d : ""));
+    }
+    try { return text ? JSON.parse(text) : {}; } catch(e){ throw new Error("ردّ غير مفهوم من Roam: "+text.slice(0,140)); }
+  } catch(e){
+    if (e.name === "AbortError") throw new Error("انتهت المهلة — الشبكة بطيئة أو منقطعة");
+    if (e instanceof TypeError) throw new Error("تعذّر الاتصال — تحقق من الشبكة");
+    throw e;
+  } finally { clearTimeout(timer); busy(false); }
+}
+
+/* مفاتيح الردّ قد تأتي ":block/uid" أو "block/uid" أو "uid" */
+const K = (o,k) => o == null ? undefined : (o[":"+k] !== undefined ? o[":"+k] : (o[k] !== undefined ? o[k] : o[k.split("/")[1]]));
+const BP = "[:block/uid :block/string :block/order :block/heading :block/open {:block/children ...}]";
+function nb(o, parent){                              // كتلة Roam ← كتلتنا
+  const n = {uid:K(o,"block/uid"), s:K(o,"block/string") || "", order:K(o,"block/order") || 0, h:K(o,"block/heading") || 0,
+             open:K(o,"block/open") !== false, parent, kids:[]};
+  const ch = K(o,"block/children");
+  if (Array.isArray(ch)) n.kids = ch.filter(c => K(c,"block/uid")).map(c => nb(c, n.uid)).sort((a,b) => a.order - b.order);
+  return n;
+}
+async function pullPage(title){
+  const q = "[:find (pull ?p [:block/uid :node/title {:block/children "+BP+"}]) :in $ ?t :where [?p :node/title ?t]]";
+  const res = await roam("q", {query:q, args:[title]});
+  const row = res && res.result && res.result[0], o = row && row[0];
+  if (!o) return {title, uid:null, kids:[], missing:true};
+  const uid = K(o,"block/uid");
+  const kids = (K(o,"block/children") || []).filter(c => K(c,"block/uid")).map(c => nb(c, uid)).sort((a,b) => a.order - b.order);
+  return {title, uid, kids};
+}
+async function pullRefs(title){
+  const q = "[:find (pull ?b [:block/uid :block/string :block/heading :block/order :block/children {:block/page [:node/title]}]) :in $ ?t :where [?p :node/title ?t] [?b :block/refs ?p]]";
+  const res = await roam("q", {query:q, args:[title]});
+  const groups = new Map();
+  for (const row of (res.result || [])){
+    const o = row[0]; if (!o || !K(o,"block/uid")) continue;
+    const pg = K(K(o,"block/page"),"node/title") || "؟";
+    if (pg === title) continue;                      // إشارة الصفحة إلى نفسها
+    const ch = K(o,"block/children");
+    const n = {uid:K(o,"block/uid"), s:K(o,"block/string") || "", order:K(o,"block/order") || 0, h:K(o,"block/heading") || 0,
+               open:false, parent:null, kids:[], lazy:Array.isArray(ch) && ch.length > 0, isRef:true};
+    if (!groups.has(pg)) groups.set(pg, []);
+    groups.get(pg).push(n);
+  }
+  const out = [...groups.entries()].map(([page, blocks]) => ({page, blocks:blocks.sort((a,b) => a.order - b.order)}));
+  out.sort((a,b) => norm(a.page) < norm(b.page) ? -1 : 1);
+  return out;
+}
+async function pullSubtrees(nodes){                  // يملأ ما تحت كتل المراجع
+  const want = nodes.filter(n => n.lazy && !n.loaded); if (!want.length) return;
+  const q = "[:find (pull ?b "+BP+") :in $ [?u ...] :where [?b :block/uid ?u]]";
+  const res = await roam("q", {query:q, args:[want.map(n => n.uid)]});
+  const by = new Map(); for (const row of (res.result || [])){ const o = row[0]; if (o) by.set(K(o,"block/uid"), o); }
+  for (const n of want){ const o = by.get(n.uid); n.kids = o ? nb(o, null).kids : []; n.loaded = true; }
+}
+async function pageUid(title, create){
+  const res = await roam("q", {query:"[:find ?u :in $ ?t :where [?e :node/title ?t] [?e :block/uid ?u]]", args:[title]});
+  let uid = res.result && res.result[0] && res.result[0][0];
+  if (!uid && create){
+    uid = dailyUidFromTitle(title) || newUid();
+    const c = await roam("write", {action:"create-page", page:{title, uid}}, {soft:true});
+    if (!c.ok && c.status !== 400) throw new Error("إنشاء الصفحة فشل ("+c.status+"): "+c.text.slice(0,120));
+  }
+  return uid || null;
+}
+const UID_CH = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-";
+function newUid(){ const a = crypto.getRandomValues(new Uint8Array(9)); return [...a].map(x => UID_CH[x%64]).join(""); }
+function toActions(nodes, parent, order, out){
+  let k = typeof order === "number" ? order : null;
+  for (const n of nodes){
+    const uid = newUid(), b = {uid, string:n.string};
+    if (n.heading) b.heading = n.heading;
+    out.push({action:"create-block", location:{"parent-uid":parent, order:k == null ? "last" : k++}, block:b});
+    toActions(n.children, uid, "last", out);
+  }
+  return out;
+}
+async function writeBlocks(acts){
+  let i = 0, size = 50;
+  while (i < acts.length){
+    const part = acts.slice(i, i+size);
+    const w = await roam("write", {action:"batch-actions", actions:part}, {soft:true});
+    if (!w.ok){
+      if (w.status === 401 || w.status === 403) throw new Error("الرمز لا يملك صلاحية الكتابة ("+w.status+")");
+      if (size > 10){ size = Math.max(10, Math.floor(size/2)); continue; }
+      throw new Error("الكتابة فشلت ("+w.status+") بعد "+i+" كتلة: "+w.text.slice(0,120));
+    }
+    i += part.length;
+  }
+}
+async function fetchPages(){
+  const g = G(); if (!g) throw new Error("لا غراف");
+  const res = await roam("q", {query:"[:find ?t :where [?e :node/title ?t]]"}, {timeout:90000});
+  const list = (res.result || []).map(x => x[0]).filter(Boolean);
+  if (!store.set("rq-pages:"+g.name, list.join("\n"))) throw new Error("لم تُحفظ القائمة (مساحة المتصفح ممتلئة)");
+  store.set("rqm-pagesAt:"+g.name, String(Date.now()));
+  loadPages();
+  return list.length;
+}
+
+/* ============================================================
+   نص الالتقاط ← كتل (كل سطر كتلة، والإزاحة تداخل)
+   ============================================================ */
+function parseOutline(text){
+  const root = {children:[]}, stack = [{lvl:-1, node:root}];
+  const lines = text.replace(/\r\n?/g,"\n").split("\n");
+  for (let i=0;i<lines.length;i++){
+    const raw = lines[i]; if (!raw.trim()) continue;
+    const lvl = Math.floor(raw.match(/^[ \t]*/)[0].replace(/\t/g,"  ").length / 2);
+    let s = raw.trim(), heading = 0;
+    if (/^```/.test(s)){                             // كتلة كود: كتلة واحدة حتى الإغلاق
+      const buf = [s]; i++;
+      while (i < lines.length){ buf.push(lines[i]); if (/^\s*```\s*$/.test(lines[i])) break; i++; }
+      s = buf.join("\n");
+    } else {
+      s = s.replace(/^[-*•][ \t]+/, "");
+      const hm = s.match(/^(#{1,6})[ \t]+(.*)$/);
+      if (hm){ heading = Math.min(3, hm[1].length); s = hm[2]; }
+    }
+    if (!s) continue;
+    const node = {string:s, children:[]}; if (heading) node.heading = heading;
+    while (stack.length > 1 && stack[stack.length-1].lvl >= lvl) stack.pop();
+    stack[stack.length-1].node.children.push(node);
+    stack.push({lvl, node});
+  }
+  return root.children;
+}
+const countBlocks = list => list.reduce((a,n) => a + 1 + countBlocks(n.children), 0);
+
+/* ============================================================
+   العرض: نص Roam ← HTML
+   ============================================================ */
+const LAT_TOK = "[^\\s\\u0600-\\u06FF]*[A-Za-z0-9][^\\s\\u0600-\\u06FF]*";
+const LAT_RUN = new RegExp(LAT_TOK+"(?:[ \\t]+"+LAT_TOK+")*", "g");
+function isoTok(s){                                  // عزل الجمل اللاتينية داخل النص العربي لئلا تنقلب
+  return s.replace(LAT_RUN, w => { const m = w.match(/^(.*?)([.,;:!?،؛؟]*)$/); return m[1] ? "⁦"+m[1]+"⁩"+m[2] : w; });
+}
+const PROTECT = /(\[\[[^\[\]\n]+\]\]|\(\([\w-]+\)\)|!?\[[^\[\]\n]*\]\([^)\s]+\)|https?:\/\/[^\s<>]+|\{\{[^{}\n]*\}\})/;
+const stripIso = s => s.replace(/[‎⁦-⁩]/g, "");
+function pl(t, label, br){
+  return '<a class="pl" data-p="'+stripIso(t)+'">'+(br ? '<span class="br">[[</span>' : "")+label+(br ? '<span class="br">]]</span>' : "")+'</a>';
+}
+function fmt(s){
+  let h = esc(s);
+  h = h.replace(/!\[([^\[\]\n]*)\]\((https?:[^)\s]+)\)/g, (m,a,u) => '<a class="ext" href="'+u+'" target="_blank" rel="noopener">🖼 '+(a || "صورة")+'</a>');
+  h = h.replace(/\[([^\[\]\n]+)\]\((https?:[^)\s]+)\)/g, '<a class="ext" href="$2" target="_blank" rel="noopener">$1</a>');
+  h = h.replace(/#\[\[([^\[\]\n]+)\]\]/g, (m,t) => pl(t, "#"+t));
+  h = h.replace(/\[\[([^\[\]\n]+)\]\]/g, (m,t) => pl(t, t, true));
+  h = h.replace(/\(\(([\w-]{6,})\)\)/g, '<span class="bref" data-uid="$1">((…))</span>');
+  h = h.replace(/(^|[\s(،؛,;⁦])#([^\s#\[\](){}<>&.,،؛!?:"]+)/g, (m,a,t) => a+pl(t, "#"+t));
+  h = h.replace(/(^|\s)(https?:\/\/[^\s<>"]+)/g, '$1<a class="ext" href="$2" target="_blank" rel="noopener">$2</a>');
+  h = h.replace(/\*\*([^*\n]+)\*\*/g, "<strong>$1</strong>");
+  h = h.replace(/__([^_\n]+)__/g, "<em>$1</em>");
+  h = h.replace(/\^\^([^\^\n]+)\^\^/g, "<mark>$1</mark>");
+  h = h.replace(/~~([^~\n]+)~~/g, "<del>$1</del>");
+  h = h.replace(/\{\{(?:\[\[)?TODO(?:\]\])?\}\}/g, "☐").replace(/\{\{(?:\[\[)?DONE(?:\]\])?\}\}/g, "☑");
+  h = h.replace(/^([^:\n<>]{1,60})::/, "<strong>$1:</strong>");
+  return h;
+}
+function inl(text){
+  if (/^\s*---\s*$/.test(text)) return '<hr>';
+  const parts = text.split(/(```[\s\S]*?```)/);
+  if (parts.length > 1){
+    return parts.map(p => (/^```[\s\S]*```$/.test(p) && p.length >= 6)
+      ? '<pre>'+esc(p.replace(/^```[^\n]*\n?/,"").replace(/\n?```$/,""))+'</pre>'
+      : (p.trim() ? inl(p) : "")).join("");
+  }
+  const ar = /[؀-ۿ]/.test(text);
+  return text.split(/(`[^`\n]+`)/).map((p,i) => {
+    if (i % 2) return "<code>"+esc(p.slice(1,-1))+"</code>";
+    if (!ar) return fmt(p);
+    return p.split(PROTECT).map((x,j) => fmt(j % 2 ? x : isoTok(x))).join("");
+  }).join("").replace(/\n/g, "<br>");
+}
+
+/* ============================================================
+   التوجيه بين الشاشات (زر الرجوع في أندرويد يعمل)
+   ============================================================ */
+const SCREENS = ["home","search","page","settings"];
+let ROUTE = {name:"home"};
+function parseHash(){
+  const h = location.hash.slice(1);
+  if (h === "s") return {name:"search", mode:"open"};
+  if (h === "st") return {name:"search", mode:"target"};
+  if (h === "set") return {name:"settings"};
+  if (h === "w") return {name:"home", write:true};
+  if (h.startsWith("p=")){ let t = h.slice(2); try { t = decodeURIComponent(t); } catch(e){} return {name:"page", title:t === "@today" ? dailyTitle() : t}; }
+  return {name:"home"};
+}
+const depth = () => (history.state && history.state.d) || 0;
+function go(h){ if (location.hash.slice(1) !== h) history.pushState({d:depth()+1}, "", "#"+h); route(); }
+function back(){ if (depth() > 0) history.back(); else goReplace(""); }
+function goReplace(h){ history.replaceState(history.state, "", h ? "#"+h : location.pathname + location.search); route(); }
+const pageHash = t => "p="+encodeURIComponent(t);
+function route(){
+  leavePage();
+  ROUTE = parseHash();
+  $("#fontPop").hidden = true;
+  if (ROUTE.name === "home" && ROUTE.write && !CTX){ goReplace(""); return; }
+  if (ROUTE.name === "home" && !ROUTE.write) CTX = null;
+  if (!G() && ROUTE.name !== "settings"){ goReplace("set"); return; }
+  SCREENS.forEach(s => $("#"+s).hidden = s !== ROUTE.name);
+  if (ROUTE.name === "home") enterHome();
+  else if (ROUTE.name === "search") enterSearch();
+  else if (ROUTE.name === "page") enterPage(ROUTE.title);
+  else if (ROUTE.name === "settings") renderSettings();
+}
+window.addEventListener("popstate", route);
+document.querySelectorAll(".back").forEach(b => b.onclick = back);
+
+/* ============================================================
+   شاشة الالتقاط
+   ============================================================ */
+const ta = $("#ta");
+let TARGET = {kind:"today"};                         // الوجهة الدائمة لهذا الغراف
+let CTX = null;                                      // وجهة مؤقتة آتية من صفحة معروضة (صفحة أو كتلة)
+function initTarget(){
+  const g = G();
+  TARGET = (g && g.pageMode === "last" && g.lastPage && g.lastPage.kind === "page" && g.lastPage.title)
+    ? {kind:"page", title:g.lastPage.title} : {kind:"today"};
+}
+function setTarget(t){
+  TARGET = t; const g = G();
+  if (g){ g.lastPage = t.kind === "page" ? {kind:"page", title:t.title} : {kind:"today", title:""}; saveCfg(); }
+  if (t.kind === "page") addRecent(t.title);
+}
+function fillGraphs(){
+  const s = $("#graph"); s.innerHTML = "";
+  graphs().forEach(g => { const o = el("option"); o.value = g.name; o.textContent = g.name; s.appendChild(o); });
+  if (G()) s.value = G().name;
+  s.hidden = graphs().length < 2;
+}
+$("#graph").onchange = e => switchGraph(e.target.value);
+function switchGraph(name){
+  RAW.roam.current = name; saveCfg(); loadPages(); initTarget(); pageCache.clear(); fillGraphs(); enterHome();
+  toast("الغراف: "+name);
+}
+function enterHome(){
+  fillGraphs();
+  const t = CTX || TARGET;
+  $("#targetName").textContent = t.kind === "today" ? "اليوم" : (t.kind === "page" ? t.title : t.page);
+  const c = $("#ctx");
+  if (CTX){
+    c.hidden = false;
+    c.firstElementChild.innerHTML = CTX.kind === "block"
+      ? (CTX.order === "last" ? "تحت: " : "بعد: ")+"<b>"+esc(CTX.label)+"</b>"
+      : "في آخر صفحة: <b>"+esc(CTX.title)+"</b>";
+  } else c.hidden = true;
+  $("#target").disabled = !!CTX;
+  taDir(); updateSugg();
+  if (ROUTE.write) setTimeout(() => ta.focus(), 60);
+}
+$("#ctxX").onclick = back;
+$("#target").onclick = () => go("st");
+$("#bSearch").onclick = () => go("s");
+$("#bSet").onclick = () => go("set");
+
+/* ---- المسودة ---- */
+ta.value = store.get("rqm-draft") || "";
+let draftTimer;
+function saveDraft(){ clearTimeout(draftTimer); draftTimer = setTimeout(() => store.set("rqm-draft", ta.value), 250); }
+function taDir(){ const m = ta.value.match(/[A-Za-z؀-ۿ]/); ta.classList.toggle("ltr", !!m && /[A-Za-z]/.test(m[0])); }
+
+/* ---- إدراج يحفظ التراجع ---- */
+function ins(text, selStart, selEnd){
+  ta.focus();
+  if (selStart != null) ta.setSelectionRange(selStart, selEnd == null ? selStart : selEnd);
+  let ok = false; try { ok = document.execCommand("insertText", false, text); } catch(e){}
+  if (!ok){ const s = ta.selectionStart; ta.setRangeText(text, s, ta.selectionEnd, "end"); ta.dispatchEvent(new Event("input", {bubbles:true})); }
+}
+function wrapPair(open, close){
+  const s = ta.selectionStart, e = ta.selectionEnd, sel = ta.value.slice(s, e);
+  ins(open + sel + close);
+  const p = sel ? s + open.length + sel.length + close.length : s + open.length;
+  ta.setSelectionRange(p, p);
+}
+function shiftLines(dir){                            // أدخِل / أخرِج: مسافتان في أول السطر
+  const v = ta.value, s = ta.selectionStart, e = ta.selectionEnd;
+  const ls = v.lastIndexOf("\n", s-1) + 1; let le = v.indexOf("\n", Math.max(e, ls)); if (le < 0) le = v.length;
+  const lines = v.slice(ls, le).split("\n"); let d0 = 0, dAll = 0;
+  const out = lines.map((ln, i) => {
+    if (dir > 0){ if (i === 0) d0 = 2; dAll += 2; return "  " + ln; }
+    const m = ln.match(/^( {1,2}|\t)/); const k = m ? m[0].length : 0; if (i === 0) d0 = -k; dAll -= k; return ln.slice(k);
+  }).join("\n");
+  if (dAll === 0) return;
+  ins(out, ls, le);
+  const ns = Math.max(ls, s + d0), ne = Math.max(ns, e + dAll);
+  ta.setSelectionRange(ns, s === e ? ns : ne);
+}
+const KEYS = {
+  page(){ wrapPair("[[", "]]"); },
+  ref(){ wrapPair("((", "))"); },
+  bold(){ wrapPair("**", "**"); },
+  hl(){ wrapPair("^^", "^^"); },
+  tag(){ const s = ta.selectionStart, prev = ta.value[s-1]; ins((s === 0 || /\s/.test(prev) ? "" : " ") + "#"); },
+  todo(){ const v = ta.value, s = ta.selectionStart, ls = v.lastIndexOf("\n", s-1) + 1, ind = v.slice(ls).match(/^[ \t]*/)[0].length;
+          if (v.slice(ls+ind).startsWith("{{[[TODO]]}} ")) return; ins("{{[[TODO]]}} ", ls+ind); const p = s + 13; ta.setSelectionRange(p, p); },
+  in(){ shiftLines(1); },
+  out(){ shiftLines(-1); },
+  undo(){ ta.focus(); document.execCommand("undo"); },
+  redo(){ ta.focus(); document.execCommand("redo"); }
+};
+const keysEl = $("#keys");
+keysEl.addEventListener("mousedown", e => e.preventDefault());           // لا تسحب التركيز من مربع الكتابة
+keysEl.addEventListener("click", e => { const b = e.target.closest("[data-k]"); if (b && KEYS[b.dataset.k]){ KEYS[b.dataset.k](); updateSugg(); } });
+
+/* ---- اقتراح الصفحات والوسوم أثناء الكتابة ---- */
+function caretCtx(){
+  const c = ta.selectionStart; if (c !== ta.selectionEnd) return null;
+  const before = ta.value.slice(0, c), ls = before.lastIndexOf("\n") + 1, line = before.slice(ls);
+  const o = line.lastIndexOf("[[");
+  if (o >= 0 && line.indexOf("]]", o) < 0){ const q = line.slice(o+2); if (!/[\[\]]/.test(q)) return {kind:"page", q, start:ls+o+2, end:c}; }
+  const m = line.match(/(^|[\s(،؛,;])#([^\s#\[\]]*)$/);
+  if (m) return {kind:"tag", q:m[2], start:c - m[2].length, end:c};
+  return null;
+}
+let suggCtx = null;
+function updateSugg(){
+  const box = $("#sugg");
+  suggCtx = (document.activeElement === ta) ? caretCtx() : null;
+  if (!suggCtx){ box.hidden = true; return; }
+  const q = suggCtx.q.trim();
+  const items = q ? findPages(q, 14) : recents().slice(0, 10);
+  box.innerHTML = "";
+  for (const t of items){ const b = el("button", "sg"); b.textContent = t; b.dataset.t = t; box.appendChild(b); }
+  if (q && !items.some(t => norm(t) === norm(q))){ const b = el("button", "sg new"); b.textContent = "＋ " + q; b.dataset.t = q; box.appendChild(b); }
+  box.hidden = box.children.length === 0; box.scrollLeft = 0;
+}
+$("#sugg").addEventListener("mousedown", e => e.preventDefault());
+$("#sugg").addEventListener("click", e => {
+  const b = e.target.closest(".sg"); if (!b || !suggCtx) return;
+  const t = b.dataset.t, c = suggCtx;
+  if (c.kind === "page"){
+    const closed = ta.value.slice(c.end, c.end+2) === "]]";
+    ins(t + (closed ? "" : "]]"), c.start, c.end);
+    const p = c.start + t.length + 2; ta.setSelectionRange(p, p);
+  } else {
+    ins((/\s/.test(t) ? "[["+t+"]]" : t) + " ", c.start, c.end);
+  }
+  updateSugg();
+});
+ta.addEventListener("input", e => {
+  saveDraft(); taDir();
+  if (e.inputType === "insertLineBreak" || (e.inputType === "insertText" && e.data === "\n")){   // السطر الجديد يرث إزاحة سابقه
+    const c = ta.selectionStart, v = ta.value, ps = v.lastIndexOf("\n", c-2) + 1;
+    const ind = v.slice(ps, c-1).match(/^[ \t]*/)[0];
+    if (ind && v[c-1] === "\n" && !/^[ \t]/.test(v.slice(c))) ins(ind);
+  }
+  updateSugg();
+});
+document.addEventListener("selectionchange", () => { if (document.activeElement === ta) updateSugg(); });
+ta.addEventListener("blur", () => setTimeout(updateSugg, 150));
+
+/* ---- الإرسال ---- */
+function showErr(msg){ const e = $("#err"); e.hidden = !msg; if (msg) e.firstElementChild.textContent = msg; }
+$("#errX").onclick = () => showErr("");
+function headerText(g){
+  const now = new Date();
+  return (g.tpl || HEADER_TPL).replace(/\{date\}/g, dailyTitle(now)).replace(/\{time\}/g, timeStr(now)).replace(/\{iso\}/g, isoStr(now));
+}
+let sending = false;
+async function send(){
+  if (sending) return;
+  const g = G(), t = CTX || TARGET;
+  let blocks = parseOutline(ta.value);
+  if (!blocks.length){ toast("لا يوجد نص للإرسال"); return; }
+  if (!g || !g.token){ toast("أضف رمز الغراف من الإعدادات"); go("set"); return; }
+  if (g.header && t.kind !== "block") blocks = [{string:headerText(g), children:blocks}];
+  sending = true; $("#send").disabled = true; $("#send").textContent = "…"; showErr("");
+  try {
+    let parent, order = "last", title = null;
+    if (t.kind === "block"){ parent = t.uid; order = t.order; title = t.page; }
+    else if (t.kind === "today"){ parent = dailyUid(); title = dailyTitle(); await roam("write", {action:"create-page", page:{title, uid:parent}}, {soft:true}); }
+    else { title = t.title; parent = await pageUid(title, true); if (!parent) throw new Error("تعذّر تحديد الصفحة"); }
+    const acts = toActions(blocks, parent, order, []);
+    await writeBlocks(acts);
+    ta.value = ""; store.set("rqm-draft", ""); taDir();
+    if (t.kind === "page") addRecent(t.title);
+    const pc = pageCache.get(cacheKey(title)); if (pc){ pc.stale = true; if (t.kind === "block" && t.order === "last") pc.openUid = t.uid; }
+    toast("أُرسل ✓ " + AR(acts.length) + (acts.length === 1 ? " كتلة" : " كتل") + " ← " + (t.kind === "today" ? "اليوم" : title), 2000);
+    if (CTX){ CTX = null; back(); }
+  } catch(e){ showErr("لم يُرسل، ونصّك باقٍ: " + e.message); }
+  finally { sending = false; $("#send").disabled = false; $("#send").textContent = "إرسال"; updateSugg(); }
+}
+$("#send").addEventListener("mousedown", e => e.preventDefault());
+$("#send").onclick = send;
+
+/* ============================================================
+   شاشة البحث (فتح صفحة، أو اختيار وجهة)
+   ============================================================ */
+const sq = $("#sq");
+function enterSearch(){
+  sq.value = ""; sq.placeholder = ROUTE.mode === "target" ? "إلى أي صفحة تكتب؟" : "ابحث عن صفحة…";
+  drawSearch(); setTimeout(() => sq.focus(), 50);
+  if (!PAGES.length && G() && G().token && !refreshing) refreshPages(true);
+}
+function pagesInfo(){
+  const g = G(); if (!g) return "";
+  if (!PAGES.length) return "لا قائمة صفحات بعد — اضغط زر التحديث لجلبها من Roam";
+  const at = +store.get("rqm-pagesAt:"+g.name) || 0;
+  let when = "";
+  if (at){ const d = Math.floor((Date.now()-at)/86400000); when = " · حُدِّثت " + (d <= 0 ? "اليوم" : d === 1 ? "أمس" : "قبل "+AR(d)+" يوماً"); }
+  return AR(PAGES.length) + " صفحة" + when;
+}
+function drawSearch(){
+  const q = sq.value.trim(), list = $("#sList"), tgt = ROUTE.mode === "target";
+  $("#sInfo").textContent = pagesInfo();
+  list.innerHTML = "";
+  const row = (title, sub, cls, data) => { const d = el("div", "it"+(cls ? " "+cls : "")); d.dataset.t = data == null ? title : data;
+    const a = el("span", "t"); a.textContent = title; d.appendChild(a); if (sub){ const b = el("span", "s"); b.textContent = sub; d.appendChild(b); } list.appendChild(d); };
+  if (!q){
+    row("اليوم", dailyTitle(), "sp", "@today");
+    const r = recents();
+    if (r.length){ list.appendChild(el("div", "sec", "الأخيرة")); r.forEach(t => row(t)); }
+    return;
+  }
+  const res = findPages(q, 70);
+  if ("اليوم".includes(q) || "today".includes(q.toLowerCase())) row("اليوم", dailyTitle(), "sp", "@today");
+  res.forEach(t => row(t));
+  if (!res.some(t => norm(t) === norm(q))) row(q, tgt ? "صفحة جديدة" : "افتحها بهذا الاسم", "sp");
+}
+function pickSearch(t){
+  if (ROUTE.mode === "target"){
+    setTarget(t === "@today" ? {kind:"today"} : {kind:"page", title:t});
+    back(); setTimeout(() => ta.focus(), 80);
+  } else {
+    const title = t === "@today" ? dailyTitle() : t;
+    goReplace(pageHash(title));
+  }
+}
+sq.addEventListener("input", drawSearch);
+sq.addEventListener("keydown", e => { if (e.key === "Enter"){ e.preventDefault(); const f = $("#sList .it"); if (f) pickSearch(f.dataset.t); } });
+$("#sList").addEventListener("click", e => { const it = e.target.closest(".it"); if (it) pickSearch(it.dataset.t); });
+let refreshing = false;
+async function refreshPages(quiet){
+  if (refreshing) return; refreshing = true; $("#sInfo").textContent = "يجلب أسماء الصفحات من Roam…";
+  try { const n = await fetchPages(); toast("قائمة الصفحات: " + AR(n)); }
+  catch(e){ if (!quiet) toast("تعذّر الجلب: " + e.message, 4000); }
+  finally { refreshing = false; if (ROUTE.name === "search") drawSearch(); if (ROUTE.name === "settings") renderSettings(); }
+}
+$("#sRefresh").onclick = () => refreshPages(false);
+
+/* ============================================================
+   شاشة الصفحة
+   ============================================================ */
+const pageCache = new Map();                         // غراف|عنوان ← {data, refs, scroll, stale, openUid}
+const cacheKey = t => (G() ? G().name : "") + "|" + t;
+let CUR = null, pageSeq = 0, SEL = null, renderBudget = 0;
+const pBody = $("#pBody"), pTree = $("#pTree"), pRefs = $("#pRefs");
+
+function leavePage(){ if (ROUTE.name === "page" && CUR){ CUR.scroll = pBody.scrollTop; } clearSel(); }
+function initOpen(nodes, depth){                     // حالة الطي الأولى من Roam، مع سقف لما يُرسم
+  for (const n of nodes){
+    if (n._open === undefined) n._open = n.kids.length > 0 && n.open && renderBudget > 0;
+    renderBudget--;
+    if (n._open) initOpen(n.kids, depth+1);
+  }
+}
+function blkEl(n){
+  const b = el("div", "blk"); b._n = n;
+  const row = el("div", "row"), hasKids = n.kids.length > 0 || (n.lazy && !n.loaded);
+  const bul = el("span", "bul" + (hasKids ? " has" : "") + (hasKids && !n._open ? " closed" : ""));
+  const txt = el("div", "txt" + (n.h ? " h"+Math.min(3, n.h) : "")); txt.dir = "auto"; txt.innerHTML = inl(n.s) || "&#8203;";
+  row.append(bul, txt); b.appendChild(row);
+  if (hasKids){ const k = el("div", "kids"); b.appendChild(k); if (n._open) fillKids(k, n); else k.hidden = true; }
+  return b;
+}
+function fillKids(k, n){ if (k._done) return; k._done = true; const f = document.createDocumentFragment(); for (const c of n.kids) f.appendChild(blkEl(c)); k.appendChild(f); }
+async function toggleBlk(b){
+  const n = b._n, k = b.querySelector(":scope > .kids"), bul = b.querySelector(":scope > .row > .bul"); if (!k) return;
+  if (n.lazy && !n.loaded){
+    bul.classList.add("wait");
+    try { await pullSubtrees([n]); } catch(e){ toast(e.message, 3500); bul.classList.remove("wait"); return; }
+    bul.classList.remove("wait");
+    if (!n.kids.length){ bul.classList.remove("has","closed"); k.remove(); return; }
+  }
+  n._open = !n._open;
+  if (n._open) fillKids(k, n);
+  k.hidden = !n._open; bul.classList.toggle("closed", !n._open);
+  if (n._open) resolveRefs(k);
+}
+function setAll(nodes, open, depth){ for (const n of nodes){ if (n.kids.length) n._open = open && depth < 6; setAll(n.kids, open, depth+1); } }
+
+function drawPage(){
+  const d = CUR.data; pTree.innerHTML = "";
+  if (!d){ return; }
+  if (d.missing) pTree.appendChild(el("div", "pmsg", "هذه الصفحة غير موجودة بعد في الغراف.<br>اضغط ＋ لتكتب فيها فتُنشأ."));
+  else if (!d.kids.length) pTree.appendChild(el("div", "pmsg", "الصفحة فارغة."));
+  else { const f = document.createDocumentFragment(); for (const n of d.kids) f.appendChild(blkEl(n)); pTree.appendChild(f); }
+  resolveRefs(pTree);
+}
+function drawRefs(){
+  pRefs.innerHTML = ""; const r = CUR.refs; if (!r) return;
+  const total = r.groups.reduce((a,g) => a + g.blocks.length, 0);
+  const box = el("div", "refs"), head = el("div", "rh");
+  head.innerHTML = '<span class="bul has'+(r.open ? "" : " closed")+'" style="width:18px;height:22px"></span>المراجع المرتبطة <span class="n">'+AR(total)+'</span>';
+  box.appendChild(head);
+  const body = el("div"); body.hidden = !r.open; box.appendChild(body);
+  head.onclick = () => { r.open = !r.open; body.hidden = !r.open; head.firstElementChild.classList.toggle("closed", !r.open); if (r.open) fillRefs(body, r); };
+  if (r.open) fillRefs(body, r);
+  if (total === 0) head.style.opacity = ".55";
+  pRefs.appendChild(box);
+}
+function fillRefs(body, r){
+  if (body._done) return; body._done = true;
+  let shown = 0;
+  for (const g of r.groups){
+    if (shown > 300){ body.appendChild(el("div", "pmsg", "… والباقي كثير؛ افتح الصفحات المعنية لتراه.")); break; }
+    const box = el("div", "rg"), t = el("a", "pl rgt"); t.dataset.p = g.page; t.textContent = g.page; box.appendChild(t);
+    for (const n of g.blocks){ box.appendChild(blkEl(n)); shown++; }
+    body.appendChild(box);
+  }
+  resolveRefs(body);
+}
+
+async function enterPage(title){
+  const key = cacheKey(title); let c = pageCache.get(key);
+  $("#pTitle").textContent = title;
+  if (!c){ c = {title, data:null, refs:null, scroll:0, stale:false}; pageCache.set(key, c); }
+  CUR = c; addRecent(title);
+  if (c.data && !c.stale){ drawPage(); drawRefs(); pBody.scrollTop = c.scroll || 0; return; }
+  await loadPage(c, !c.data);
+}
+async function loadPage(c, fresh){
+  const seq = ++pageSeq, keepScroll = fresh ? 0 : pBody.scrollTop;
+  if (fresh){ pTree.innerHTML = '<div class="pmsg">يجلب الصفحة…</div>'; pRefs.innerHTML = ""; }
+  const opens = new Map(); (function walk(ns){ for (const n of ns){ if (n._open !== undefined) opens.set(n.uid, n._open); walk(n.kids); } })(c.data ? c.data.kids : []);
+  try {
+    const d = await pullPage(c.title);
+    if (seq !== pageSeq || CUR !== c) { c.data = c.data || d; return; }
+    (function walk(ns){ for (const n of ns){ if (opens.has(n.uid)) n._open = opens.get(n.uid); if (n.uid === c.openUid && n.kids.length) n._open = true; walk(n.kids); } })(d.kids);
+    renderBudget = 700; initOpen(d.kids, 0);
+    c.data = d; c.stale = false; c.openUid = null;
+    drawPage(); pBody.scrollTop = keepScroll;
+  } catch(e){
+    if (seq !== pageSeq || CUR !== c) return;
+    if (!c.data){ pTree.innerHTML = ""; const m = el("div", "pmsg"); m.textContent = e.message; const b = el("button"); b.textContent = "إعادة المحاولة"; b.onclick = () => loadPage(c, true); m.appendChild(el("br")); m.appendChild(b); pTree.appendChild(m); }
+    else toast(e.message, 3500);
+    return;
+  }
+  if (PREFS.autoRefs) loadRefs(c, seq);
+  else { c.refs = c.refs || null; pRefs.innerHTML = ""; const b = el("div", "refs"); const h = el("div", "rh"); h.textContent = "عرض المراجع المرتبطة"; h.onclick = () => loadRefs(c, pageSeq); b.appendChild(h); pRefs.appendChild(b); }
+}
+async function loadRefs(c, seq){
+  try {
+    const wasOpen = c.refs ? c.refs.open : null;
+    const groups = await pullRefs(c.title);
+    if (seq !== pageSeq || CUR !== c) return;
+    const all = groups.flatMap(g => g.blocks), few = all.length <= 6;
+    const emptyPage = !c.data || !c.data.kids.length;
+    c.refs = {groups, open: wasOpen != null ? wasOpen : (all.length > 0 && (emptyPage || few))};
+    drawRefs();
+    const first = all.filter(n => n.lazy).slice(0, 30);            // حمّل مسبقاً ما تحت أوائل المراجع
+    if (first.length){
+      await pullSubtrees(first);
+      if (seq !== pageSeq || CUR !== c) return;
+      if (few){ for (const n of first) n._open = n.kids.length > 0; }
+      const sc = pBody.scrollTop; drawRefs(); pBody.scrollTop = sc;
+    }
+  } catch(e){ if (seq === pageSeq && CUR === c){ pRefs.innerHTML = ""; const m = el("div", "pmsg"); m.textContent = "المراجع: " + e.message; pRefs.appendChild(m); } }
+}
+/* ---- مراجع الكتل ((…)) ---- */
+const refText = new Map();
+async function resolveRefs(root){
+  const els = [...root.querySelectorAll(".bref:not(.ok)")]; if (!els.length) return;
+  const need = [...new Set(els.map(e => e.dataset.uid).filter(u => !refText.has(u)))];
+  if (need.length){
+    try {
+      const res = await roam("q", {query:"[:find ?u ?s :in $ [?u ...] :where [?b :block/uid ?u] [?b :block/string ?s]]", args:[need.slice(0, 200)]});
+      for (const row of (res.result || [])) refText.set(row[0], row[1]);
+    } catch(e){ return; }
+  }
+  for (const e of els){ const s = refText.get(e.dataset.uid); if (s != null){ e.innerHTML = inl(s); e.classList.add("ok"); } }
+}
+
+/* ---- اللمس: رابط، نقطة الطي، تحديد كتلة ---- */
+pBody.addEventListener("click", e => {
+  const a = e.target.closest("a.pl");
+  if (a){ e.preventDefault(); go(pageHash(a.dataset.p)); return; }
+  if (e.target.closest("a.ext")) return;
+  const bul = e.target.closest(".blk > .row > .bul");
+  if (bul){ toggleBlk(bul.closest(".blk")); return; }
+  const row = e.target.closest(".blk > .row");
+  if (!row){ clearSel(); return; }
+  const sel = window.getSelection(); if (sel && !sel.isCollapsed) return;        // تظليل نص: دعه للنسخ
+  const b = row.parentElement;
+  if (SEL && SEL.el === b){ clearSel(); return; }
+  clearSel(); SEL = {el:b, n:b._n}; row.classList.add("sel");
+  $("#pSel").hidden = false; $("#pAdd").hidden = true;
+  $('#pSel [data-a="after"]').disabled = !(SEL.n.parent || (CUR.data && CUR.data.kids.includes(SEL.n)));
+});
+function clearSel(){ if (SEL){ const r = SEL.el.querySelector(":scope > .row"); if (r) r.classList.remove("sel"); } SEL = null; $("#pSel").hidden = true; $("#pAdd").hidden = false; }
+const snippet = s => { const t = s.replace(/\s+/g," ").trim(); return t.length > 46 ? t.slice(0, 46) + "…" : (t || "(كتلة فارغة)"); };
+$("#pSel").addEventListener("click", async e => {
+  const b = e.target.closest("button"); if (!b || !SEL) return;
+  const n = SEL.n, a = b.dataset.a;
+  if (a === "x"){ clearSel(); return; }
+  if (a === "copy"){ try { await navigator.clipboard.writeText(n.s); toast("نُسخ"); } catch(err){ toast("تعذّر النسخ"); } clearSel(); return; }
+  if (a === "under") CTX = {kind:"block", page:CUR.title, uid:n.uid, order:"last", label:snippet(n.s)};
+  else {
+    const parent = n.parent || (CUR.data && CUR.data.uid); if (!parent) return;
+    CTX = {kind:"block", page:CUR.title, uid:parent, order:n.order + 1, label:snippet(n.s)};
+  }
+  clearSel(); go("w");
+});
+$("#pAdd").onclick = () => { CTX = {kind:"page", title:CUR.title}; go("w"); };
+$("#pReload").onclick = () => { if (CUR) loadPage(CUR, false); };
+let foldState = 0;
+$("#pFold").onclick = () => {                         // طيّ الكل ← نشر الكل ← طيّ…
+  if (!CUR || !CUR.data) return;
+  foldState = foldState ? 0 : 1; setAll(CUR.data.kids, !!foldState, 0); drawPage(); pBody.scrollTop = 0;
+  toast(foldState ? "نُشر الكل" : "طُوي الكل", 1200);
+};
+
+/* ============================================================
+   حجم الخط والتباعد
+   ============================================================ */
+const fontPop = $("#fontPop");
+document.querySelectorAll(".bFont").forEach(b => { b.addEventListener("mousedown", e => e.preventDefault()); b.onclick = e => { e.stopPropagation(); fontPop.hidden = !fontPop.hidden; }; });
+fontPop.addEventListener("mousedown", e => e.preventDefault());
+fontPop.addEventListener("click", e => {
+  e.stopPropagation();
+  const b = e.target.closest("button"); if (!b) return;
+  if (b.dataset.f) PREFS.fs = (+PREFS.fs || 17) + (b.dataset.f === "+" ? 1 : -1);
+  if (b.dataset.l) PREFS.lh = +b.dataset.l;
+  applyFont(); savePrefs();
+});
+document.addEventListener("click", () => { fontPop.hidden = true; });
+
+/* ============================================================
+   الإعدادات
+   ============================================================ */
+let editing = null;                                  // اسم الغراف قيد التعديل، أو "" لجديد
+function renderSettings(){
+  const box = $("#setBody"); box.innerHTML = "";
+  const h3 = t => box.appendChild(el("h3", "", t));
+  if (!graphs().length && editing == null) editing = "";
+  h3("الغرافات");
+  for (const g of graphs()){
+    if (editing === g.name){ box.appendChild(graphForm(g)); continue; }
+    const c = el("div", "card"), n = store.get("rq-pages:"+g.name);
+    c.innerHTML = '<div class="gn"></div><div class="gs"></div>';
+    c.firstElementChild.textContent = g.name + (G() === g && graphs().length > 1 ? "  ●" : "");
+    c.children[1].textContent = (g.token ? "الرمز موجود" : "بلا رمز") + " · " + (n ? AR(n.split("\n").length)+" صفحة" : "لم تُجلب صفحاته") + " · " + (g.header ? "ترويسة" : "بلا ترويسة");
+    const bt = el("div", "btns"), e1 = el("button", "btn"); e1.textContent = "تعديل"; e1.onclick = () => { editing = g.name; renderSettings(); };
+    bt.appendChild(e1);
+    if (G() !== g){ const u = el("button", "btn"); u.textContent = "استعمله"; u.onclick = () => { RAW.roam.current = g.name; saveCfg(); loadPages(); initTarget(); pageCache.clear(); renderSettings(); }; bt.appendChild(u); }
+    else { const r = el("button", "btn"); r.textContent = refreshing ? "يجلب…" : "تحديث قائمة الصفحات"; r.onclick = () => { refreshPages(false); renderSettings(); }; bt.appendChild(r); }
+    c.appendChild(bt); box.appendChild(c);
+  }
+  if (editing === "") box.appendChild(graphForm(null));
+  else { const add = el("button", "btn"); add.textContent = "＋ إضافة غراف"; add.onclick = () => { editing = ""; renderSettings(); }; box.appendChild(add); }
+
+  h3("القراءة");
+  const ck = el("label", "ck"), cb = el("input"); cb.type = "checkbox"; cb.checked = !!PREFS.autoRefs;
+  cb.onchange = () => { PREFS.autoRefs = cb.checked; savePrefs(); };
+  ck.append(cb, "جلب المراجع المرتبطة تلقائياً عند فتح الصفحة");
+  box.appendChild(ck);
+  box.appendChild(el("div", "note", "حجم الخط والتباعد من زر <b>Aa</b> في أعلى الشاشة."));
+
+  h3("عن التطبيق");
+  box.appendChild(el("div", "note", "الرمز يُحفظ في متصفح هذا الهاتف وحده، نصاً غير مشفّر، ولا يُرسل إلا إلى خادم Roam. ما تكتبه يُحفظ مسودةً تلقائياً حتى يُرسل."));
+}
+function graphForm(g){
+  const c = el("div", "card"), isNew = !g;
+  const f = (label, input) => { const l = el("label", "f"); l.append(label, input); c.appendChild(l); return input; };
+  const name = f("اسم الغراف (كما في عنوان Roam)", Object.assign(el("input"), {type:"text", value:g ? g.name : "", autocapitalize:"off", autocomplete:"off", spellcheck:false}));
+  const tok = f("الرمز (API token)", Object.assign(el("input"), {type:"password", value:g ? (g.token || "") : "", autocomplete:"off"}));
+  const show = el("label", "ck"), sh = el("input"); sh.type = "checkbox"; sh.onchange = () => tok.type = sh.checked ? "text" : "password"; show.append(sh, "إظهار الرمز"); c.appendChild(show);
+  const sv = el("label", "ck"), svc = el("input"); svc.type = "checkbox"; svc.checked = g ? !!g.saveToken : true; sv.append(svc, "حفظ الرمز على هذا الهاتف"); c.appendChild(sv);
+  const hd = el("label", "ck"), hdc = el("input"); hdc.type = "checkbox"; hdc.checked = g ? !!g.header : true; hd.append(hdc, "ترويسة فوق كل إدخال"); c.appendChild(hd);
+  const tpl = f("نص الترويسة ({date} التاريخ، {time} الوقت)", Object.assign(el("input"), {type:"text", value:g ? (g.tpl || HEADER_TPL) : HEADER_TPL}));
+  const md = el("select"); md.innerHTML = '<option value="today">صفحة اليوم دائماً</option><option value="last">آخر صفحة كتبت فيها</option>'; md.value = g ? (g.pageMode || "today") : "today";
+  f("الوجهة عند الفتح", md);
+  const bt = el("div", "btns");
+  const save = el("button", "btn p"); save.textContent = "حفظ";
+  const test = el("button", "btn"); test.textContent = "اختبار الاتصال";
+  const cancel = el("button", "btn"); cancel.textContent = "إلغاء";
+  bt.append(save, test); if (graphs().length || !isNew) bt.appendChild(cancel);
+  if (!isNew){ const del = el("button", "btn d"); del.textContent = "حذف";
+    del.onclick = () => { if (del.dataset.arm !== "1"){ del.dataset.arm = "1"; del.textContent = "اضغط ثانية للتأكيد"; setTimeout(() => { del.dataset.arm = ""; del.textContent = "حذف"; }, 2500); return; }
+      RAW.roam.graphs = graphs().filter(x => x !== g); if (RAW.roam.current === g.name) RAW.roam.current = graphs()[0] ? graphs()[0].name : "";
+      saveCfg(); loadPages(); initTarget(); pageCache.clear(); editing = null; renderSettings(); };
+    bt.appendChild(del); }
+  c.appendChild(bt);
+  const out = el("div", "note"); c.appendChild(out);
+  const read = () => ({name:name.value.trim(), token:tok.value.trim(), saveToken:svc.checked, header:hdc.checked, tpl:tpl.value.trim() || HEADER_TPL, pageMode:md.value});
+  save.onclick = () => {
+    const v = read();
+    if (!v.name){ out.textContent = "اكتب اسم الغراف."; return; }
+    if (graphs().some(x => x !== g && x.name === v.name)){ out.textContent = "يوجد غراف بهذا الاسم."; return; }
+    if (g){ const was = g.name; Object.assign(g, v); if (RAW.roam.current === was) RAW.roam.current = v.name; }
+    else { graphs().push(Object.assign({lastPage:{kind:"today", title:""}}, v)); if (!RAW.roam.current || graphs().length === 1) RAW.roam.current = v.name; }
+    saveCfg(); loadPages(); initTarget(); editing = null; renderSettings(); toast("حُفظ");
+    if (v.token && !store.get("rq-pages:"+v.name) && G() && G().name === v.name) refreshPages(true);
+  };
+  test.onclick = async () => {
+    const v = read(); if (!v.name || !v.token){ out.textContent = "اكتب الاسم والرمز أولاً."; return; }
+    out.textContent = "يتصل…";
+    try { const r = await roam("q", {query:"[:find (count ?e) . :where [?e :node/title]]"}, {graph:v});
+      out.textContent = "نجح الاتصال ✓ — عدد الصفحات: " + AR(r.result || 0); }
+    catch(e){ out.textContent = "فشل: " + e.message; }
+  };
+  cancel.onclick = () => { editing = null; renderSettings(); };
+  return c;
+}
+
+/* ============================================================
+   المشاركة من تطبيقات أندرويد (share target)
+   ============================================================ */
+function takeShared(){
+  const p = new URLSearchParams(location.search);
+  const text = (p.get("text") || "").trim(), url = (p.get("url") || "").trim(), title = (p.get("title") || "").trim();
+  if (!text && !url && !title) return;
+  let out = "";
+  const onlyUrl = /^https?:\/\/\S+$/.test(text) ? text : (!text ? url : "");
+  if (onlyUrl) out = title ? "["+title.replace(/[\[\]]/g,"")+"]("+onlyUrl+")" : onlyUrl;
+  else { out = text || title; if (url && !out.includes(url)) out += "\n" + url; }
+  const cur = ta.value.replace(/\s+$/,"");
+  ta.value = (cur ? cur + "\n" : "") + out; store.set("rqm-draft", ta.value);
+  history.replaceState(history.state, "", location.pathname + location.hash);
+  setTimeout(() => { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }, 120);
+}
+
+/* ============================================================
+   البدء
+   ============================================================ */
+loadCfg(); loadPrefs(); loadPages(); initTarget(); takeShared(); route();
+</script>
+<script>if("serviceWorker" in navigator && location.protocol.indexOf("http")===0){ navigator.serviceWorker.register("sw.js").catch(function(){}); }</script>
+</body>
+</html>

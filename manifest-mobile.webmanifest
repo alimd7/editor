@@ -1,0 +1,24 @@
+{
+ "id": "./m.html",
+ "name": "المحرر — جوال",
+ "short_name": "المحرر",
+ "start_url": "./m.html",
+ "scope": "./",
+ "display": "standalone",
+ "orientation": "portrait",
+ "dir": "rtl",
+ "lang": "ar",
+ "background_color": "#ffffff",
+ "theme_color": "#0f8f7e",
+ "launch_handler": {"client_mode": ["focus-existing", "auto"]},
+ "share_target": {"action": "./m.html", "method": "GET", "params": {"title": "title", "text": "text", "url": "url"}},
+ "shortcuts": [
+  {"name": "بحث عن صفحة", "short_name": "بحث", "url": "./m.html#s"},
+  {"name": "صفحة اليوم", "short_name": "اليوم", "url": "./m.html#p=@today"}
+ ],
+ "icons": [
+  {"src": "icon-mobile-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+  {"src": "icon-mobile-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+  {"src": "icon-mobile-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+ ]
+}

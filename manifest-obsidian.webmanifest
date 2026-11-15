@@ -6,6 +6,12 @@
  "dir": "rtl",
  "lang": "ar",
  "background_color": "#ffffff",
+ "launch_handler": {
+  "client_mode": [
+   "focus-existing",
+   "auto"
+  ]
+ },
  "id": "./obsidian.html",
  "name": "المحرر — Obsidian",
  "theme_color": "#7c5cd6",
