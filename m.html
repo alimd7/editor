@@ -200,7 +200,7 @@ textarea.live{flex:1;min-width:0;display:block;border:0;outline:0;resize:none;ov
 <div id="search" class="scr" hidden>
   <header class="bar">
     <select id="graphS" class="chip gsel" aria-label="الغراف"></select>
-    <input id="sq" type="search" enterkeyhint="search" placeholder="ابحث…" autocomplete="off" autocapitalize="off" spellcheck="false">
+    <input id="sq" dir="rtl" type="search" enterkeyhint="search" placeholder="بحث" autocomplete="off" autocapitalize="off" spellcheck="false">
     <button id="sWrite" class="ic" aria-label="شاشة الكتابة"><svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16v4zM13.5 6.5l4 4"/></svg></button>
     <button class="ic bSet" aria-label="الإعدادات"><svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg></button>
   </header>
@@ -1367,9 +1367,9 @@ function stem(w){                                    // تجريد خفيف: ي�
   return s;
 }
 const stems = q => [...new Set(q.split(/\s+/).map(stem).filter(t => t.length >= 2))];
-$("#sMode").onclick = () => { SMODE = SMODE === 2 ? 1 : 2; drawSearch(); sq.focus(); };
+$("#sMode").onclick = () => { SMODE = SMODE === 2 ? 1 : 2; PREFS.smode = SMODE; savePrefs(); drawSearch(); sq.focus(); };
 function enterSearch(){
-  sq.placeholder = PICK ? "إلى أي صفحة تكتب؟" : "ابحث…";
+  sq.placeholder = PICK ? "إلى أي صفحة تكتب؟" : "بحث";
   fillGraphs(); sq.value = LASTQ; drawSearch();
   setTimeout(() => { sq.focus(); sq.select(); }, 50);
   if (!PAGES.length && G() && G().token && !refreshing && !LOC) refreshPages(true);
@@ -1567,13 +1567,18 @@ async function loadRefs(c, seq){
     const wasOpen = c.refs ? c.refs.open : null; let groups, total = null;
     if (LOC){
       const r = await W("refs", {title:c.title, limit:300}); total = r.total;
-      const nodes = (await lNodes(r.list.map(x => x.u), null)).filter(n => n.g !== c.root.uid);
+      const inner = (await lNodes(r.list.map(x => x.u), null)).filter(n => n.g !== c.root.uid);
+      const pus = [...new Set(inner.filter(n => n.parent && n.parent !== n.g).map(n => n.parent))], pm = new Map((await lNodes(pus, null)).map(p => [p.uid, p]));
+      const iset = new Set(inner.map(n => n.uid));
+      const nodes = inner.filter(n => !iset.has(n.parent)).map(n => { const p0 = n.parent !== n.g ? pm.get(n.parent) : null; if (!p0) return n;
+        const p = mkNode(Object.assign({}, p0, {kids:[n], lazy:false, loaded:true, partial:true, _open:true})); n.pn = p; return p; });
+      c._inner = inner;
       const by = new Map(); for (const n of nodes){ const pg = PT.get(n.g) || "؟"; if (!by.has(pg)) by.set(pg, []); by.get(pg).push(n); }
       groups = [...by.entries()].map(([page, blocks]) => ({page, blocks})).sort((a,b) => norm(a.page) < norm(b.page) ? -1 : 1);
       if (total <= 300) total = nodes.length;
     } else groups = await pullRefs(c.title);
     if (seq !== viewSeq || CUR !== c) return;
-    const all = groups.flatMap(g => g.blocks), few = all.length <= 6;
+    const all = LOC && c._inner ? c._inner : groups.flatMap(g => g.blocks), few = all.length <= 6;
     const emptyPage = !c.root || !c.root.kids.length;
     c.refs = {groups, total, open: wasOpen != null ? wasOpen : (all.length > 0 && (emptyPage || few))};
     drawRefs();
@@ -2155,7 +2160,7 @@ if (window.visualViewport){
 /* ============================================================
    البدء
    ============================================================ */
-loadCfg(); loadPrefs();
+loadCfg(); loadPrefs(); SMODE = PREFS.smode === 2 ? 2 : 1;
 if (PREFS.defGraph && graphs().some(g => g.name === PREFS.defGraph) && RAW.roam.current !== PREFS.defGraph){ RAW.roam.current = PREFS.defGraph; saveCfg(); }
 loadPages(); initTarget(); loadQueue(); setGraphLocal(); takeShared(); route();
 flush(); setTimeout(autoSync, 1500);

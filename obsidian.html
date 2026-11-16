@@ -92,10 +92,10 @@ textarea.ed{display:block;border:0;outline:0;background:transparent;color:var(--
 .actions button{white-space:nowrap}
 .keys{line-height:1.7}
 button{font:inherit;cursor:pointer}
-.send{background:var(--accent);color:var(--accent-ink);border:1px solid var(--accent);border-radius:4px;padding:6px 26px}
+.send{background:var(--accent);color:var(--accent-ink);border:1px solid var(--accent);border-radius:7px;padding:6px 26px;font-weight:600}
 .send:hover{filter:brightness(1.07)}
-.ghost{background:transparent;border:0;color:var(--muted);padding:6px 8px;border-radius:4px}
-.ghost:hover{background:var(--hover)}
+.ghost{background:color-mix(in srgb,var(--text) 4%,var(--bg));border:1px solid color-mix(in srgb,var(--text) 13%,var(--bg));color:var(--muted);padding:5px 11px;border-radius:7px}
+.ghost:hover{background:color-mix(in srgb,var(--text) 9%,var(--bg));color:var(--text)}
 .ghost.danger{color:var(--danger)}
 .spacer{flex:1}
 .hint{color:var(--muted);font-size:12.5px}
@@ -208,14 +208,19 @@ body.docview #btnHdr{display:none}
 #rpDot{flex:none;width:10px;height:10px;border-radius:50%;background:#2ea44f;margin:0 8px;cursor:default}
 #rpDot.warn{background:#e8912d}
 #rpDot[hidden]{display:none}
+.ghost.danger{border-color:color-mix(in srgb,var(--danger) 35%,var(--bg))}
+.actions .ghost.danger{padding:6px 18px}
+#rpQ,#pagefield input{direction:rtl;text-align:right}
+details.keysbox{margin:10px 0}
+details.keysbox summary{cursor:pointer;font-weight:700;padding:4px 0;color:var(--muted)}
 </style>
 </head>
 <body>
 <div id="app">
   <div id="destbar"><button data-dest="roam">Roam Research</button><button data-dest="obsidian">Obsidian</button></div>
   <div id="rpBar">
-    <input id="rpQ" dir="auto" autocomplete="off" spellcheck="false" placeholder="ابحث في الصفحات والنصوص…" title="Ctrl+Shift+F">
-    <button id="rpMode" class="ghost" title="تجريد الكلمات من الزوائد، ووجودها كلها في الكتلة ولو متفرقة">مجرّد</button>
+    <input id="rpQ" dir="rtl" autocomplete="off" spellcheck="false" placeholder="بحث" title="Ctrl+Shift+F">
+    <button id="rpMode" class="ghost" title="تجريد الكلمات من الزوائد، ووجودها كلها في الكتلة ولو متفرقة (Alt+M)">مجرّد</button>
     <span id="rpDot" class="ok"></span>
   </div>
   <div id="rpRes" hidden></div>
@@ -266,8 +271,7 @@ body.docview #btnHdr{display:none}
 
   <div class="actions">
     <button class="send" id="btnSend" title="Ctrl+Enter">إرسال</button>
-    <button class="ghost" id="btnHdr" title="اجعل هذا الإدخال تحت ترويسة التاريخ، أو بدونها">📅</button>
-    <button class="ghost danger" id="btnClear" title="مسح كل ما كتبت">🗑 مسح</button>
+    <button class="ghost danger" id="btnClear" title="مسح كل ما كتبت">مسح</button>
     <span class="spacer"></span>
     <button class="ghost" id="btnWide" title="عرض الصفحة كاملاً / عرض محدود">↔</button>
     <button class="ghost" id="btnSettings" title="إعدادات">⚙</button>
@@ -1643,14 +1647,13 @@ function renderSettings(){
   viewSettings(box);
   if (CFG.dest==="roam") syncSettings(box);
 
-  title("الاختصارات");
   const KEYS = [["Ctrl+Enter / Ctrl+S","إرسال"],["Ctrl+Z","تراجع"],["Ctrl+Shift+Z / Ctrl+Y","إعادة"],
     ["Ctrl+B / Ctrl+I","غامق / مائل"],["Ctrl+Shift+H","تمييز"],["Ctrl+`","كود"],["Ctrl+K","رابط"],
     ["Tab / Shift+Tab", CFG.dest==="obsidian" ? "إزاحة السطر" : "تداخل الكتلة"],
     ["Alt+Shift+↑ / ↓","نقل السطر"],["Ctrl+A مرتين","تظليل كل النص"],["Ctrl+Shift+V","لصق بلا تحويل"],["Esc","خروج من السطر"]];
-  if (CFG.dest==="roam") KEYS.push(["Alt+T","مهمة بتاريخ (ثم منجزة، ثم إزالة)"],["Alt+D","إدراج تاريخ"],["Alt+R","مزامنة الصفحة المعروضة من Roam"],["Ctrl+Shift+F","خانة البحث"]);
+  if (CFG.dest==="roam") KEYS.push(["Alt+T","مهمة بتاريخ (ثم منجزة، ثم إزالة)"],["Alt+D","إدراج تاريخ"],["Alt+R","مزامنة الصفحة المعروضة من Roam"],["Ctrl+Shift+F","خانة البحث"],["Alt+M","البحث: مطابق / مجرّد"],["Alt+H","الكتابة تحت ترويسة التاريخ أو بدونها"]);
   KEYS.push(["F9", CFG.dest==="obsidian" ? "إعادة فهرسة الخزنة" : "تحديث صفحات الغراف"]);
-  box.appendChild(h("div", {class:"keys"}, ...KEYS.map(k => h("div", {}, h("b", {dir:"ltr"}, k[0]), " — "+k[1]))));
+  box.appendChild(h("details", {class:"keysbox"}, h("summary", {}, "الاختصارات"), h("div", {class:"keys"}, ...KEYS.map(k => h("div", {}, h("b", {dir:"ltr"}, k[0]), " — "+k[1])))));
 
   if (CFG.dest==="roam"){
     title("غرافات Roam");
@@ -2819,13 +2822,13 @@ function markMatches(root, q){                        // ظلّل مواضع ا�
    (تعمل على النسخة المحلية للغراف، وترسل الفروق إلى Roam)
    ============================================================ */
 const AR = n => Number(n).toLocaleString("ar-EG");
-const RP = {mode:1, items:[], sel:0, seq:0, timer:null};
+const RP = {mode:store.get("rq-smode") === "2" ? 2 : 1, items:[], sel:0, seq:0, timer:null};
 let DOC = null;                                      // الوثيقة المعروضة في اللوحة
 const pageModel = () => ACTIVE === "page" ? model : CTXS.page.model;
 const rpOpen = () => !isOb();
 const isSplit = () => store.get("rq-split") === "1";
 function layout(){                                   // وثيقة Roam: مكان المسودة، أو بجانبها
-  const doc = !!DOC, sp = doc && isSplit(), d = $("#rpDoc"), host = sp ? $("#rp") : $("#docSlot");
+  const doc = !!DOC && !isOb(), sp = doc && isSplit(), d = $("#rpDoc"), host = sp ? $("#rp") : $("#docSlot");
   document.body.classList.toggle("docview", doc && !sp); document.body.classList.toggle("rpopen", sp);
   $("#rp").hidden = !sp; if (d.parentElement !== host) host.appendChild(d); d.hidden = !doc;
   $("#rpSplit").classList.toggle("on", isSplit());
@@ -3013,13 +3016,26 @@ async function refBlock(b, open){                    // كتلة مرجع للق
   }
   return blk;
 }
+async function refWithParent(b, open, ids){          // المرجع ابنٌ لكتلة: اعرض أباه فوقه
+  const db = RQ.db(), tr = await RQ.rq(db.transaction("tree").objectStore("tree").get(b.u));
+  if (tr && ids.has(tr.p)) return null;              // أبوه مرجع معروض أصلاً، وهو تحته
+  const inner = await refBlock(b, open);
+  if (!tr || tr.p === b.g) return inner;
+  const pb = await RQ.rq(db.transaction("blocks").objectStore("blocks").get(tr.p)); if (!pb) return inner;
+  const blk = el("div", "block"), row = el("div", "row"), tg = el("span", "tg"), bul = el("span", "bullet"), content = el("div", "content"), v = refView(pb), kids = el("div", "children");
+  tg.textContent = "▾"; v.title = "انقر لفتح هذه الكتلة وتعديلها";
+  v.onclick = e => { const sel = getSelection(); if (sel && !sel.isCollapsed) return; if (roamClick(e)) return; openDoc({kind:"block", uid:pb.u}); };
+  bul.title = "ادخل إلى هذه الكتلة"; bul.style.cursor = "pointer"; bul.onmousedown = e => { e.preventDefault(); openDoc({kind:"block", uid:pb.u}); };
+  tg.onmousedown = e => { e.preventDefault(); kids.hidden = !kids.hidden; tg.textContent = kids.hidden ? "◂" : "▾"; };
+  content.appendChild(v); row.append(tg, bul, content); kids.appendChild(inner); blk.append(row, kids); return blk;
+}
 async function drawRefs(d){
   try {
     const r = await RQ.W("refs", {title:d.title, limit:200}); if (DOC !== d) return;
     const db = RQ.db(), B = db.transaction("blocks").objectStore("blocks");
     const bl = (await Promise.all(r.list.map(x => RQ.rq(B.get(x.u))))).filter(b => b && b.g !== d.pageUid);
     const box = $("#rpRefs"); box.innerHTML = ""; if (!bl.length) return;
-    const few = bl.length <= 6, body = el("div");
+    const few = bl.length <= 6, body = el("div"), ids = new Set(bl.map(b => b.u));
     const h = el("div", "rphd rfh"); h.textContent = (few ? "▾ " : "◂ ") + "المراجع المرتبطة: " + AR(bl.length) + (r.total > r.list.length ? "+" : "");
     h.onclick = () => { body.hidden = !body.hidden; h.textContent = (body.hidden ? "◂ " : "▾ ") + h.textContent.slice(2); };
     body.hidden = !few && pageModel().some(n => n.text.trim()); if (!body.hidden) h.textContent = "▾ " + h.textContent.slice(2);
@@ -3027,7 +3043,7 @@ async function drawRefs(d){
     const by = new Map(); for (const b of bl){ const t = RQ.pageTitle(b.g) || "؟"; if (!by.has(t)) by.set(t, []); by.get(t).push(b); }
     for (const [t, list] of [...by.entries()].sort((a, b) => norm(a[0]) < norm(b[0]) ? -1 : 1)){
       const g = el("div", "rfg"), hd = el("div", "rft"); hd.textContent = t; hd.onclick = () => openDoc({kind:"page", title:t}); g.appendChild(hd);
-      for (const b of list){ if (DOC !== d) return; g.appendChild(await refBlock(b, few)); }
+      for (const b of list){ if (DOC !== d) return; const x = await refWithParent(b, few, ids); if (x) g.appendChild(x); }
       body.appendChild(g);
     }
     brefFill(box);
@@ -3183,7 +3199,8 @@ function rpInit(){
   $("#rpDraft").onclick = toDraft;
   document.addEventListener("mousedown", e => { if (!e.target.closest("#rpRes") && e.target.id !== "rpQ") $("#rpRes").hidden = true; });
   setInterval(rpDot, 2000);
-  $("#rpMode").onclick = () => { RP.mode = RP.mode === 2 ? 1 : 2; rpDraw(); $("#rpQ").focus(); };
+  $("#rpMode").onclick = () => { modeSwitch(); $("#rpQ").focus(); };
+  $("#rpMode").classList.toggle("on", RP.mode === 2);
   const q = $("#rpQ");
   q.oninput = () => { RP.sel = 0; rpDraw(); };
   q.onfocus = () => { if (q.value.trim()) rpDraw(); };
@@ -3230,13 +3247,15 @@ async function brefFill(root){                       // أظهر نص الكتل
 function rpMark(){ document.querySelectorAll("#rpRes .rpi").forEach((d, k) => { d.classList.toggle("sel", k === RP.sel); if (k === RP.sel) d.scrollIntoView({block:"nearest"}); }); }
 let rpGraphKey = "";
 function rpGraph(){                                  // عند تغيّر الغراف أو الوجهة
+  $("#rpBar").hidden = isOb(); $("#rpRes").hidden = true; rpDot();
+  if (isOb()){ if (DOC){ saveDoc(); activate("main"); } layout(); return; }   // الوثيقة تبقى مفتوحة، وتعود عند العودة إلى Roam
+  if (rpGraphKey === S.graph){ layout(); return; }
   if (DOC) closeDoc();
-  $("#rpBar").hidden = isOb(); $("#rpRes").hidden = true;
-  rpDot(); if (isOb()){ rpGraphKey = ""; return; }
-  if (rpGraphKey === S.graph) return; rpGraphKey = S.graph; brefCache.clear();
+  rpGraphKey = S.graph; brefCache.clear();
   RQ.SYNC.msg = ""; RQ.loadQueue(); RQ.setGraphLocal(); RQ.flush(); rpSyncUI();
   setTimeout(() => RQ.autoSync().then(rpSyncUI), 1500);
 }
+
 
 
 /* ---- مزامنة الوثيقة المعروضة وحدها (زر ↻ أو Alt+R) ---- */
@@ -3279,20 +3298,27 @@ function viewSettings(box){
   box.appendChild(h("label", {}, rc, "تلوين كلمات الجذر في صفحات الجذور (ج/…) وما تحتها من مراجع"));
 }
 
-/* ---- المسودة: تحت ترويسة التاريخ أو بدونها (لهذا الإدخال فقط) ---- */
-const hdrHas = () => { const m = ACTIVE === "main" ? model : CTXS.main.model; return !!m && m.length === 1 && !!m[0].hdr; };
-function hdrMark(){ const b = $("#btnHdr"); if (!b) return; b.hidden = isOb(); b.classList.toggle("on", hdrHas()); }
-function hdrToggle(){
-  if (isOb()) return; activate("main"); pushHist();
-  if (hdrHas()){ const kids = model[0].children; model = kids.length ? kids : [mk("")]; }
-  else model = [mkHeader(model)];
-  editingId = null; render(); focusLastBlock();
+/* ---- اختصارات: الترويسة (Alt+H)، ووضع البحث (Alt+M) ---- */
+function hdrMark(){}
+function hdrSwitch(){                                // الكتابة تحت ترويسة التاريخ أو بدونها — يُحفظ في إعدادات الغراف
+  if (isOb()) return; const g = curGraph(); if (!g) return;
+  const old = S.header; g.header = !old; graphChanged(old);
+  toast(g.header ? "الكتابة تحت ترويسة التاريخ" : "الكتابة بلا ترويسة التاريخ");
+}
+function modeSwitch(){
+  RP.mode = RP.mode === 2 ? 1 : 2; store.set("rq-smode", String(RP.mode)); $("#rpMode").classList.toggle("on", RP.mode === 2);
+  if ($("#rpQ").value.trim()) rpDraw(); else toast(RP.mode === 2 ? "البحث: مجرّد" : "البحث: مطابق");
 }
 
 applyView();
 init(); rpInit();
-$("#rpSyncDoc").onclick = syncDoc; $("#btnHdr").onclick = hdrToggle;
-document.addEventListener("keydown", e => { if (e.altKey && !e.ctrlKey && !e.shiftKey && e.code === "KeyR" && DOC){ e.preventDefault(); syncDoc(); } });
+$("#rpSyncDoc").onclick = syncDoc;
+document.addEventListener("keydown", e => {
+  if (!e.altKey || e.ctrlKey || e.shiftKey) return;
+  if (e.code === "KeyR" && DOC){ e.preventDefault(); syncDoc(); }
+  else if (e.code === "KeyH" && !isOb()){ e.preventDefault(); hdrSwitch(); }
+  else if (e.code === "KeyM" && !isOb()){ e.preventDefault(); modeSwitch(); }
+});
 </script>
 <script>if("serviceWorker" in navigator && location.protocol.indexOf("http")===0){ navigator.serviceWorker.register("sw.js").catch(function(){}); }</script>
 </body>
