@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <!-- أمان: لا يُسمح للصفحة بأي اتصال بالشبكة (لا fetch ولا XHR ولا مصادر خارجية) -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: 'self'; manifest-src 'self'; worker-src 'self'; connect-src https://api.roamresearch.com https://*.api.roamresearch.com:*;">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: 'self'; manifest-src 'self'; worker-src 'self' blob:; connect-src https://api.roamresearch.com https://*.api.roamresearch.com:*;">
 <title>المحرر (Roam)</title>
 <link rel="manifest" href="manifest.webmanifest">
 <script>window.DEST_START="roam";</script>
@@ -136,6 +136,57 @@ button{font:inherit;cursor:pointer}
 #settings select{font:inherit;padding:4px;border:1px solid var(--line);border-radius:4px;background:var(--bg);color:var(--text)}
 #settings input[type=text],#settings input[type=password]{flex:1;font:inherit;padding:4px 8px;border:1px solid var(--line);border-radius:4px;background:var(--bg);color:var(--text)}
 .tout{white-space:pre-wrap;font-size:12px;margin:0}
+
+/* ---- لوحة Roam الجانبية ---- */
+#rp[hidden],#rp [hidden]{display:none!important}
+body.rpopen{padding-left:46vw}
+#rp{position:fixed;top:0;bottom:0;left:0;width:46vw;display:flex;flex-direction:column;background:var(--bg);border-right:1px solid var(--line);z-index:20}
+#rpBar{flex:none;display:flex;gap:6px;align-items:center;padding:10px 12px 8px;border-bottom:1px solid var(--line)}
+#rpQ{flex:1;min-width:0;height:34px;border:1px solid var(--line);border-radius:17px;padding:0 14px;background:var(--bg);color:var(--text);font:inherit;outline:0}
+#rpQ:focus{border-color:var(--accent)}
+#rpMode.on,#rpSync.on{color:var(--accent)}
+#rpMode.on{background:var(--accent);color:var(--accent-ink);border-radius:14px}
+#rpSyncBox{flex:none;padding:8px 14px;border-bottom:1px solid var(--line)}
+#rpSyncBtns{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+#rpRes{flex:none;max-height:58%;overflow:auto;border-bottom:1px solid var(--line);padding:4px 6px}
+.rpi{display:flex;gap:8px;align-items:flex-start;padding:6px 8px;border-radius:6px;cursor:pointer}
+.rpi.sel{background:color-mix(in srgb,var(--accent) 14%,transparent)}
+.rpi .pic{flex:none;width:16px;color:var(--muted);text-align:center}
+.rpi .tt{flex:1;min-width:0;word-break:break-word;unicode-bidi:plaintext}
+.rpi .sn b{background:#ffe27a;color:#000;font-weight:inherit;border-radius:3px}
+.rpi small{display:block;color:var(--muted);font-size:12px}
+.rpi .pen{flex:none;border:1px solid var(--line);background:none;color:var(--muted);border-radius:12px;padding:0 8px;cursor:pointer;font:inherit}
+.rpi .pen:hover{color:var(--accent);border-color:var(--accent)}
+.rphd{padding:6px 8px 2px;color:var(--muted);font-size:12px}
+#rpDoc{flex:1;overflow:auto;padding:8px 14px 60px}
+#rpHead{display:flex;align-items:baseline;gap:10px;margin-bottom:6px}
+#rpTitle{flex:1;font-weight:700;font-size:1.15em;unicode-bidi:plaintext;cursor:default}
+#rpTitle[title]:not([title=""]){cursor:pointer}
+#rpState{flex:none;color:var(--muted);font-size:12px}
+#rpState.dirty{color:var(--accent)}
+#rpCtx{color:var(--muted);border-inline-start:3px solid var(--line);padding:2px 10px;margin:0 0 6px;cursor:pointer;font-size:.92em}
+#outline2{padding:4px 2px 0}
+body.pgactive #outline2{outline:0}
+#rpRefs{margin-top:18px}
+.rfg{margin:6px 0 12px}
+.rft{font-weight:700;font-size:.9em;color:var(--accent);cursor:pointer;padding:2px 0}
+.rfb{border-inline-start:2px solid var(--line);padding:2px 10px;margin:4px 0;cursor:pointer;border-radius:0 4px 4px 0}
+.rfb:hover{background:color-mix(in srgb,var(--accent) 7%,transparent)}
+mark.hit{background:#ffd54a;color:#000;border-radius:3px}
+.sug.wide{min-width:min(560px,100%)}
+.sug.wide li{align-items:flex-start}
+.sug.wide li span{unicode-bidi:plaintext}
+.sug.wide li small{flex:none;direction:rtl;max-width:30%}
+.cal{position:absolute;z-index:31;inset-inline-start:0;margin-top:2px;background:var(--bg);border:1px solid var(--line);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.2);padding:8px;width:238px;user-select:none}
+.calh{font-weight:700;text-align:center;margin-bottom:4px}
+.calg{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center}
+.calg .wd{color:var(--muted);font-size:12px}
+.calg .dy{line-height:28px;border-radius:6px;cursor:pointer}
+.calg .dy:hover{background:color-mix(in srgb,var(--accent) 14%,transparent)}
+.calg .dy.td{outline:1px solid var(--accent)}
+.calg .dy.sel{background:var(--accent);color:var(--accent-ink)}
+.calf{color:var(--muted);font-size:11px;text-align:center;margin-top:6px}
+@media (max-width:900px){body.rpopen{padding-left:0}#rp{width:100vw}}
 </style>
 </head>
 <body>
@@ -183,6 +234,7 @@ button{font:inherit;cursor:pointer}
     <button class="send" id="btnSend" title="Ctrl+Enter">إرسال</button>
     <button class="ghost danger" id="btnClear" title="مسح كل ما كتبت">🗑 مسح</button>
     <span class="spacer"></span>
+    <button class="ghost" id="btnPanel" title="لوحة البحث والعرض (Ctrl+Shift+F)">🔍</button>
     <button class="ghost" id="btnWide" title="عرض الصفحة كاملاً / عرض محدود">↔</button>
     <button class="ghost" id="btnSettings" title="إعدادات">⚙</button>
   </div>
@@ -190,6 +242,23 @@ button{font:inherit;cursor:pointer}
   <div id="settings"></div>
 </div>
 
+<aside id="rp" hidden>
+  <div id="rpBar">
+    <input id="rpQ" dir="auto" autocomplete="off" spellcheck="false" placeholder="ابحث في الصفحات والنصوص…">
+    <button id="rpMode" class="ghost" title="تجريد الكلمات من الزوائد، ووجودها كلها في الكتلة ولو متفرقة">مجرّد</button>
+    <button id="rpSync" class="ghost" title="تحميل الغراف والمزامنة">⇅</button>
+    <button id="rpClose" class="ghost" title="إغلاق اللوحة">✕</button>
+  </div>
+  <div id="rpSyncBox" hidden><div id="syncMsg" class="hint"></div><div id="rpSyncBtns"></div></div>
+  <div id="rpRes" hidden></div>
+  <div id="rpDoc">
+    <div id="rpHead"><span id="rpTitle"></span><span id="rpState"></span></div>
+    <div id="rpCtx" hidden></div>
+    <div id="outline2"></div>
+    <div id="rpMore" class="hint" hidden></div>
+    <div id="rpRefs"></div>
+  </div>
+</aside>
 <div id="toast"></div>
 <div id="out">
   <div id="outbox">
@@ -342,8 +411,9 @@ function snap(){
 const HIST_MAX_KB = 6000;                          // سقف ذاكرة التراجع: ٦ م.ب تقريباً
 function pushHist(coalesce){                       // الكتابة المتتابعة خطوة واحدة
   const now = Date.now();
-  if (coalesce && HIST.past.length && now-HIST.mark < 700){ HIST.mark = now; HIST.future.length = 0; return; }
+  if (coalesce && HIST.past.length && now-HIST.mark < 700){ HIST.mark = now; HIST.future.length = 0; if (ACTIVE === "page") docTouch(); return; }
   HIST.mark = coalesce ? now : 0;
+  if (ACTIVE === "page") docTouch();
   const st = snap();
   st.kb = Math.ceil(JSON.stringify(st.m).length/1024);
   HIST.past.push(st);
@@ -354,11 +424,24 @@ function pushHist(coalesce){                       // الكتابة المتت�
 function histBreak(){ HIST.mark = 0; }
 function applySnap(st){
   model = st.m; nextId = st.n; editingId = st.id;
-  pendingCaret = st.c; pendingCaretEnd = st.e; closeSug(); render();
+  pendingCaret = st.c; pendingCaretEnd = st.e; closeSug(); render(); if (ACTIVE === "page") docTouch();
 }
 function undo(){ if (!HIST.past.length){ toast("لا يوجد ما يُتراجع عنه"); return; } HIST.future.push(snap()); histBreak(); applySnap(HIST.past.pop()); }
 function redo(){ if (!HIST.future.length) return; HIST.past.push(snap()); histBreak(); applySnap(HIST.future.pop()); }
 
+
+/* سياقان للمحرك نفسه: «main» ما تكتبه للإرسال، و«page» وثيقة Roam في اللوحة */
+const CTXS = {main:{model:null, hist:null}, page:{model:[], hist:{past:[], future:[], mark:0}}};
+let ACTIVE = "main";
+const HOST = () => $(ACTIVE === "page" ? "#outline2" : "#outline");
+function activate(name){
+  if (ACTIVE === name) return;
+  if (editingId != null){ editingId = null; closeSug(); render(); }
+  const c = CTXS[ACTIVE]; c.model = model; c.hist = {past:HIST.past, future:HIST.future, mark:HIST.mark};
+  ACTIVE = name; const x = CTXS[name]; model = x.model || []; const h = x.hist || {past:[], future:[], mark:0};
+  HIST.past = h.past; HIST.future = h.future; HIST.mark = h.mark; selAll = false;
+  document.body.classList.toggle("pgactive", name === "page");
+}
 function loc(id, list=model, parent=null){
   for (let i=0;i<list.length;i++){
     if (list[i].id===id) return {list, index:i, parent, node:list[i]};
@@ -543,7 +626,7 @@ let selAll = false;
 function rawAll(){ return isOb() ? obsText() : toMd(prune(model, 6, true)).replace(/\s+$/,""); }
 function selectAll(){
   editingId = null; closeSug(); render();
-  const host = $("#outline"), sel = window.getSelection();
+  const host = HOST(), sel = window.getSelection();
   const r = document.createRange(); r.selectNodeContents(host);
   sel.removeAllRanges(); sel.addRange(r);
   selAll = true;
@@ -629,11 +712,12 @@ function renderBlock(n){
   const b = el("div","block"); b.dataset.id = n.id;
   const row = el("div","row");
   const ob = isOb();
-  const hasKids = ob ? obsFoldable(n) : n.children.length>0;
+  const hasKids = ob ? obsFoldable(n) : (n.children.length>0 || !!n.lazy);
   if (ob && hasKids){ row.classList.add("hastg"); if (n.collapsed) row.classList.add("col"); }
   const toggle = () => {
     const y0 = b.getBoundingClientRect().top;
-    const host = $("#outline"), sy = window.scrollY;
+    if (n.lazy && n.collapsed){ loadLazy(n).then(() => { n.collapsed = false; render(); }).catch(e => toast(e.message)); return; }
+    const host = HOST(), sy = window.scrollY;
     host.style.minHeight = host.offsetHeight + "px";      // لا ينكمش المستند فيتحرك التمرير
     n.foldStop = null; n.collapsed = !n.collapsed; render();
     const nb = document.querySelector('.block[data-id="'+n.id+'"]');
@@ -686,8 +770,8 @@ function renderBlock(n){
 }
 function render(){
   rendering = true; OBFD = obsFileDir();
-  $("#outline").classList.toggle("plain", isOb());
-  const host = $("#outline"); host.innerHTML = "";
+  $("#outline").classList.toggle("plain", isOb()); CAL.open = false; CAL.el = null;
+  const host = HOST(); host.innerHTML = "";
   host.appendChild(renderList(isOb() ? obsVisible() : model, true));
   rendering = false;
   if (editingId != null){
@@ -720,7 +804,7 @@ function onBlur(n,t){
 let suppressBlur = false;
 document.addEventListener("mouseup", () => { setTimeout(() => { suppressBlur = false; }, 0); }, true);
 function onInput(n,t){
-  n.text = t.value; n.auto = false;                  // ما كتبتَ فيه لم يعد رأساً تلقائياً
+  n.text = t.value; n.auto = false; if (ACTIVE === "page") docTouch();                  // ما كتبتَ فيه لم يعد رأساً تلقائياً
   if (isOb()){ OBFD = obsFileDir(); t.dir = obsBlockDir(n.text); t.style.textAlign = OBFD==="ltr" ? "left" : "right"; }
   autosize(t); checkSug(n,t);
 }
@@ -983,12 +1067,24 @@ function onPaste(e,n,t){
    قائمة [[ المقترحة
    ============================================================ */
 let sug = {open:false, items:[], sel:0, start:0, id:null, el:null, kind:"page"};
-function closeSug(){ if (sug.el){ sug.el.remove(); sug.el=null; } sug.open=false; }
+let sugSeq = 0;
+function closeSug(){ sugSeq++; if (sug.el){ sug.el.remove(); sug.el=null; } sug.open=false; }
 function checkSug(n,t){
   const s = t.selectionStart, v = t.value;
   if (s !== t.selectionEnd){ closeSug(); return; }
   const before = v.slice(0,s);
-  const i = before.lastIndexOf("[[");
+  const i = before.lastIndexOf("[["), r2 = before.lastIndexOf("((");
+  if (r2 > i && !isOb() && !/\)\)|\n/.test(before.slice(r2+2))){              // (( : ابحث في نصوص الكتل
+    const q = before.slice(r2+2), my = ++sugSeq;
+    if (!RQ.loc() || RQ.foldStr(q).length < 2){ closeSug(); sugSeq = my; return; }
+    RQ.search(q, {limit:10, pre:18, post:70}).then(r => {
+      if (my !== sugSeq || document.activeElement !== t) return;
+      if (!r.hits.length){ closeSug(); return; }
+      sug.items = r.hits.map(h => ({title:h.pre + h.hit + h.post, kind:"ref", uid:h.u, sub:RQ.pageTitle(h.g)}));
+      sug.sel = 0; sug.start = r2+2; sug.id = n.id; sug.open = true; sug.kind = "ref"; drawSug(t); sug.el.classList.add("wide");
+    }).catch(() => {});
+    return;
+  }
   const pageCtx = i>=0 && !/\]\]|\n|\[/.test(before.slice(i+2));
   if (!pageCtx && CFG.dest==="obsidian"){
     const tm = before.match(/(^|[\s(،؛,;\u200e\u2066-\u2069])#([^\s#\[\](){}]*)$/);
@@ -1020,7 +1116,7 @@ function checkSug(n,t){
 }
 function drawSug(t){
   if (sug.el) sug.el.remove();
-  const ul = el("ul","sug"); sug.el = ul;
+  const ul = el("ul","sug"); sug.el = ul; if (sug.kind==="ref") ul.classList.add("wide");
   sug.items.forEach((it,k) => {
     const li = el("li", k===sug.sel ? "sel" : "");
     li.innerHTML = "<span>"+esc(it.title)+"</span>" + (it.kind==="new"||it.kind==="newtag" ? "<small>جديد</small>" : (it.sub ? "<small>"+esc(it.sub)+"</small>" : ""));
@@ -1050,6 +1146,7 @@ function pickSug(k){
   const s = t.selectionStart;
   t.setSelectionRange(sug.start, s);
   pushHist();
+  if (sug.kind==="ref"){ const tl = t.value.slice(s, s+2) === "))" ? "" : "))"; document.execCommand("insertText", false, it.uid + tl); const p0 = sug.start + it.uid.length + 2; t.setSelectionRange(p0, p0); closeSug(); return; }
   if (sug.kind==="tag"){ document.execCommand("insertText", false, it.title.replace(/\s+/g,"_")+" "); closeSug(); return; }
   const after = t.value.slice(s, s+2);
   const tail = after === "]]" ? "" : "]]";
@@ -1065,6 +1162,7 @@ function pickSug(k){
 function caretPos(t){ return [t.selectionStart, t.selectionEnd]; }
 function indent(n,t){
   const L = loc(n.id); if (!L || L.index===0) return;
+  if (L.list[L.index-1].lazy){ const pv = L.list[L.index-1]; loadLazy(pv).then(() => { const t2 = $('textarea[data-id="'+n.id+'"]'); if (t2) indent(n, t2); }); return; }
   pushHist();
   const [s,e] = caretPos(t);
   const prev = L.list[L.index-1];
@@ -1106,6 +1204,9 @@ function wrapSel(t, mark){
 }
 function onKey(e,n,t){
   if (e.isComposing) return;
+  if (CAL.open && calKey(e, t)) return;
+  if (e.altKey && !e.ctrlKey && !e.shiftKey && e.code==="KeyT" && !isOb()){ e.preventDefault(); todoKey(n, t); return; }
+  if (e.altKey && !e.ctrlKey && !e.shiftKey && e.code==="KeyD" && !isOb()){ e.preventDefault(); calOpen(t); return; }
   const s=t.selectionStart, en=t.selectionEnd, v=t.value;
 
   if (sug.open){                                     // قائمة الاقتراحات لها الأولوية
@@ -1208,7 +1309,7 @@ function onKey(e,n,t){
       if (i===0) return;
       e.preventDefault(); pushHist();
       const prev = vis[i-1];
-      if (n.children.length===0){
+      if (n.children.length===0 && !n.lazy){
         const joinAt = prev.text.length;
         prev.text += n.text;
         L.list.splice(L.index,1);
@@ -1269,6 +1370,7 @@ function choosePage(k){
   focusLastBlock();
 }
 function clearAll(){
+  if (ACTIVE === "page"){ clearSelAll(); return; }      // وثيقة Roam لا تُمسح دفعة واحدة
   if (!flat(model).some(n => n.text.trim())){ freshModel(); render(); return; }
   pushHist(); selAll = false; freshModel(); render();
   toast("مُسح — Ctrl+Z للتراجع");
@@ -1365,6 +1467,7 @@ async function sendToRoam(payload){
   return acts.length;
 }
 async function doSend(){
+  if (ACTIVE === "page"){ await saveDoc(); toast(RQ.pending() ? "يُرسل إلى Roam…" : "حُفظت الوثيقة"); return; }
   if (sending) return;
   const ob = CFG.dest==="obsidian";
   if (ob){
@@ -1468,7 +1571,8 @@ function adaptModel(oldHeader){
   render();
 }
 function graphChanged(oldHeader){
-  syncS(); loadPages(); pagesInfo(); refreshPageButton(); fillGraphSelect(); saveCfg();
+  activate("main");
+  syncS(); loadPages(); pagesInfo(); refreshPageButton(); fillGraphSelect(); saveCfg(); rpGraph();
   if (CFG.dest==="roam" && S.header!==oldHeader) adaptModel(oldHeader);
 }
 function switchDest(d){
@@ -1491,6 +1595,9 @@ function switchDest(d){
   focusLastBlock();
 }
 function applyDest(){
+  if (typeof activate === "function") activate("main");
+  if (isOb() && typeof rpOpen === "function" && rpOpen()) rpToggle(false);
+  { const bp = $("#btnPanel"); if (bp) bp.hidden = isOb(); }
   const ob = CFG.dest==="obsidian";
   $("#roamBox").hidden = ob; $("#obsBox").hidden = !ob; pagesInfo(); $("#outline").hidden = false; $("#obsWrap").hidden = true;
   document.querySelectorAll("#destbar button").forEach(b => b.classList.toggle("on", b.dataset.dest===CFG.dest));
@@ -2098,7 +2205,814 @@ function init(){
   freshModel(); render();
   if (CFG.dest==="obsidian") focusLastBlock();
 }
-init();
+
+/* ============================================================
+   نواة النسخة المحلية والبحث والمزامنة (مشتركة مع نسخة الجوال)
+   ============================================================ */
+const RQ = (function(OUT){
+  const $ = s => document.querySelector(s);
+  const AR = n => Number(n).toLocaleString("ar-EG");
+  const store = {get:OUT.store.get, set:OUT.store.set, del(k){ try { localStorage.removeItem(k); } catch(e){} }};
+  const toast = OUT.toast, newUid = OUT.newUid, norm = OUT.norm;
+  const G = () => OUT.graph();
+  const busy = () => {}, mkNode = o => o, pullSubtrees = async () => {};
+  const hooks = {onSync(){}, onQueue(){}};
+  const loadPages = () => {}, pageCache = {clear(){}}, ROUTE = {name:""}, renderSettings = () => {}, drawSearch = () => {};
+  const PAGES = {includes:() => true}, PAGESN = [];
+const API = "https://api.roamresearch.com";
+const peers = {};                                    // عنوان الخادم الفعلي لكل غراف (يوفّر تحويلة في كل طلب)
+function peerOf(name){ if (!(name in peers)) peers[name] = store.get("rqm-peer:"+name) || ""; return peers[name]; }
+function setPeer(name, v){ peers[name] = v || ""; if (v) store.set("rqm-peer:"+name, v); else store.del("rqm-peer:"+name); }
+
+async function roam(kind, body, opt={}){
+  const g = opt.graph || G();
+  if (!g) throw new Error("أضف غرافاً من الإعدادات أولاً");
+  if (!g.token) throw new Error("لا رمز لهذا الغراف — أضفه من الإعدادات");
+  const path = "/api/graph/"+encodeURIComponent(g.name)+"/"+kind;
+  const ctrl = new AbortController(), timer = setTimeout(() => ctrl.abort(), opt.timeout || 40000);
+  const init = {method:"POST", headers:{"X-Authorization":"Bearer "+g.token, "Content-Type":"application/json"}, body:JSON.stringify(body), signal:ctrl.signal};
+  let r, usedPeer = peerOf(g.name);
+  busy(true);
+  try {
+    try { r = await fetch((usedPeer || API)+path, init); }
+    catch(e){ if (usedPeer && e.name !== "AbortError"){ setPeer(g.name, ""); usedPeer = ""; r = await fetch(API+path, init); } else throw e; }
+    if (usedPeer && !r.ok && ![400,401,403,429].includes(r.status)){   // عنوان محفوظ قديم: أعد عبر العنوان الأصلي
+      setPeer(g.name, ""); usedPeer = ""; r = await fetch(API+path, init);
+    }
+    try { const u = new URL(r.url); if (r.ok && u.origin !== API && u.origin !== usedPeer) setPeer(g.name, u.origin); } catch(e){}
+    const text = await r.text();
+    if (opt.soft) return {ok:r.ok, status:r.status, text};
+    if (!r.ok){
+      let m = "خطأ من Roam ("+r.status+")";
+      if (r.status === 401 || r.status === 403) m = "الرمز غير صالح أو لا يملك الصلاحية ("+r.status+")";
+      else if (r.status === 429) m = "تجاوزت حدّ الطلبات، انتظر قليلاً ثم أعد";
+      else if (r.status >= 500) m = "خادم Roam لا يستجيب ("+r.status+")";
+      const d = text.replace(/\s+/g," ").slice(0,140);
+      throw new Error(m + (d ? " — "+d : ""));
+    }
+    try { return text ? JSON.parse(text) : {}; } catch(e){ throw new Error("ردّ غير مفهوم من Roam: "+text.slice(0,140)); }
+  } catch(e){
+    if (e.name === "AbortError") throw new Error("انتهت المهلة — الشبكة بطيئة أو منقطعة");
+    if (e instanceof TypeError) throw new Error("تعذّر الاتصال — تحقق من الشبكة");
+    throw e;
+  } finally { clearTimeout(timer); busy(false); }
+}
+
+const K = (o,k) => o == null ? undefined : (o[":"+k] !== undefined ? o[":"+k] : (o[k] !== undefined ? o[k] : o[k.split("/")[1]]));
+function foldCode(c){
+  if (c < 128){
+    if (c >= 65 && c <= 90) return c + 32;
+    if (c === 10 || c === 13 || c === 9) return 32;
+    return (c < 32 || c === 127) ? -1 : c;
+  }
+  if ((c >= 0x64B && c <= 0x65F) || c === 0x670 || c === 0x640 || (c >= 0x6D6 && c <= 0x6ED) ||
+      (c >= 0x200B && c <= 0x200F) || (c >= 0x202A && c <= 0x202E) || (c >= 0x2066 && c <= 0x2069) || c === 0xFEFF) return -1;
+  if (c === 0x622 || c === 0x623 || c === 0x625 || c === 0x671) return 134;      // ا
+  if (c === 0x649 || c === 0x6CC) return 169;                                    // ي
+  if (c === 0x6A9) return 162;                                                   // ك
+  if (c >= 0x621 && c <= 0x64A) return 128 + (c - 0x621);
+  if (c >= 0x660 && c <= 0x669) return 48 + (c - 0x660);
+  if (c >= 0x6F0 && c <= 0x6F9) return 48 + (c - 0x6F0);
+  if (c === 0x67E) return 180; if (c === 0x686) return 181; if (c === 0x698) return 182; if (c === 0x6AF) return 183;
+  if (c === 0x60C) return 44; if (c === 0x61B) return 59; if (c === 0x61F) return 63;
+  if (c === 0xA0) return 32; if (c === 0xAB || c === 0xBB) return 34;
+  return 127;
+}
+function foldStr(s){ const out = []; for (let i=0;i<s.length;i++){ const b = foldCode(s.charCodeAt(i)); if (b >= 0) out.push(b); } return out; }
+
+function openDB(name){
+  return new Promise((res, rej) => {
+    const r = indexedDB.open(name, 1);
+    r.onupgradeneeded = () => {
+      const d = r.result;
+      d.createObjectStore("blocks", {keyPath:"u"});                 // {u, s, g, h?, c?}  النص
+      d.createObjectStore("tree", {keyPath:"u"}).createIndex("po", ["p","o"]);   // {u, p, o}  الموضع
+      d.createObjectStore("pages", {keyPath:"u"}).createIndex("t", "t");         // {u, t}
+      d.createObjectStore("kv");
+    };
+    r.onsuccess = () => res(r.result);
+    r.onerror = () => rej(r.error || new Error("تعذّر فتح التخزين"));
+  });
+}
+
+/* ---- العامل الخلفي: يحمل نسخة البحث المضغوطة في الذاكرة ---- */
+function workerMain(){
+  let db = null, T = new Uint8Array(1 << 22), tl = 0, U = [], P = [], G = [], O = [], L = [], S = [], E = [], A = [], M = new Map(), dead = 0, FQ = null;
+  const rq = r => new Promise((res, rej) => { r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); });
+  function reset(){ T = new Uint8Array(1 << 22); tl = 0; U = []; P = []; G = []; O = []; L = []; S = []; E = []; A = []; M = new Map(); dead = 0; }
+  function need(n){ if (tl + n > T.length){ let c = T.length; while (c < tl + n) c *= 2; const N = new Uint8Array(c); N.set(T.subarray(0, tl)); T = N; } }
+  function add(r){
+    const old = M.get(r.u); if (old !== undefined){ A[old] = 0; dead++; }
+    const s = r.s || ""; need(s.length + 1); const st = tl;
+    for (let i=0;i<s.length;i++){ const b = foldCode(s.charCodeAt(i)); if (b >= 0) T[tl++] = b; }
+    const i = U.length; U.push(r.u); P.push(r.p || ""); G.push(r.g || ""); O.push(r.o || 0); L.push(s.length); S.push(st); E.push(tl); A.push(1);
+    T[tl++] = 0; M.set(r.u, i);
+  }
+  function del(u){ const i = M.get(u); if (i !== undefined){ A[i] = 0; dead++; M.delete(u); } }
+  function encQ(q){ const out = []; for (let i=0;i<q.length;i++){ const b = foldCode(q.charCodeAt(i)); if (b >= 0) out.push(b); } return out; }
+  function dec(a, z){
+    let s = "";
+    for (let i=a;i<z;i++){ const b = T[i];
+      s += b < 127 ? String.fromCharCode(b) : b === 127 ? "·" : b < 180 ? String.fromCharCode(0x621 + b - 128) : "پچژگ"[b-180] || ""; }
+    return s;
+  }
+  function blockAt(pos){ let lo = 0, hi = S.length - 1; while (lo < hi){ const m = (lo + hi + 1) >> 1; if (S[m] <= pos) lo = m; else hi = m - 1; } return lo; }
+  function scan(qb, cb, acc){                        // أول موضع في كل كتلة حيّة
+    const n = qb.length; let pos = 0; if (!n) return;
+    if (!FQ){ FQ = new Uint32Array(256); const step = Math.max(1, tl >> 20); for (let i=0;i<tl;i+=step) FQ[T[i]]++; }   // تواتر الحروف (عيّنة)
+    let j = 0; for (let i=1;i<n;i++) if (FQ[qb[i]] < FQ[qb[j]]) j = i;                                              // ابحث بأندر حرف في العبارة
+    const bj = qb[j];
+    for (;;){
+      const f = T.indexOf(bj, pos + j); if (f < 0 || f >= tl) break; pos = f - j;
+      let k = 0; while (k < n && T[pos+k] === qb[k]) k++;
+      if (k === n){ const i = blockAt(pos); if (!A[i]){ pos = E[i] + 1; continue; } if (!acc || acc(pos + n)){ cb(i, pos); pos = E[i] + 1; continue; } }
+      pos++;
+    }
+  }
+  function compact(){
+    const n = U.length, NT = new Uint8Array(Math.max(1 << 22, tl)); let nl = 0;
+    const u = [], p = [], g = [], o = [], l = [], s = [], e = [], a = []; M = new Map();
+    for (let i=0;i<n;i++){ if (!A[i]) continue; const len = E[i] - S[i]; NT.set(T.subarray(S[i], E[i]), nl);
+      M.set(U[i], u.length); u.push(U[i]); p.push(P[i]); g.push(G[i]); o.push(O[i]); l.push(L[i]); s.push(nl); nl += len; e.push(nl); a.push(1); NT[nl++] = 0; }
+    T = NT; tl = nl; U = u; P = p; G = g; O = o; L = l; S = s; E = e; A = a; dead = 0;
+  }
+  const OPS = {
+    async open(m){
+      reset(); if (db){ try { db.close(); } catch(e){} } db = await openDB(m.name);
+      const t = db.transaction("kv"), ix = await rq(t.objectStore("kv").get("index")), tail = await rq(t.objectStore("kv").get("tail"));
+      const gone = await rq(t.objectStore("kv").get("gone"));
+      if (ix && ix.v === 1 && ix.n){
+        const buf = new Uint8Array(ix.buf); T = new Uint8Array(Math.max(1 << 22, Math.ceil(buf.length * 1.25))); T.set(buf); tl = buf.length;
+        U = ix.U.split("\n"); P = ix.P.split("\n"); G = ix.G.split("\n");
+        O = Array.from(ix.O); L = Array.from(ix.L); S = Array.from(ix.S); E = Array.from(ix.E); A = new Array(U.length).fill(1);
+        for (let i=0;i<U.length;i++) M.set(U[i], i);
+      }
+      if (Array.isArray(tail)) for (const r of tail) add(r);
+      if (Array.isArray(gone)) for (const u of gone) del(u);
+      return {n:M.size};
+    },
+    close(){ reset(); if (db){ try { db.close(); } catch(e){} db = null; } return true; },
+    add(m){ for (const r of m.rows) add(r); return M.size; },
+    upd(m){ const i = M.get(m.u); if (i === undefined) return false; add({u:m.u, s:m.s, p:P[i], g:G[i], o:O[i]}); return true; },
+    del(m){ for (const u of m.uids) del(u); return M.size; },
+    move(m){ for (const r of m.rows){ const i = M.get(r[0]); if (i !== undefined){ P[i] = r[1]; O[i] = r[2]; } } return true; },
+    has(m){ return m.uids.filter(u => M.has(u)); },
+    diff(m){                                         // قائمة الخادم [u, n, pu, o] مقابل ما عندنا
+      const keep = new Set(m.keep || []), seen = new Set(), fetch = [], moved = [], gone = [];
+      for (const r of m.rows){ const u = r[0], i = M.get(u); seen.add(u);
+        if (i === undefined || (r[1] != null && L[i] !== r[1])) fetch.push([u, r[1]]);
+        else if (P[i] !== r[2] || O[i] !== r[3]){ P[i] = r[2]; O[i] = r[3]; moved.push([u, r[2], r[3]]); } }
+      for (const u of M.keys()) if (!seen.has(u) && !keep.has(u)) gone.push(u);
+      for (const u of gone) del(u);
+      return {fetch, moved, del:gone};
+    },
+    search(m){
+      const qb = encQ(m.q), hits = [], lim = m.limit || 60, n = qb.length; let total = 0; const t0 = Date.now();
+      scan(qb, (i, pos) => { total++;
+        if (hits.length < lim){ const a = Math.max(S[i], pos - (m.pre || 36)), z = Math.min(E[i], pos + n + (m.post || 64));
+          hits.push({u:U[i], g:G[i], pre:(a > S[i] ? "…" : "") + dec(a, pos), hit:dec(pos, pos + n), post:dec(pos + n, z) + (z < E[i] ? "…" : "")}); } });
+      return {total, hits, ms:Date.now() - t0};
+    },
+    searchAll(m){                                    // كتل فيها كل الكلمات، ولو متفرقة
+      const terms = m.terms.map(encQ).filter(t => t.length).sort((a, b) => b.length - a.length), hits = [], lim = m.limit || 60, t0 = Date.now(); let total = 0;
+      if (!terms.length) return {total:0, hits, ms:0};
+      const d = terms[0], rest = terms.slice(1), n = d.length;
+      const inBlock = (t, a, z) => { let p = a; for (;;){ p = T.indexOf(t[0], p); if (p < 0 || p + t.length > z) return false; let k = 1; while (k < t.length && T[p+k] === t[k]) k++; if (k === t.length) return true; p++; } };
+      scan(d, (i, pos) => { for (const t of rest) if (!inBlock(t, S[i], E[i])) return; total++;
+        if (hits.length < lim){ const a = Math.max(S[i], pos - 36), z = Math.min(E[i], pos + n + 64);
+          hits.push({u:U[i], g:G[i], pre:(a > S[i] ? "\u2026" : "") + dec(a, pos), hit:dec(pos, pos + n), post:dec(pos + n, z) + (z < E[i] ? "\u2026" : "")}); } });
+      return {total, hits, ms:Date.now() - t0};
+    },
+    refs(m){
+      const set = new Set(), out = [], lim = m.limit || 300;
+      scan(encQ("[[" + m.title + "]]"), i => set.add(i));
+      scan(encQ("#" + m.title), i => set.add(i), end => { const b = T[end]; return b === 0 || b === 32 || (b < 48 && b !== 45) || b === 58 || b === 59 || b === 63 || b === 93; });
+      for (const i of [...set].sort((a, b) => a - b)){ if (out.length >= lim) break; out.push({u:U[i], g:G[i]}); }
+      return {total:set.size, list:out};
+    },
+    stats(){ return {n:M.size, bytes:tl, dead}; },
+    async persist(){
+      if (!db) return false;
+      if (dead > 3000 && dead > U.length * 0.15) compact();
+      const live = []; for (let i=0;i<U.length;i++) if (!A[i]) live.push(i);
+      if (live.length) compact();
+      const ix = {v:1, n:U.length, buf:T.slice(0, tl).buffer, U:U.join("\n"), P:P.join("\n"), G:G.join("\n"),
+                  O:Float64Array.from(O), L:Uint32Array.from(L), S:Uint32Array.from(S), E:Uint32Array.from(E)};
+      const t = db.transaction("kv", "readwrite"); t.objectStore("kv").put(ix, "index"); t.objectStore("kv").put([], "tail"); t.objectStore("kv").put([], "gone");
+      await new Promise((res, rej) => { t.oncomplete = res; t.onerror = t.onabort = () => rej(t.error || new Error("حفظ الفهرس فشل")); });
+      return true;
+    }
+  };
+  self.onmessage = async e => {
+    const m = e.data;
+    try { const res = await OPS[m.op](m); self.postMessage({id:m.id, ok:true, res}); }
+    catch(err){ self.postMessage({id:m.id, ok:false, err:String(err && err.message || err)}); }
+  };
+}
+let wk = null, wid = 0; const wcb = new Map();
+function W(op, data){
+  if (!wk){
+    const src = foldCode.toString() + "\n" + openDB.toString() + "\n(" + workerMain.toString() + ")();";
+    wk = new Worker(URL.createObjectURL(new Blob([src], {type:"text/javascript"})));
+    wk.onmessage = e => { const m = e.data, c = wcb.get(m.id); if (!c) return; wcb.delete(m.id); if (m.ok) c[0](m.res); else c[1](new Error(m.err)); };
+    wk.onerror = e => { for (const c of wcb.values()) c[1](new Error("عطل في فهرس البحث")); wcb.clear(); };
+  }
+  return new Promise((res, rej) => { const id = ++wid; wcb.set(id, [res, rej]); wk.postMessage(Object.assign({id, op}, data || {})); });
+}
+
+const rq = r => new Promise((res, rej) => { r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); });
+const txDone = t => new Promise((res, rej) => { t.oncomplete = () => res(); t.onerror = t.onabort = () => rej(t.error || new Error("خطأ في التخزين المحلي")); });
+const isLocal = name => store.get("rqm-local:"+name) === "1";
+let DB = null, DBNAME = "", readyP = null, LOC = false;
+const PT = new Map();                                // معرّف الصفحة ← عنوانها
+function openLocal(){
+  const g = G(); if (!g) return Promise.reject(new Error("لا غراف"));
+  const name = "rqm-" + g.name;
+  if (DBNAME === name && readyP) return readyP;
+  DBNAME = name; if (DB){ try { DB.close(); } catch(e){} } DB = null; PT.clear();
+  readyP = (async () => {
+    DB = await openDB(name);
+    const r = await W("open", {name});
+    for (const p of await rq(DB.transaction("pages").objectStore("pages").getAll())) PT.set(p.u, p.t);
+    return r;
+  })();
+  readyP.catch(() => { if (DBNAME === name) readyP = null; });
+  return readyP;
+}
+function setGraphLocal(){ const g = G(); LOC = !!g && isLocal(g.name); if (LOC) openLocal().catch(e => toast("النسخة المحلية: " + e.message, 4000)); }
+const kvGet = async k => rq(DB.transaction("kv").objectStore("kv").get(k));
+async function kvSet(k, v){ const t = DB.transaction("kv", "readwrite"); t.objectStore("kv").put(v, k); await txDone(t); }
+const kidRange = u => IDBKeyRange.bound([u, -Infinity], [u, Infinity]);
+async function lNodes(uids, pn){                     // كتل محلية ← كتلنا (مع معرفة هل لها أولاد)
+  if (!uids.length) return [];
+  const t = DB.transaction(["blocks","tree"]), B = t.objectStore("blocks"), T = t.objectStore("tree"), I = T.index("po");
+  const res = await Promise.all(uids.map(u => Promise.all([rq(B.get(u)), rq(T.get(u)), rq(I.count(kidRange(u)))])));
+  return res.filter(x => x[0] && x[1]).map(([b, tr, cnt]) => mkNode({uid:b.u, s:b.s || "", h:b.h || 0, open:!b.c, g:b.g, parent:tr.p, order:tr.o,
+    pn:pn || null, loc:true, lazy:cnt > 0, loaded:cnt === 0}));
+}
+const KPAGE = 60;
+async function lLoadKids(n){                         // الدفعة التالية من أولاد كتلة أو صفحة
+  const have = new Set(n.kids.map(k => k.uid)); if (n.added) n.added.forEach(u => have.add(u));
+  const last = n.kids.length ? n.kids[n.kids.length-1].order : -Infinity;
+  const recs = await rq(DB.transaction("tree").objectStore("tree").index("po").getAll(IDBKeyRange.bound([n.uid, last], [n.uid, Infinity]), KPAGE + have.size + 1));
+  const fresh = recs.filter(r => !have.has(r.u)), more = fresh.length > KPAGE;
+  const nodes = await lNodes(fresh.slice(0, KPAGE).map(r => r.u), n);
+  n.kids.push(...nodes); n.loaded = true; n.lazy = false; n.more = more;
+}
+async function loadKids(n){ if (n.loc) await lLoadKids(n); else await pullSubtrees([n]); }
+async function lMaxOrder(p){
+  const c = await rq(DB.transaction("tree").objectStore("tree").index("po").openCursor(kidRange(p), "prev"));
+  return c ? c.value.o : -1;
+}
+async function lPutRecs(recs, viaSync){              // recs: {u,s,p,g,o,h?,c?}
+  const t = DB.transaction(viaSync ? ["blocks","tree"] : ["blocks","tree","kv"], "readwrite"), B = t.objectStore("blocks"), T = t.objectStore("tree");
+  for (const r of recs){ const b = {u:r.u, s:r.s, g:r.g}; if (r.h) b.h = r.h; if (r.c) b.c = 1; B.put(b); T.put({u:r.u, p:r.p, o:r.o}); }
+  if (!viaSync){ const kv = t.objectStore("kv"), g = kv.get("tail"); g.onsuccess = () => kv.put((g.result || []).concat(recs.map(r => ({u:r.u, s:r.s, p:r.p, g:r.g, o:r.o}))), "tail"); }
+  await txDone(t);
+  await W("add", {rows:recs.map(r => ({u:r.u, s:r.s, p:r.p, g:r.g, o:r.o}))});
+}
+async function lShift(p, from, by){                  // أزح إخوة الموضع (سجلات صغيرة، بلا نصوص)
+  const t = DB.transaction("tree", "readwrite"), T = t.objectStore("tree");
+  const recs = await rq(T.index("po").getAll(IDBKeyRange.bound([p, from], [p, Infinity])));
+  for (const r of recs){ r.o += by; T.put(r); }
+  await txDone(t);
+  if (recs.length) await W("move", {rows:recs.map(r => [r.u, r.p, r.o])});
+}
+async function lPutPage(uid, title){
+  PT.set(uid, title); const t = DB.transaction("pages", "readwrite"); t.objectStore("pages").put({u:uid, t:title}); await txDone(t);
+}
+function addPageTitle(title){
+  if (PAGES.includes(title)) return; const g = G(); if (!g) return;
+  PAGES.push(title); PAGESN.push(norm(title)); store.set("rq-pages:"+g.name, PAGES.join("\n"));
+}
+
+/* ---- التنزيل والمزامنة ---- */
+const SYNC = {running:false, stop:false, msg:""};
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+function syncMsg(m){ SYNC.msg = m; const e = $("#syncMsg"); if (e) e.textContent = m; }
+const Q_PAGES = "[:find ?u ?t :where [?p :node/title ?t] [?p :block/uid ?u]]";
+const Q_MAN = "[:find ?u ?n ?pu ?o :where [?b :block/string ?s] [?b :block/uid ?u] [(count ?s) ?n] [?par :block/children ?b] [?par :block/uid ?pu] [?b :block/order ?o]]";
+const Q_MAN2 = "[:find ?u ?pu ?o :where [?b :block/string] [?b :block/uid ?u] [?par :block/children ?b] [?par :block/uid ?pu] [?b :block/order ?o]]";
+const Q_CHANGED = "[:find ?u :in $ ?since :where [?b :edit/time ?t] [(> ?t ?since)] [?b :block/string] [?b :block/uid ?u]]";
+const Q_BATCH = "[:find ?pu ?gu (pull ?b [:block/uid :block/string :block/order :block/heading :block/open]) :in $ [?u ...] :where [?b :block/uid ?u] [?par :block/children ?b] [?par :block/uid ?pu] [?b :block/page ?g] [?g :block/uid ?gu]]";
+async function syncGraph(full){
+  const g = G(); if (!g || SYNC.running) return;
+  if (!g.token){ toast("أضف رمز الغراف أولاً"); return; }
+  SYNC.running = true; SYNC.stop = false; const t0 = Date.now(); let lastReq = 0, fetched = 0;
+  const paced = async (q, args, timeout) => {                       // لا نتجاوز حدّ الطلبات في الدقيقة
+    for (let tries = 0;; tries++){
+      const wait = 1300 - (Date.now() - lastReq); if (wait > 0) await sleep(wait); lastReq = Date.now();
+      let r; try { r = await roam("q", args ? {query:q, args} : {query:q}, {graph:g, soft:true, timeout:timeout || 120000}); }
+      catch(e){ if (tries >= 3) throw e; syncMsg("انقطاع، يعيد المحاولة…"); await sleep(4000); continue; }
+      if (r.status === 429){ if (tries >= 8) throw new Error("حدّ الطلبات — أعد لاحقاً، وسيُستأنف من حيث توقف"); syncMsg("حدّ الطلبات؛ ينتظر قليلاً…"); await sleep(20000); continue; }
+      if (r.status === 401 || r.status === 403) throw new Error("الرمز غير صالح ("+r.status+")");
+      return r;
+    }
+  };
+  const parse = r => { try { return JSON.parse(r.text).result || []; } catch(e){ throw new Error("ردّ غير مفهوم من Roam"); } };
+  try {
+    const first = !isLocal(g.name); if (first) full = true;
+    await openLocal();
+    try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch(e){}
+    syncMsg("يجلب أسماء الصفحات…");
+    let r = await paced(Q_PAGES); if (!r.ok) throw new Error("جلب الصفحات فشل ("+r.status+")");
+    const pages = parse(r).filter(x => x[0] && x[1]);
+    { const t = DB.transaction("pages", "readwrite"), P = t.objectStore("pages"); P.clear(); for (const x of pages) P.put({u:x[0], t:x[1]}); await txDone(t); }
+    PT.clear(); for (const x of pages) PT.set(x[0], x[1]);
+    store.set("rq-pages:"+g.name, pages.map(x => x[1]).join("\n")); store.set("rqm-pagesAt:"+g.name, String(Date.now())); loadPages();
+
+    let need = [];
+    if (full){
+      syncMsg("يجلب فهرس الكتل…");
+      r = await paced(Q_MAN, null, 180000); let rows;
+      if (r.ok) rows = parse(r); else { r = await paced(Q_MAN2, null, 180000); if (!r.ok) throw new Error("جلب فهرس الكتل فشل ("+r.status+")"); rows = parse(r).map(x => [x[0], null, x[1], x[2]]); }
+      syncMsg("يقارن بما على الجهاز…");
+      const d = await W("diff", {rows, keep:[...PEND]});
+      if (d.del.length || d.moved.length){
+        const t = DB.transaction(["blocks","tree"], "readwrite"), B = t.objectStore("blocks"), T = t.objectStore("tree");
+        for (const u of d.del){ B.delete(u); T.delete(u); }
+        for (const m of d.moved) T.put({u:m[0], p:m[1], o:m[2]});
+        await txDone(t);
+      }
+      need = d.fetch;
+    } else {
+      const since = (await kvGet("since")) || 0;
+      r = await paced(Q_CHANGED, [since]); if (!r.ok) throw new Error("جلب التغييرات فشل ("+r.status+")");
+      need = parse(r).map(x => [x[0], null]);
+    }
+    const total = need.length, queue = [];
+    { let cur = [], size = 0;
+      for (const [u, n] of need){ const len = n == null ? 800 : n;
+        if (cur.length && (cur.length >= 2000 || size + len > 1500000)){ queue.push(cur); cur = []; size = 0; }
+        cur.push(u); size += len; }
+      if (cur.length) queue.push(cur); }
+    let skipped = 0, nb = 0;
+    while (queue.length){
+      if (SYNC.stop) throw new Error("أُوقف — يُستأنف من حيث توقف عند الطلب التالي");
+      syncMsg("ينزّل الكتل: " + AR(fetched) + " من " + AR(total) + (total ? " (" + AR(Math.floor(fetched * 100 / total)) + "٪)" : ""));
+      const batch = queue.shift();
+      r = await paced(Q_BATCH, [batch]);
+      if (!r.ok){
+        if (batch.length > 1){ const h = batch.length >> 1; queue.unshift(batch.slice(0, h), batch.slice(h)); continue; }
+        skipped++; fetched++; continue;
+      }
+      const recs = [];
+      for (const row of parse(r)){ const o = row[2]; if (!o) continue; const u = K(o,"block/uid"); if (!u) continue;
+        const rec = {u, s:K(o,"block/string") || "", p:row[0], g:row[1], o:K(o,"block/order") || 0};
+        const h = K(o,"block/heading"); if (h) rec.h = h; if (K(o,"block/open") === false) rec.c = 1; recs.push(rec); }
+      if (recs.length) await lPutRecs(recs, true);
+      fetched += batch.length;
+      if (++nb % 25 === 0) await W("persist");
+    }
+    syncMsg("يحفظ الفهرس…");
+    await W("persist");
+    await kvSet("since", t0 - 600000); if (full) await kvSet("fullAt", t0);
+    store.set("rqm-local:"+g.name, "1"); store.set("rqm-syncAt:"+g.name, String(Date.now()));
+    if (G() === g) LOC = true;
+    const st = await W("stats");
+    syncMsg("تمّت ✓ " + AR(st.n) + " كتلة · " + AR(Math.round((Date.now() - t0) / 1000)) + " ث" + (total ? " · جُلب " + AR(total) : "") + (skipped ? " · تعذّر " + AR(skipped) : ""));
+    pageCache.clear();
+    return true;
+  } catch(e){ syncMsg("توقف: " + e.message); return false; }
+  finally { SYNC.running = false; if (ROUTE.name === "settings") renderSettings(); if (ROUTE.name === "search") drawSearch(); }
+}
+async function dropLocal(){
+  const g = G(); if (!g) return;
+  try { await W("close"); } catch(e){}
+  if (DB){ try { DB.close(); } catch(e){} } DB = null; DBNAME = ""; readyP = null; LOC = false; PT.clear();
+  await new Promise(res => { const r = indexedDB.deleteDatabase("rqm-"+g.name); r.onsuccess = r.onerror = r.onblocked = () => res(); });
+  store.del("rqm-local:"+g.name); store.del("rqm-syncAt:"+g.name); pageCache.clear();
+}
+async function autoSync(){
+  const g = G(); if (!g || !LOC || !navigator.onLine || SYNC.running) return;
+  const at = +store.get("rqm-syncAt:"+g.name) || 0; if (Date.now() - at < 5 * 60000) return;
+  try { await openLocal(); const fullAt = (await kvGet("fullAt")) || 0; await syncGraph(Date.now() - fullAt > 7 * 86400000); } catch(e){}
+}
+
+let QUEUE = []; const PEND = new Set(); let flushing = false;
+const qKey = () => "rqm-queue:" + (G() ? G().name : "");
+function loadQueue(){ try { QUEUE = JSON.parse(store.get(qKey()) || "[]"); } catch(e){ QUEUE = []; } PEND.clear(); for (const it of QUEUE) for (const u of it.uids || []) PEND.add(u); }
+function saveQueue(){ store.set(qKey(), JSON.stringify(QUEUE)); }
+function enqueue(body, uids){ QUEUE.push({id:newUid(), body, uids:uids || [], tries:0}); for (const u of uids || []) PEND.add(u); saveQueue(); flush(); }
+function markRows(uids, cls, on){ for (const u of uids) document.querySelectorAll('.blk[data-u="'+u+'"] > .row').forEach(r => r.classList.toggle(cls, on)); }
+async function flush(){
+  if (flushing || !QUEUE.length) return; flushing = true; const g = G(), key = qKey();
+  try {
+    while (QUEUE.length && G() === g){
+      const it = QUEUE[0]; let r;
+      try { r = await roam("write", it.body, {graph:g, soft:true, timeout:30000}); }
+      catch(e){ it.tries++; saveQueue(); break; }
+      if (!r.ok){
+        const benign = r.status === 400 && (it.tries > 0 || it.body.action === "create-page");
+        if (!benign && r.status === 400){ markRows(it.uids, "fail", true); toast("رفض Roam كتابةً: " + r.text.replace(/\s+/g," ").slice(0, 90), 5000); }
+        else if (!benign){ it.tries++; saveQueue(); break; }
+      }
+      QUEUE.shift(); for (const u of it.uids) PEND.delete(u); markRows(it.uids, "unsent", false);
+      store.set(key, JSON.stringify(QUEUE)); hooks.onQueue();
+    }
+  } finally { flushing = false; }
+}
+
+
+
+const SUF = ["هما","كما","تما","هم","هن","كم","كن","نا","ها","ون","ين","ان","ات","وا","تم","ية","ه","ة","ي","ك","ت"];
+function stem(w){                                    // تجريد خفيف: يوسّع المطابقة ولا يضيّقها
+  let s = norm(w).replace(/[^\u0621-\u064Aa-z0-9]/g, ""); if (!/[\u0621-\u064A]/.test(s)) return s;
+  let m = s.match(/^(?:[\u0648\u0641])?(?:[\u0628\u0643]|\u0644)?\u0627\u0644(.{3,})$/) || s.match(/^(?:[\u0648\u0641])?\u0644\u0644(.{3,})$/);
+  if (m) s = m[1];
+  else if ((m = s.match(/^[\u0648\u0641](.{3,})$/))) s = m[1];
+  else if ((m = s.match(/^[\u0628\u0644\u0643](.{4,})$/))) s = m[1];
+  for (const x of SUF) if (s.length - x.length >= 3 && s.endsWith(x)){ s = s.slice(0, -x.length); break; }
+  return s;
+}
+const stems = q => [...new Set(q.split(/\s+/).map(stem).filter(t => t.length >= 2))];
+function markMatches(root, q){                        // ظلّل مواضع العبارة (أو الكلمات) داخل نص الكتلة، بتجاهل التشكيل
+  const terms = (Array.isArray(q) ? q : [q.trim()]).map(foldStr).filter(t => t.length); if (!terms.length) return [];
+  const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT), nodes = [], offs = [], bytes = []; let t;
+  while ((t = w.nextNode())){ const s = t.nodeValue; for (let i=0;i<s.length;i++){ const b = foldCode(s.charCodeAt(i)); if (b >= 0){ bytes.push(b); nodes.push(t); offs.push(i); } } }
+  let all = [];
+  for (const qb of terms){ const n = qb.length; for (let i=0; i + n <= bytes.length; i++){ let k = 0; while (k < n && bytes[i+k] === qb[k]) k++; if (k === n){ all.push([i, n]); i += n - 1; } } }
+  all.sort((a, b) => a[0] - b[0]); const fl = []; let endAt = 0;
+  for (const x of all) if (x[0] >= endAt){ fl.push(x); endAt = x[0] + x[1]; }
+  const found = fl.map(x => x[0]), lens = fl.map(x => x[1]);
+  for (let f = found.length - 1; f >= 0; f--){
+    let z = found[f] + lens[f] - 1;
+    while (z >= found[f]){
+      let a = z; while (a > found[f] && nodes[a-1] === nodes[z]) a--;
+      const r = document.createRange(); r.setStart(nodes[z], offs[a]); r.setEnd(nodes[z], offs[z] + 1);
+      const m = document.createElement("mark"); m.className = "hit"; if (a === found[f]) m.dataset.first = "1";
+      try { r.surroundContents(m); } catch(e){}
+      z = a - 1;
+    }
+  }
+  return [...root.querySelectorAll('mark.hit[data-first]')];
+}
+
+  async function lDelete(uids){
+    const set = new Set(uids), t = DB.transaction(["blocks","tree","kv"], "readwrite"), B = t.objectStore("blocks"), T = t.objectStore("tree"), kv = t.objectStore("kv");
+    for (const u of uids){ B.delete(u); T.delete(u); }
+    const tg = kv.get("tail"); tg.onsuccess = () => kv.put((tg.result || []).filter(r => !set.has(r.u)), "tail");
+    const gg = kv.get("gone"); gg.onsuccess = () => kv.put((gg.result || []).concat(uids), "gone");
+    await txDone(t); await W("del", {uids});
+  }
+  async function lMove(rows){
+    const t = DB.transaction("tree", "readwrite"), T = t.objectStore("tree"); for (const r of rows) T.put({u:r[0], p:r[1], o:r[2]});
+    await txDone(t); await W("move", {rows});
+  }
+  return {W, rq, kidRange, foldStr, stems, markMatches, isLocal, SYNC, hooks, openLocal, setGraphLocal, loadQueue, flush, enqueue, autoSync, dropLocal,
+    lPutRecs, lShift, lPutPage, lDelete, lMove,
+    db:() => DB, loc:() => LOC, pending:() => QUEUE.length, pageTitle:g => PT.get(g) || "",
+    async sync(full){ const r = await syncGraph(full); hooks.onSync(); return r; },
+    async search(q, opt){ await openLocal(); return Array.isArray(q) ? W("searchAll", Object.assign({terms:q}, opt)) : W("search", Object.assign({q}, opt)); }};
+})({store, toast:(...a) => toast(...a), newUid:() => newUid(), norm:x => norm(x), graph:() => curGraph()});
+
+/* ============================================================
+   لوحة Roam الجانبية: بحث في الصفحات والنصوص، وعرض حيّ قابل للتعديل
+   (تعمل على النسخة المحلية للغراف، وترسل الفروق إلى Roam)
+   ============================================================ */
+const AR = n => Number(n).toLocaleString("ar-EG");
+const RP = {mode:1, items:[], sel:0, seq:0, timer:null};
+let DOC = null;                                      // الوثيقة المعروضة في اللوحة
+const pageModel = () => ACTIVE === "page" ? model : CTXS.page.model;
+const rpOpen = () => document.body.classList.contains("rpopen");
+function rpToggle(on, focus){
+  if (isOb()) on = false;
+  if (on == null) on = !rpOpen();
+  if (!on && rpOpen()){ saveDoc(); activate("main"); }
+  document.body.classList.toggle("rpopen", on); $("#rp").hidden = !on; store.set("rq-panel", on ? "1" : "");
+  if (on){ rpSyncUI(); if (focus !== false){ $("#rpQ").focus(); $("#rpQ").select(); } }
+}
+function rpState(t, cls){ const e = $("#rpState"); e.textContent = t || ""; e.className = cls || ""; }
+
+/* ---- التحميل والمزامنة ---- */
+function rpSyncUI(){
+  const g = curGraph(), box = $("#rpSyncBtns"), msg = $("#syncMsg"); if (!g) return; box.innerHTML = "";
+  const btn = (t, fn, cls) => { const b = el("button", "ghost" + (cls ? " " + cls : "")); b.textContent = t; b.onclick = fn; box.appendChild(b); return b; };
+  const loc = RQ.isLocal(g.name), run = RQ.SYNC.running;
+  $("#rpSync").classList.toggle("on", loc);
+  if (run){ msg.textContent = RQ.SYNC.msg; btn("إيقاف", () => { RQ.SYNC.stop = true; }, "danger"); return; }
+  if (!RQ.SYNC.msg) msg.textContent = loc ? "نسخة محلية كاملة لهذا الغراف على هذا الجهاز." : "لا نسخة محلية بعد. تحميل الغراف يتيح البحث في النصوص، والعرض والتعديل هنا.";
+  const go = full => { if (!getToken()){ toast("أضف رمز الغراف في ⚙ الإعدادات أولاً"); return; } saveDoc().then(() => { RQ.sync(full).then(rpSyncUI); setTimeout(rpSyncUI, 50); }); };
+  if (!loc) btn("تحميل الغراف إلى الجهاز", () => go(true));
+  else { btn("مزامنة", () => go(false)); btn("مزامنة كاملة", () => go(true));
+    const d = btn("حذف النسخة", async () => { if (d.dataset.arm !== "1"){ d.dataset.arm = "1"; d.textContent = "اضغط ثانية للتأكيد"; setTimeout(() => { d.dataset.arm = ""; d.textContent = "حذف النسخة"; }, 2500); return; }
+      closeDoc(); await RQ.dropLocal(); RQ.SYNC.msg = ""; rpSyncUI(); }, "danger"); }
+  $("#rpSyncBox").hidden = loc && !RQ.SYNC.msg && !$("#rpSyncBox").dataset.show;
+}
+
+/* ---- البحث ---- */
+function rpPages(q){
+  const qn = norm(q.trim()); if (!qn) return [];
+  const a = [], b = [];
+  for (let k=0;k<S.pages.length;k++){ const p = S.pagesN[k].indexOf(qn); if (p === 0) a.push(S.pages[k]); else if (p > 0) b.push(S.pages[k]); if (a.length >= 40) break; }
+  const byLen = (x, y) => x.length - y.length;
+  return a.sort(byLen).concat(b.sort(byLen)).slice(0, 12);
+}
+function rpDraw(){
+  const box = $("#rpRes"), q = $("#rpQ").value.trim(), seq = ++RP.seq; clearTimeout(RP.timer);
+  $("#rpMode").classList.toggle("on", RP.mode === 2);
+  if (!q){ box.hidden = true; RP.items = []; return; }
+  const pages = rpPages(q).map(t => ({kind:"page", title:t}));
+  if ("اليوم".includes(q) || "today".includes(q.toLowerCase())) pages.unshift({kind:"page", title:dailyTitle(), label:"اليوم"});
+  const paint = (blocks, head) => {
+    RP.items = pages.concat(blocks); if (RP.sel >= RP.items.length) RP.sel = 0;
+    box.innerHTML = ""; box.hidden = false;
+    RP.items.forEach((it, k) => {
+      if (head && k === pages.length){ const h = el("div", "rphd"); h.textContent = head; box.appendChild(h); }
+      const d = el("div", "rpi" + (k === RP.sel ? " sel" : "") + (it.kind === "block" ? " bk" : ""));
+      if (it.kind === "page"){
+        d.innerHTML = '<span class="pic">▤</span><span class="tt"></span><button class="pen" title="اجعلها وجهة الكتابة في المحرر">✎</button>';
+        d.children[1].textContent = it.label ? it.label + " — " + it.title : it.title;
+      } else {
+        d.innerHTML = '<span class="pic">•</span><span class="tt"><span class="sn"></span><small></small></span>';
+        d.querySelector(".sn").append(it.pre, Object.assign(el("b"), {textContent:it.hit}), it.post);
+        d.querySelector("small").textContent = RQ.pageTitle(it.g);
+      }
+      d.onmousedown = e => { e.preventDefault(); RP.sel = k; rpPick(k, !!e.target.closest(".pen")); };
+      box.appendChild(d);
+    });
+    if (!RP.items.length){ const h = el("div", "rphd"); h.textContent = "لا نتائج"; box.appendChild(h); }
+    const s = box.querySelector(".sel"); if (s) s.scrollIntoView({block:"nearest"});
+  };
+  paint([], RQ.loc() ? null : "للبحث في النصوص حمّل الغراف (زر ⇅)");
+  if (!RQ.loc() || RQ.foldStr(q).length < 2) return;
+  RP.timer = setTimeout(async () => {
+    try {
+      const terms = RP.mode === 2 ? RQ.stems(q) : null;
+      const r = await RQ.search(terms || q, {limit:60}); if (seq !== RP.seq) return;
+      RP.q = terms || q;
+      paint(r.hits.map(h => Object.assign({kind:"block"}, h)), (terms ? terms.join(" + ") + " — " : "") + "في النصوص: " + AR(r.total) + (r.total > r.hits.length ? " (المعروض " + AR(r.hits.length) + ")" : "") + " · " + AR(r.ms) + " مث");
+    } catch(e){ if (seq === RP.seq) paint([], "بحث النصوص: " + e.message); }
+  }, 130);
+}
+function rpPick(k, pen){
+  const it = RP.items[k]; if (!it) return;
+  if (it.kind === "page" && pen){                    // القلم: وجهة الإرسال في المحرر
+    S.page = it.label ? {kind:"today", title:""} : {kind:"page", title:it.title}; saveState(); refreshPageButton();
+    toast("وجهة الكتابة: " + (it.label || it.title)); return;
+  }
+  $("#rpRes").hidden = true;
+  if (it.kind === "page") openDoc({kind:"page", title:it.title}); else openDoc({kind:"block", uid:it.u, q:RP.q});
+}
+
+/* ---- فتح وثيقة: صفحة، أو كتلة مع أبيها ---- */
+const DOC_MAXN = 1500, DOC_MAXC = 1500000, DOC_TOP = 300;
+async function docKids(parentUid, limit, bud, snap, forceOpen){
+  const db = RQ.db(), recs = await RQ.rq(db.transaction("tree").objectStore("tree").index("po").getAll(RQ.kidRange(parentUid), limit || undefined));
+  if (!recs.length) return [];
+  const t = db.transaction(["blocks","tree"]), B = t.objectStore("blocks"), I = t.objectStore("tree").index("po");
+  const rows = await Promise.all(recs.map(r => Promise.all([RQ.rq(B.get(r.u)), RQ.rq(I.count(RQ.kidRange(r.u)))])));
+  const out = [];
+  for (let i=0;i<recs.length;i++){
+    const b = rows[i][0], cnt = rows[i][1]; if (!b) continue;
+    const n = mk((b.h ? "#".repeat(Math.min(3, b.h)) + " " : "") + (b.s || "")); n.uid = b.u;
+    bud.n--; bud.c -= (b.s || "").length; out.push(n);
+    snap.set(b.u, {t:n.text, p:parentUid, i:out.length - 1, lazy:false});
+    if (cnt > 0){ n._cnt = cnt; if (b.c && !forceOpen) n.collapsed = true; }
+  }
+  for (const n of out){                              // الأولاد: كلهم أو لا شيء (المطويّ والزائد عن السقف يُحمَّل عند فتحه)
+    if (!n._cnt) continue;
+    if (!n.collapsed && bud.n - n._cnt > 0 && bud.c > 0) n.children = await docKids(n.uid, 0, bud, snap);
+    else { n.lazy = true; n.collapsed = true; snap.get(n.uid).lazy = true; }
+    delete n._cnt;
+  }
+  return out;
+}
+async function loadLazy(n){                          // حمّل أولاد كتلة مطويّة غير محمَّلة
+  if (!n.lazy || !DOC) return;
+  const bud = {n:DOC_MAXN, c:DOC_MAXC}, kids = await docKids(n.uid, 0, bud, DOC.snap);
+  n.children = kids; n.lazy = false; const s = DOC.snap.get(n.uid); if (s) s.lazy = false;
+}
+async function openDoc(spec){
+  if (!RQ.loc()){ toast("حمّل الغراف أولاً (زر ⇅ في اللوحة)"); $("#rpSyncBox").dataset.show = "1"; rpSyncUI(); return; }
+  await saveDoc();
+  try {
+    await RQ.openLocal();
+    const db = RQ.db(), snap = new Map(), bud = {n:DOC_MAXN, c:DOC_MAXC}; let d, nodes, ctx = null;
+    if (spec.kind === "page"){
+      const pr = await RQ.rq(db.transaction("pages").objectStore("pages").index("t").get(spec.title));
+      let uid = pr && pr.u, missing = !pr;
+      if (missing) uid = dailyUidOf(spec.title) || newUid();
+      const total = missing ? 0 : await RQ.rq(db.transaction("tree").objectStore("tree").index("po").count(RQ.kidRange(uid)));
+      nodes = missing ? [] : await docKids(uid, DOC_TOP, bud, snap);
+      d = {kind:"page", title:spec.title, pageUid:uid, rootUid:uid, base:0, snap, missing, total};
+    } else {
+      const tr = await RQ.rq(db.transaction("tree").objectStore("tree").get(spec.uid)), b = await RQ.rq(db.transaction("blocks").objectStore("blocks").get(spec.uid));
+      if (!tr || !b) throw new Error("الكتلة غير موجودة في النسخة المحلية — جرّب المزامنة");
+      const n = mk((b.h ? "#".repeat(Math.min(3, b.h)) + " " : "") + (b.s || "")); n.uid = b.u; snap.set(b.u, {t:n.text, p:tr.p, i:0, lazy:false});
+      n.children = await docKids(b.u, 0, bud, snap, true); nodes = [n];
+      if (tr.p !== b.g){ const pb = await RQ.rq(db.transaction("blocks").objectStore("blocks").get(tr.p)); if (pb) ctx = {uid:tr.p, s:pb.s || ""}; }
+      d = {kind:"block", title:RQ.pageTitle(b.g), pageUid:b.g, rootUid:tr.p, base:tr.o, snap, uid:b.u, q:spec.q};
+    }
+    DOC = d; activate("page"); model = nodes; editingId = null; HIST.past = []; HIST.future = []; HIST.mark = 0;
+    if (!nodes.length){ const e = mk(""); model.push(e); }
+    $("#rpTitle").textContent = d.title; $("#rpTitle").title = d.kind === "block" ? "افتح الصفحة كلها" : "";
+    const cx = $("#rpCtx"); cx.hidden = !ctx; if (ctx){ cx.innerHTML = '<small>الأب:</small> ' + renderInline(ctx.s.length > 400 ? ctx.s.slice(0, 400) + "…" : ctx.s); cx.onclick = () => openDoc({kind:"block", uid:ctx.uid}); }
+    $("#rpMore").hidden = !(d.kind === "page" && d.total > nodes.length); if (!$("#rpMore").hidden) $("#rpMore").textContent = "المعروض أول " + AR(nodes.length) + " من " + AR(d.total) + " كتلة في أعلى الصفحة؛ الباقي تصل إليه بالبحث.";
+    render(); rpState("محفوظ ✓"); $("#rpDoc").scrollTop = 0; $("#rpRefs").innerHTML = "";
+    if (d.kind === "block" && d.q){
+      const v = $('#outline2 .block[data-id="' + nodes[0].id + '"] > .row .view');
+      if (v){ const hits = RQ.markMatches(v, d.q); if (hits.length) hits[0].scrollIntoView({block:"center"}); }
+    }
+    if (d.kind === "page") drawRefs(d);
+  } catch(e){ toast("تعذّر الفتح: " + e.message); }
+}
+function dailyUidOf(t){
+  const m = t.match(/^([A-Z][a-z]+) (\d{1,2})(?:st|nd|rd|th), (\d{4})$/); if (!m) return null;
+  const mi = MONTHS.indexOf(m[1]); return mi < 0 ? null : p2(mi + 1) + "-" + p2(+m[2]) + "-" + m[3];
+}
+function closeDoc(){ DOC = null; activate("page"); model = []; editingId = null; $("#outline2").innerHTML = ""; $("#rpTitle").textContent = ""; $("#rpRefs").innerHTML = ""; $("#rpCtx").hidden = true; $("#rpMore").hidden = true; rpState(""); activate("main"); }
+async function drawRefs(d){
+  try {
+    const r = await RQ.W("refs", {title:d.title, limit:200}); if (DOC !== d) return;
+    const db = RQ.db(), B = db.transaction("blocks").objectStore("blocks");
+    const bl = (await Promise.all(r.list.map(x => RQ.rq(B.get(x.u))))).filter(b => b && b.g !== d.pageUid);
+    const box = $("#rpRefs"); box.innerHTML = ""; if (!bl.length) return;
+    const h = el("div", "rphd"); h.textContent = "المراجع المرتبطة: " + AR(bl.length) + (r.total > r.list.length ? "+" : ""); box.appendChild(h);
+    const by = new Map(); for (const b of bl){ const t = RQ.pageTitle(b.g) || "؟"; if (!by.has(t)) by.set(t, []); by.get(t).push(b); }
+    for (const [t, list] of [...by.entries()].sort((a, b) => norm(a[0]) < norm(b[0]) ? -1 : 1)){
+      const g = el("div", "rfg"), hd = el("div", "rft"); hd.textContent = t; hd.onclick = () => openDoc({kind:"page", title:t}); g.appendChild(hd);
+      for (const b of list){ const v = el("div", "rfb view"); v.dir = S.dir; v.innerHTML = renderInline((b.h ? "#".repeat(b.h) + " " : "") + b.s); v.title = "انقر لفتح هذه الكتلة وتعديلها";
+        v.onclick = e => { const sel = getSelection(); if (sel && !sel.isCollapsed) return; if (e.target.closest(".link") && e.ctrlKey) return; openDoc({kind:"block", uid:b.u}); }; g.appendChild(v); }
+      box.appendChild(g);
+    }
+  } catch(e){}
+}
+
+/* ---- الحفظ: مقارنة الوثيقة بما حُمِّل، وإرسال الفرق فقط ---- */
+function docTouch(){ if (!DOC) return; rpState("…", "dirty"); clearTimeout(DOC.timer); DOC.timer = setTimeout(saveDoc, 1500); }
+const parseBlk = t => { const s0 = t.replace(/\s+$/, ""), hm = s0.match(/^(#{1,3})[ \t]+([\s\S]*)$/); return hm ? {s:hm[2], h:hm[1].length} : {s:s0, h:0}; };
+async function saveDoc(){
+  const d = DOC; if (!d) return; clearTimeout(d.timer);
+  if (d.saving){ d.again = true; return; }
+  d.saving = true;
+  try {
+    const snap = d.snap, root = d.rootUid, seen = new Set(), cur = [], want = new Map(), by = new Map();
+    (function walk(list, pu){
+      const arr = []; want.set(pu, arr);
+      for (const n of list){
+        const isNew = !n.uid || !snap.has(n.uid) || seen.has(n.uid);
+        if (isNew && n.text.trim() === "" && !n.children.length) continue;        // كتلة جديدة ما زالت فارغة
+        if (!n.uid || seen.has(n.uid)) n.uid = newUid();
+        seen.add(n.uid); arr.push(n.uid); by.set(n.uid, n); cur.push({n, pu, i:arr.length - 1});
+        if (!n.lazy) walk(n.children, n.uid);
+      }
+    })(pageModel(), root);
+
+    // المحذوف، مع حماية ما له أولاد غير محمَّلين (ومن فوقه)
+    const sk = new Map(); for (const [u, x] of snap){ if (!sk.has(x.p)) sk.set(x.p, []); sk.get(x.p).push(u); }
+    const skip = new Set();                          // ما تحت كتلة عادت «غير محمَّلة» (بتراجع مثلاً): لا يُمسّ
+    for (const x of cur) if (x.n.lazy) (function dn(u){ for (const c of (sk.get(u) || [])){ skip.add(c); dn(c); } })(x.n.uid);
+    const D = new Set([...snap.keys()].filter(u => !seen.has(u) && !skip.has(u))); let reload = false;
+    for (const u of [...D]) if (snap.get(u).lazy){ reload = true; let x = u; while (x && snap.has(x)){ D.delete(x); x = snap.get(x).p; } }
+    if (D.size > 15 && !confirm("سيُحذف من Roam " + D.size + " كتلة كانت في هذه الوثيقة. متابعة؟")){ d.saving = false; await openDoc(d.kind === "page" ? {kind:"page", title:d.title} : {kind:"block", uid:d.uid}); return; }
+
+    const sim = new Map(), sp = new Map();
+    for (const [u, x] of snap){ if (skip.has(u)) continue; if (!sim.has(x.p)) sim.set(x.p, []); sim.get(x.p)[x.i] = u; sp.set(u, x.p); }
+    for (const [p, a] of sim) sim.set(p, a.filter(Boolean));
+    const oldRootLen = (sim.get(root) || []).length;
+    const ops = [], handled = new Set(), memo = new Map();
+    const clean = u => { if (memo.has(u)) return memo.get(u); let ok = D.has(u); if (ok) for (const c of (sim.get(u) || [])) if (!clean(c)){ ok = false; break; } memo.set(u, ok); return ok; };
+    const mark = u => { handled.add(u); for (const c of (sim.get(u) || [])) mark(c); };
+    for (const u of D) clean(u);
+    for (const u of D){ const p = snap.get(u).p; if (clean(u) && !(D.has(p) && clean(p))){ ops.push({action:"delete-block", block:{uid:u}}); mark(u); const a = sim.get(p); if (a){ const k = a.indexOf(u); if (k >= 0) a.splice(k, 1); } } }
+
+    const off = p => p === root ? d.base : 0, moved = [], created = [];
+    for (const p of [root].concat(cur.map(x => x.n.uid))){
+      const w = want.get(p) || []; let arr = sim.get(p); if (!arr){ arr = []; sim.set(p, arr); }
+      for (let i=0;i<w.length;i++){
+        const u = w[i]; if (arr[i] === u) continue;
+        while (arr[i] !== undefined && arr[i] !== u){   // من سيغادر هذا الأب إلى أب موجود: انقله أولاً، فلا يتزحزح إخوته
+          const L = arr[i], ln = by.get(L); if (!ln) break;
+          const q = cur.find(x => x.n === ln).pu; if (q === p || !(q === root || snap.has(q) || created.includes(q))) break;
+          arr.splice(i, 1); if (!sim.has(q)) sim.set(q, []); sim.get(q).push(L); sp.set(L, q);
+          ops.push({action:"move-block", block:{uid:L}, location:{"parent-uid":q, order:"last"}}); moved.push(L);
+        }
+        if (arr[i] === u) continue;
+        const n = by.get(u);
+        if (!snap.has(u)){
+          const ps = parseBlk(n.text), blk = {uid:u, string:ps.s}; if (ps.h) blk.heading = ps.h; if (n.collapsed && n.children.length) blk.open = false;
+          ops.push({action:"create-block", location:{"parent-uid":p, order:off(p) + i}, block:blk}); created.push(u);
+        } else {
+          const a0 = sim.get(sp.get(u)); if (a0){ const k = a0.indexOf(u); if (k >= 0) a0.splice(k, 1); }
+          ops.push({action:"move-block", block:{uid:u}, location:{"parent-uid":p, order:off(p) + i}}); moved.push(u);
+        }
+        arr.splice(i, 0, u); sp.set(u, p);
+      }
+    }
+    const changed = [];
+    for (const x of cur){ const s = snap.get(x.n.uid); if (!s || s.t === x.n.text) continue;
+      const a = parseBlk(x.n.text), b = parseBlk(s.t), blk = {uid:x.n.uid, string:a.s}; if (a.h !== b.h) blk.heading = a.h;
+      ops.push({action:"update-block", block:blk}); changed.push(x.n.uid); }
+    const depth = u => { let k = 0, x = u; while (snap.has(x)){ k++; x = snap.get(x).p; } return k; };
+    for (const u of [...D].sort((a, b) => depth(a) - depth(b))) if (!handled.has(u)){ ops.push({action:"delete-block", block:{uid:u}}); mark(u); }
+
+    if (ops.length){
+      if (d.missing){ RQ.enqueue({action:"create-page", page:{title:d.title, uid:d.pageUid}}, []); d.missing = false; await RQ.lPutPage(d.pageUid, d.title); if (!S.pages.includes(d.title)){ S.pages.push(d.title); S.pagesN.push(norm(d.title)); store.set("rq-pages:"+S.graph, S.pages.join("\n")); } }
+      for (let i=0;i<ops.length;i+=50) RQ.enqueue({action:"batch-actions", actions:ops.slice(i, i + 50)}, []);
+      // النسخة المحلية
+      if (D.size) await RQ.lDelete([...D]);
+      const newRootLen = (want.get(root) || []).length;
+      if (newRootLen !== oldRootLen) await RQ.lShift(root, d.base + oldRootLen, newRootLen - oldRootLen);
+      const recs = [], mv = [], cs = new Set(created.concat(changed));
+      for (const x of cur){ const u = x.n.uid, o = off(x.pu) + x.i, s = snap.get(u);
+        if (cs.has(u)){ const ps = parseBlk(x.n.text), r = {u, s:ps.s, p:x.pu, g:d.pageUid, o}; if (ps.h) r.h = ps.h; recs.push(r); }
+        else if (!s || s.p !== x.pu || s.i !== x.i) mv.push([u, x.pu, o]); }
+      if (recs.length) await RQ.lPutRecs(recs);
+      if (mv.length) await RQ.lMove(mv);
+    }
+    const ns = new Map(); for (const x of cur) ns.set(x.n.uid, {t:x.n.text, p:x.pu, i:x.i, lazy:!!x.n.lazy});
+    d.snap = ns;
+    if (DOC === d) rpState(RQ.pending() ? "يُرسل…" : "محفوظ ✓");
+    if (reload){ toast("كتلة لها أولاد غير محمَّلين لا تُحذف من هنا — افتحها أولاً. أُعيدت."); d.saving = false; await openDoc(d.kind === "page" ? {kind:"page", title:d.title} : {kind:"block", uid:d.uid}); return; }
+  } catch(e){ toast("تعذّر الحفظ: " + e.message); rpState("لم يُحفظ", "dirty"); }
+  finally { d.saving = false; if (d.again){ d.again = false; if (DOC === d) docTouch(); } }
+}
+
+/* ---- التقويم الصغير بعد المهمة (Alt+T) أو وحده (Alt+D) ---- */
+const CAL = {open:false, d:null, el:null};
+const CAL_MON = new Intl.DateTimeFormat("ar", {month:"long", year:"numeric"});
+function calClose(){ if (CAL.el) CAL.el.remove(); CAL.el = null; CAL.open = false; }
+function calOpen(t){
+  calClose(); closeSug(); const now = new Date(); CAL.d = new Date(now.getFullYear(), now.getMonth(), now.getDate()); CAL.open = true;
+  CAL.el = el("div", "cal"); t.parentElement.appendChild(CAL.el); calDraw(t);
+}
+function calDraw(t){
+  const d = CAL.d, box = CAL.el, y = d.getFullYear(), m = d.getMonth(), today = new Date(); box.innerHTML = "";
+  const hd = el("div", "calh"); hd.textContent = CAL_MON.format(d); box.appendChild(hd);
+  const g = el("div", "calg"); ["س","ح","ن","ث","ر","خ","ج"].forEach(x => { const c = el("span", "wd"); c.textContent = x; g.appendChild(c); });
+  const first = new Date(y, m, 1), lead = (first.getDay() + 1) % 7, days = new Date(y, m + 1, 0).getDate();
+  for (let i=0;i<lead;i++) g.appendChild(el("span"));
+  for (let k=1;k<=days;k++){ const c = el("span", "dy" + (k === d.getDate() ? " sel" : "") + (k === today.getDate() && m === today.getMonth() && y === today.getFullYear() ? " td" : ""));
+    c.textContent = AR(k); c.onmousedown = e => { e.preventDefault(); CAL.d = new Date(y, m, k); calPick(t); }; g.appendChild(c); }
+  box.appendChild(g);
+  const ft = el("div", "calf"); ft.textContent = "الأسهم للتنقل · Enter للإدراج · Esc بلا تاريخ"; box.appendChild(ft);
+}
+function calPick(t){
+  const s = t.selectionStart, prev = t.value[s-1], next = t.value[s], dt = CAL.d; calClose();
+  insertText(t, (s > 0 && !/\s/.test(prev) ? " " : "") + "[[" + dailyTitle(dt) + "]]" + (next === undefined || !/\s/.test(next) ? " " : ""));
+}
+function calKey(e, t){                               // true = استُهلكت الضغطة
+  const mv = {ArrowLeft:1, ArrowRight:-1, ArrowUp:-7, ArrowDown:7}[e.key];
+  if (mv){ e.preventDefault(); CAL.d = new Date(CAL.d.getFullYear(), CAL.d.getMonth(), CAL.d.getDate() + mv); calDraw(t); return true; }
+  if (e.key === "PageDown" || e.key === "PageUp"){ e.preventDefault(); CAL.d = new Date(CAL.d.getFullYear(), CAL.d.getMonth() + (e.key === "PageDown" ? 1 : -1), 1); calDraw(t); return true; }
+  if (e.key === "Enter"){ e.preventDefault(); calPick(t); return true; }
+  if (e.key === "Escape"){ e.preventDefault(); calClose(); return true; }
+  if (!/^(Control|Shift|Alt|Meta|OS)$/.test(e.key)) calClose();
+  return false;
+}
+function todoKey(n, t){                              // لا شيء ← TODO ← DONE ← لا شيء
+  const v = t.value, s = t.selectionStart, T = "{{[[TODO]]}} ", Dn = "{{[[DONE]]}} "; pushHist();
+  let nv, delta, add = false;
+  if (v.startsWith(T)){ nv = Dn + v.slice(T.length); delta = 0; }
+  else if (v.startsWith(Dn)){ nv = v.slice(Dn.length); delta = -Dn.length; }
+  else { nv = T + v; delta = T.length; add = true; }
+  n.text = nv; n.auto = false; startEdit(n.id, Math.max(0, s + delta));
+  if (add){ const nt = $('textarea[data-id="' + n.id + '"]'); if (nt) calOpen(nt); }
+}
+
+/* ---- ربط اللوحة بالمحرر ---- */
+function rpInit(){
+  $("#btnPanel").onclick = () => rpToggle();
+  $("#rpClose").onclick = () => rpToggle(false);
+  $("#rpSync").onclick = () => { const b = $("#rpSyncBox"); if (b.dataset.show){ delete b.dataset.show; b.hidden = true; } else { b.dataset.show = "1"; b.hidden = false; } rpSyncUI(); };
+  $("#rpMode").onclick = () => { RP.mode = RP.mode === 2 ? 1 : 2; rpDraw(); $("#rpQ").focus(); };
+  const q = $("#rpQ");
+  q.oninput = () => { RP.sel = 0; rpDraw(); };
+  q.onfocus = () => { if (q.value.trim()) rpDraw(); };
+  q.onkeydown = e => {
+    if (e.key === "ArrowDown"){ e.preventDefault(); RP.sel = Math.min(RP.items.length - 1, RP.sel + 1); rpMark(); }
+    else if (e.key === "ArrowUp"){ e.preventDefault(); RP.sel = Math.max(0, RP.sel - 1); rpMark(); }
+    else if (e.key === "Enter"){ e.preventDefault(); rpPick(RP.sel, e.ctrlKey); }
+    else if (e.key === "Escape"){ e.preventDefault(); if (!$("#rpRes").hidden) $("#rpRes").hidden = true; else { q.blur(); } }
+  };
+  $("#rpTitle").onclick = () => { if (DOC && DOC.kind === "block" && DOC.title) openDoc({kind:"page", title:DOC.title}); };
+  $("#outline2").addEventListener("mousedown", () => activate("page"), true);
+  $("#app").addEventListener("mousedown", () => activate("main"), true);
+  $("#app").addEventListener("focusin", e => { if (e.target.tagName === "INPUT" || e.target.tagName === "SELECT") activate("main"); });
+  $("#rp").addEventListener("click", e => {          // Ctrl+نقرة على رابط صفحة: افتحها في اللوحة
+    const l = e.target.closest(".link"); if (!l || !e.ctrlKey) return;
+    e.preventDefault(); e.stopPropagation(); openDoc({kind:"page", title:l.textContent.replace(/^\[\[|\]\]$/g, "")});
+  }, true);
+  document.addEventListener("keydown", e => {
+    if (e.ctrlKey && e.shiftKey && e.code === "KeyF"){ e.preventDefault(); if (rpOpen() && document.activeElement === q) rpToggle(false); else rpToggle(true); }
+  });
+  window.addEventListener("online", () => RQ.flush());
+  window.addEventListener("beforeunload", () => { saveDoc(); });
+  RQ.hooks.onSync = () => { loadPages(); pagesInfo(); rpSyncUI(); };
+  RQ.hooks.onQueue = () => { if (DOC && !DOC.saving && $("#rpState").className !== "dirty") rpState(RQ.pending() ? "يُرسل…" : "محفوظ ✓"); };
+  rpGraph();
+  if (store.get("rq-panel") === "1" && !isOb()) rpToggle(true, false);
+}
+function rpMark(){ document.querySelectorAll("#rpRes .rpi").forEach((d, k) => { d.classList.toggle("sel", k === RP.sel); if (k === RP.sel) d.scrollIntoView({block:"nearest"}); }); }
+function rpGraph(){                                  // عند تغيّر الغراف أو الوجهة
+  if (DOC) closeDoc();
+  if (isOb()){ if (rpOpen()) rpToggle(false); return; }
+  RQ.SYNC.msg = ""; RQ.loadQueue(); RQ.setGraphLocal(); RQ.flush(); if (rpOpen()) rpSyncUI();
+  setTimeout(() => RQ.autoSync().then(() => { if (rpOpen()) rpSyncUI(); }), 1500);
+}
+
+init(); rpInit();
 </script>
 <script>if("serviceWorker" in navigator && location.protocol.indexOf("http")===0){ navigator.serviceWorker.register("sw.js").catch(function(){}); }</script>
 </body>
