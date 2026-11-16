@@ -1,4 +1,4 @@
-const V="editor-v33";
+const V="editor-v34";
 const FILES=["./","index.html","obsidian.html","m.html","manifest-mobile.webmanifest","icon-mobile-192.png","icon-mobile-512.png","manifest.webmanifest","manifest-obsidian.webmanifest","icon-192.png","icon-512.png","icon-obsidian-192.png","icon-obsidian-512.png"];
 self.addEventListener("install",e=>{e.waitUntil(caches.open(V).then(c=>c.addAll(FILES)));self.skipWaiting();});
 self.addEventListener("activate",e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==V).map(k=>caches.delete(k)))));self.clients.claim();});
