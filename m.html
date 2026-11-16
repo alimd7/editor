@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <!-- أمان: لا اتصال إلا بخادم Roam -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: 'self'; manifest-src 'self'; worker-src 'self' blob:; connect-src https://api.roamresearch.com https://*.api.roamresearch.com:*;">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: 'self'; manifest-src 'self'; worker-src 'self' blob:; font-src 'self'; connect-src https://api.roamresearch.com https://*.api.roamresearch.com:*;">
 <title>المحرر (جوال)</title>
 <link rel="manifest" href="manifest-mobile.webmanifest">
 <meta name="theme-color" content="#0f8f7e">
@@ -182,6 +182,10 @@ mark.hit.cur{outline:2px solid var(--acc)}
 .selbar svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vertical-align:middle}
 .selbar .x.arm{background:var(--danger);color:#fff;width:auto;padding:0 10px}
 #dpick{position:fixed;bottom:0;left:0;width:1px;height:1px;opacity:0;pointer-events:none}
+@font-face{font-family:"Vazirmatn";src:local("Vazirmatn"),url("fonts/Vazirmatn.woff2") format("woff2"),url("fonts/Vazirmatn.ttf") format("truetype");font-weight:100 900;font-display:swap}
+@font-face{font-family:"Noto Naskh Arabic";src:local("Noto Naskh Arabic"),url("fonts/NotoNaskhArabic.woff2") format("woff2"),url("fonts/NotoNaskhArabic.ttf") format("truetype");font-weight:400 700;font-display:swap}
+#ta,.body,.comp textarea,#sList{font-family:var(--ff,inherit)}
+::highlight(root-matches){color:#DC2626}
 </style>
 
 <body>
@@ -309,13 +313,15 @@ function saveCfg(){
 const graphs = () => RAW.roam.graphs;
 const G = () => graphs().find(g => g.name === RAW.roam.current) || graphs()[0] || null;
 
-const PREFS = {fs:17, lh:1.7, autoRefs:true, start:"search", defGraph:""};
+const PREFS = {fs:17, lh:1.7, autoRefs:true, start:"search", defGraph:"", font:"", roots:false};
+const FONTS = {"":"", vazir:'"Vazirmatn",system-ui,sans-serif', naskh:'"Noto Naskh Arabic",serif'};
 function loadPrefs(){ try { Object.assign(PREFS, JSON.parse(store.get("rqm-prefs") || "{}")); } catch(e){} applyFont(); }
 function savePrefs(){ store.set("rqm-prefs", JSON.stringify(PREFS)); }
 function applyFont(){
   PREFS.fs = Math.min(28, Math.max(12, +PREFS.fs || 17));
   document.documentElement.style.setProperty("--fs", PREFS.fs+"px");
   document.documentElement.style.setProperty("--lh", PREFS.lh);
+  if (FONTS[PREFS.font]) document.documentElement.style.setProperty("--ff", FONTS[PREFS.font]); else document.documentElement.style.removeProperty("--ff");
   $("#fsVal").textContent = AR(PREFS.fs);
   document.querySelectorAll("#fontPop [data-l]").forEach(b => b.classList.toggle("on", +b.dataset.l === +PREFS.lh));
 }
@@ -667,7 +673,7 @@ function workerMain(){
       for (const r of m.rows){ const u = r[0], i = M.get(u); seen.add(u);
         if (i === undefined || (r[1] != null && L[i] !== r[1])) fetch.push([u, r[1]]);
         else if (P[i] !== r[2] || O[i] !== r[3]){ P[i] = r[2]; O[i] = r[3]; moved.push([u, r[2], r[3]]); } }
-      for (const u of M.keys()) if (!seen.has(u) && !keep.has(u)) gone.push(u);
+      for (const [u, i] of M) if (!seen.has(u) && !keep.has(u) && (!m.scope || G[i] === m.scope)) gone.push(u);
       for (const u of gone) del(u);
       return {fetch, moved, del:gone};
     },
@@ -791,6 +797,63 @@ function addPageTitle(title){
   PAGES.push(title); PAGESN.push(norm(title)); store.set("rq-pages:"+g.name, PAGES.join("\n"));
 }
 
+/* ---- تلوين كلمات الجذر في صفحات «ج/…» فقط ---- */
+const ROOTHL = (function(){
+  const NAME = "root-matches", PREFIX = "ج/", ARABIC = /[ؠ-ۿ]/;
+  if (!window.CSS || !CSS.highlights || typeof Highlight === "undefined") return {set(){}};
+  const hl = new Highlight(); CSS.highlights.set(NAME, hl);
+  let vars = [], obs = null, timer = 0, pending = new Set(), nodeRanges = new WeakMap();
+  function fold(c){
+    if ((c >= 0x064B && c <= 0x065F) || c === 0x0670 || c === 0x0640 || (c >= 0x06D6 && c <= 0x06ED)) return 0;
+    switch (c){ case 0x0622: case 0x0623: case 0x0625: case 0x0671: return 0x0627; case 0x0624: return 0x0648; case 0x0626: return 0x064A; }
+    return c;
+  }
+  const isWord = c => (c >= 0x0610 && c <= 0x061A) || (c >= 0x0620 && c <= 0x065F) || c === 0x0670 || (c >= 0x066E && c <= 0x06D3) || (c >= 0x06D5 && c <= 0x06ED) || (c >= 0x06FA && c <= 0x06FF);
+  function proc(node){
+    const old = nodeRanges.get(node); if (old){ for (const r of old) hl.delete(r); nodeRanges.delete(node); }
+    if (!vars.length || !node.isConnected) return;
+    const text = node.nodeValue; if (!text || text.length < 2 || !ARABIC.test(text)) return;
+    const par = node.parentElement; if (!par || par.tagName === "TEXTAREA" || par.closest("code,pre,textarea")) return;
+    const n = text.length, nv = vars.length, ks = new Array(nv); let ranges = null, i = 0;
+    while (i < n){
+      while (i < n && !isWord(text.charCodeAt(i))) i++;
+      if (i >= n) break;
+      const start = i; ks.fill(0);
+      while (i < n){ const c = text.charCodeAt(i); if (!isWord(c)) break; const f = fold(c);
+        if (f) for (let v=0; v<nv; v++){ const a = vars[v]; if (ks[v] < a.length && f === a[ks[v]]) ks[v]++; }
+        i++; }
+      let hit = false; for (let v=0; v<nv; v++) if (ks[v] === vars[v].length){ hit = true; break; }
+      if (hit){ const r = new Range(); r.setStart(node, start); r.setEnd(node, i); hl.add(r); (ranges || (ranges = [])).push(r); }
+    }
+    if (ranges) nodeRanges.set(node, ranges);
+  }
+  function collect(c){
+    if (!c) return;
+    if (c.nodeType === 3){ if (ARABIC.test(c.nodeValue)) pending.add(c); return; }
+    if (c.nodeType !== 1 && c.nodeType !== 11) return;
+    const w = document.createTreeWalker(c, NodeFilter.SHOW_TEXT); for (let x; (x = w.nextNode());) if (ARABIC.test(x.nodeValue)) pending.add(x);
+  }
+  function run(){
+    timer = 0; const t0 = performance.now(), it = pending.values();
+    for (let x = it.next(); !x.done; x = it.next()){ pending.delete(x.value); proc(x.value); if (performance.now() - t0 > 8) break; }
+    if (pending.size) timer = setTimeout(run, 16);
+    else if (hl.size > 4000){ const dead = []; for (const r of hl) if (r.collapsed || !r.startContainer.isConnected) dead.push(r); for (const r of dead) hl.delete(r); }
+  }
+  const kick = () => { if (!timer && pending.size) timer = setTimeout(run, 60); };
+  return {set(title, host, on){                         // عنوان الصفحة، والعنصر الذي يُلوَّن ما بداخله
+    if (obs){ obs.disconnect(); obs = null; } clearTimeout(timer); timer = 0; pending.clear(); hl.clear(); vars = [];
+    if (!on || !host || !title || !title.startsWith(PREFIX)) return;
+    let r = ""; for (const ch of title.slice(PREFIX.length).trim()){ const f = fold(ch.charCodeAt(0)); if (f && isWord(f)) r += String.fromCharCode(f); }
+    if (r.length === 3 && r[1] === r[2]) r = r.slice(0, 2);          // المضعّف: بالحرفين الأولين
+    if (r.length < 2) return;
+    const list = [r]; if (r.length >= 3 && "ويا".includes(r[0])) list.push(r.slice(1));   // المعتلّ الأول: وصف ← صفة
+    vars = list.map(x => Array.from(x, ch => ch.charCodeAt(0)));
+    collect(host); kick();
+    obs = new MutationObserver(recs => { for (const m of recs){ if (m.type === "characterData") pending.add(m.target); else for (const a of m.addedNodes) collect(a); } kick(); });
+    obs.observe(host, {childList:true, subtree:true, characterData:true});
+  }};
+})();
+
 /* ---- التنزيل والمزامنة ---- */
 const SYNC = {running:false, stop:false, msg:""};
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -798,9 +861,10 @@ function syncMsg(m){ SYNC.msg = m; const e = $("#syncMsg"); if (e) e.textContent
 const Q_PAGES = "[:find ?u ?t :where [?p :node/title ?t] [?p :block/uid ?u]]";
 const Q_MAN = "[:find ?u ?n ?pu ?o :where [?b :block/string ?s] [?b :block/uid ?u] [(count ?s) ?n] [?par :block/children ?b] [?par :block/uid ?pu] [?b :block/order ?o]]";
 const Q_MAN2 = "[:find ?u ?pu ?o :where [?b :block/string] [?b :block/uid ?u] [?par :block/children ?b] [?par :block/uid ?pu] [?b :block/order ?o]]";
+const Q_MANP = "[:find ?u ?n ?pu ?o :in $ ?gu :where [?g :block/uid ?gu] [?b :block/page ?g] [?b :block/string ?s] [?b :block/uid ?u] [(count ?s) ?n] [?par :block/children ?b] [?par :block/uid ?pu] [?b :block/order ?o]]";
 const Q_CHANGED = "[:find ?u :in $ ?since :where [?b :edit/time ?t] [(> ?t ?since)] [?b :block/string] [?b :block/uid ?u]]";
 const Q_BATCH = "[:find ?pu ?gu (pull ?b [:block/uid :block/string :block/order :block/heading :block/open]) :in $ [?u ...] :where [?b :block/uid ?u] [?par :block/children ?b] [?par :block/uid ?pu] [?b :block/page ?g] [?g :block/uid ?gu]]";
-async function syncGraph(full){
+async function syncGraph(full, scope){               // scope: معرّف صفحة لمزامنتها وحدها
   const g = G(); if (!g || SYNC.running) return;
   if (!g.token){ toast("أضف رمز الغراف أولاً"); return; }
   SYNC.running = true; SYNC.stop = false; const t0 = Date.now(); let lastReq = 0, fetched = 0;
@@ -816,23 +880,27 @@ async function syncGraph(full){
   };
   const parse = r => { try { return JSON.parse(r.text).result || []; } catch(e){ throw new Error("ردّ غير مفهوم من Roam"); } };
   try {
-    const first = !isLocal(g.name); if (first) full = true;
+    const first = !isLocal(g.name); if (first){ full = true; scope = null; } if (scope) full = false;
     await openLocal();
     try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch(e){}
+    let r;
+    if (!scope){
     syncMsg("يجلب أسماء الصفحات…");
-    let r = await paced(Q_PAGES); if (!r.ok) throw new Error("جلب الصفحات فشل ("+r.status+")");
+    r = await paced(Q_PAGES); if (!r.ok) throw new Error("جلب الصفحات فشل ("+r.status+")");
     const pages = parse(r).filter(x => x[0] && x[1]);
     { const t = DB.transaction("pages", "readwrite"), P = t.objectStore("pages"); P.clear(); for (const x of pages) P.put({u:x[0], t:x[1]}); await txDone(t); }
     PT.clear(); for (const x of pages) PT.set(x[0], x[1]);
     store.set("rq-pages:"+g.name, pages.map(x => x[1]).join("\n")); store.set("rqm-pagesAt:"+g.name, String(Date.now())); loadPages();
 
+    }
     let need = [];
-    if (full){
-      syncMsg("يجلب فهرس الكتل…");
-      r = await paced(Q_MAN, null, 180000); let rows;
-      if (r.ok) rows = parse(r); else { r = await paced(Q_MAN2, null, 180000); if (!r.ok) throw new Error("جلب فهرس الكتل فشل ("+r.status+")"); rows = parse(r).map(x => [x[0], null, x[1], x[2]]); }
-      syncMsg("يقارن بما على الجهاز…");
-      const d = await W("diff", {rows, keep:[...PEND]});
+    if (full || scope){
+      syncMsg(scope ? "يزامن الصفحة…" : "يجلب فهرس الكتل…");
+      r = scope ? await paced(Q_MANP, [scope]) : await paced(Q_MAN, null, 180000); let rows;
+      if (r.ok) rows = parse(r); else if (scope) throw new Error("مزامنة الصفحة فشلت ("+r.status+")");
+      else { r = await paced(Q_MAN2, null, 180000); if (!r.ok) throw new Error("جلب فهرس الكتل فشل ("+r.status+")"); rows = parse(r).map(x => [x[0], null, x[1], x[2]]); }
+      if (!scope) syncMsg("يقارن بما على الجهاز…");
+      const d = await W("diff", {rows, keep:[...PEND], scope:scope || null});
       if (d.del.length || d.moved.length){
         const t = DB.transaction(["blocks","tree"], "readwrite"), B = t.objectStore("blocks"), T = t.objectStore("tree");
         for (const u of d.del){ B.delete(u); T.delete(u); }
@@ -840,10 +908,11 @@ async function syncGraph(full){
         await txDone(t);
       }
       need = d.fetch;
-    } else {
+    }
+    if (!full){
       const since = (await kvGet("since")) || 0;
       r = await paced(Q_CHANGED, [since]); if (!r.ok) throw new Error("جلب التغييرات فشل ("+r.status+")");
-      need = parse(r).map(x => [x[0], null]);
+      const have = new Set(need.map(x => x[0])); for (const x of parse(r)) if (!have.has(x[0])) need.push([x[0], null]);
     }
     const total = need.length, queue = [];
     { let cur = [], size = 0;
@@ -874,8 +943,8 @@ async function syncGraph(full){
     }
     syncMsg("يحفظ الفهرس…");
     await W("persist");
-    await kvSet("since", t0 - 600000); if (full) await kvSet("fullAt", t0);
-    store.set("rqm-local:"+g.name, "1"); store.set("rqm-syncAt:"+g.name, String(Date.now()));
+    if (!scope){ await kvSet("since", t0 - 600000); if (full){ await kvSet("fullAt", t0); store.set("rqm-fullv:"+g.name, "2"); }
+      store.set("rqm-local:"+g.name, "1"); store.set("rqm-syncAt:"+g.name, String(Date.now())); }
     if (G() === g) LOC = true;
     const st = await W("stats");
     syncMsg("تمّت ✓ " + AR(st.n) + " كتلة · " + AR(Math.round((Date.now() - t0) / 1000)) + " ث" + (total ? " · جُلب " + AR(total) : "") + (skipped ? " · لم يرجع من الخادم " + AR(skipped) : ""));
@@ -893,8 +962,8 @@ async function dropLocal(){
 }
 async function autoSync(){
   const g = G(); if (!g || !LOC || !navigator.onLine || SYNC.running) return;
-  const at = +store.get("rqm-syncAt:"+g.name) || 0; if (Date.now() - at < 5 * 60000) return;
-  try { await openLocal(); const fullAt = (await kvGet("fullAt")) || 0; await syncGraph(Date.now() - fullAt > 7 * 86400000); } catch(e){}
+  const at = +store.get("rqm-syncAt:"+g.name) || 0; if (store.get("rqm-fullv:"+g.name) === "2" && Date.now() - at < 5 * 60000) return;
+  try { await openLocal(); const fullAt = (await kvGet("fullAt")) || 0; await syncGraph(store.get("rqm-fullv:"+g.name) !== "2" || Date.now() - fullAt > 7 * 86400000); } catch(e){}
 }
 
 /* ============================================================
@@ -1105,10 +1174,19 @@ function showDates(){
   box.hidden = false; box.scrollLeft = 0;
 }
 function putDate(dt){
-  const ta = ED.ta, c = ta.selectionStart, prev = ta.value[c-1], next = ta.value[c];
-  DATEMODE = false;
-  ins((c > 0 && !/\s/.test(prev) ? " " : "") + "[[" + dailyTitle(dt) + "]]" + (next === undefined || next === "\n" || !/\s/.test(next) ? " " : ""));
-  updateSugg();
+  const ta = ED.ta, link = "[[" + dailyTitle(dt) + "]]"; DATEMODE = false;
+  if (COMP && COMP.mode === "edit"){                  // تعديل كتلة واحدة: التاريخ في السطر نفسه
+    const c = ta.selectionStart, prev = ta.value[c-1], next = ta.value[c];
+    ins((c > 0 && !/\s/.test(prev) ? " " : "") + link + (next === undefined || next === "\n" || !/\s/.test(next) ? " " : "")); updateSugg(); return;
+  }
+  // المهمة تنزل تحت كتلة التاريخ؛ وإن كان فوقها أخٌ بالتاريخ نفسه انضمّت إليه
+  const v = ta.value, c = ta.selectionStart, ls = v.lastIndexOf("\n", c-1) + 1; let le = v.indexOf("\n", c); if (le < 0) le = v.length;
+  const line = v.slice(ls, le), ind = line.match(/^[ \t]*/)[0], above = v.slice(0, ls).split("\n"); above.pop();
+  let found = false;
+  for (let k = above.length - 1; k >= 0; k--){ const a = above[k]; if (!a.trim()) continue; const ai = a.match(/^[ \t]*/)[0].length;
+    if (ai > ind.length) continue; found = ai === ind.length && a.trim() === link; break; }
+  const out = (found ? "" : ind + link + "\n") + "  " + line;
+  ins(out, ls, le); const p = ls + out.length; ta.setSelectionRange(p, p); updateSugg();
 }
 $("#dpick").addEventListener("change", e => { const v = e.target.value; if (!v) return; const p = v.split("-").map(Number); putDate(new Date(p[0], p[1]-1, p[2])); });
 document.querySelectorAll(".sugg").forEach(box => box.addEventListener("click", e => {
@@ -1386,7 +1464,7 @@ async function enterPage(title){
   const key = cacheKey(title); let c = pageCache.get(key);
   $("#pTitle").textContent = title; $("#pTitle").onclick = null;
   if (!c){ c = {kind:"page", title, root:null, refs:null, scroll:0, stale:false, missing:false}; pageCache.set(key, c); }
-  CUR = c; addRecent(title);
+  CUR = c; addRecent(title); ROOTHL.set(title, pBody, PREFS.roots);
   if (c.root && !c.stale){ drawTree(); drawRefs(); pBody.scrollTop = c.scroll || 0; return; }
   await loadPage(c, !c.root);
 }
@@ -1446,7 +1524,7 @@ async function loadRefs(c, seq){
 /* ---- كتلة مع أبيها (نتيجة بحث نصي، أو مرجع كتلة) ---- */
 let HITS = [], hitI = 0;
 async function enterBlock(uid, q){
-  const seq = ++viewSeq; CUR = {kind:"block", uid, title:"", root:null, refs:null};
+  const seq = ++viewSeq; CUR = {kind:"block", uid, title:"", root:null, refs:null}; ROOTHL.set("", null, false);
   $("#pTitle").textContent = ""; pTree.innerHTML = '<div class="pmsg">…</div>'; pRefs.innerHTML = "";
   try {
     if (!LOC) throw new Error("عرض الكتلة يحتاج النسخة المحلية للغراف");
@@ -1578,7 +1656,7 @@ async function deleteBlk(be){
 $("#pAdd").onclick = () => { if (!CUR || !CUR.root) return; openComp({mode:"add", pn:CUR.root, at:"last", host:pTree, ref:null}); };
 $("#pReload").onclick = async () => {
   if (!CUR) return;
-  if (LOC && navigator.onLine && !SYNC.running){ toast("يزامن…", 1500); await syncGraph(false); }
+  if (LOC && navigator.onLine && !SYNC.running){ toast("يزامن الصفحة…", 1500); const ok = await syncGraph(false, CUR.root && CUR.root.uid || null); if (!ok) toast(SYNC.msg, 4000); }
   if (CUR.kind === "page"){ CUR.stale = true; pageCache.set(cacheKey(CUR.title), CUR); loadPage(CUR, false); } else route();
 };
 let foldState = 0;
@@ -1742,6 +1820,9 @@ function renderSettings(){
   sel("الشاشة الأولى ومكان المؤشر", [["search","البحث (المؤشر في خانة البحث)"],["write","الكتابة (المؤشر في صندوق الكتابة)"]], PREFS.start === "write" ? "write" : "search", v => { PREFS.start = v; savePrefs(); });
   sel("الغراف الافتراضي", [["","بلا افتراضي — آخر غراف استعملته"]].concat(graphs().map(g => [g.name, g.name])), graphs().some(g => g.name === PREFS.defGraph) ? PREFS.defGraph : "", v => { PREFS.defGraph = v; savePrefs(); });
 
+  h3("العرض");
+  sel("الخط", [["","خط النظام"],["vazir","Vazirmatn"],["naskh","Noto Naskh Arabic"]], FONTS[PREFS.font] ? PREFS.font : "", v => { PREFS.font = v; savePrefs(); applyFont(); });
+  { const ckr = el("label", "ck"), cbr = el("input"); cbr.type = "checkbox"; cbr.checked = !!PREFS.roots; cbr.onchange = () => { PREFS.roots = cbr.checked; savePrefs(); }; ckr.append(cbr, "تلوين كلمات الجذر في صفحات الجذور (ج/…)"); box.appendChild(ckr); }
   h3("القراءة");
   const ck = el("label", "ck"), cb = el("input"); cb.type = "checkbox"; cb.checked = !!PREFS.autoRefs;
   cb.onchange = () => { PREFS.autoRefs = cb.checked; savePrefs(); };
