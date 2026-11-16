@@ -616,7 +616,7 @@ function workerMain(){
     const old = M.get(r.u); if (old !== undefined){ A[old] = 0; dead++; }
     const s = r.s || ""; need(s.length + 1); const st = tl;
     for (let i=0;i<s.length;i++){ const b = foldCode(s.charCodeAt(i)); if (b >= 0) T[tl++] = b; }
-    const i = U.length; U.push(r.u); P.push(r.p || ""); G.push(r.g || ""); O.push(r.o || 0); L.push(s.length); S.push(st); E.push(tl); A.push(1);
+    const i = U.length; U.push(r.u); P.push(r.p || ""); G.push(r.g || ""); O.push(r.o || 0); L.push(r.n != null ? r.n : s.length); S.push(st); E.push(tl); A.push(1);
     T[tl++] = 0; M.set(r.u, i);
   }
   function del(u){ const i = M.get(u); if (i !== undefined){ A[i] = 0; dead++; M.delete(u); } }
@@ -668,14 +668,17 @@ function workerMain(){
     del(m){ for (const u of m.uids) del(u); return M.size; },
     move(m){ for (const r of m.rows){ const i = M.get(r[0]); if (i !== undefined){ P[i] = r[1]; O[i] = r[2]; } } return true; },
     has(m){ return m.uids.filter(u => M.has(u)); },
+    pageUids(m){ const out = []; for (const [u, i] of M) if (G[i] === m.g) out.push(u); return out; },
+    gof(m){ return m.uids.map(x => { let k = 0; while (M.has(x) && k++ < 500) x = P[M.get(x)]; return x; }); },   // اصعد في الآباء حتى الصفحة
     diff(m){                                         // قائمة الخادم [u, n, pu, o] مقابل ما عندنا
-      const keep = new Set(m.keep || []), seen = new Set(), fetch = [], moved = [], gone = [];
-      for (const r of m.rows){ const u = r[0], i = M.get(u); seen.add(u);
-        if (i === undefined || (r[1] != null && L[i] !== r[1])) fetch.push([u, r[1]]);
+      const keep = new Set(m.keep || []), seen = new Set(), fetch = [], moved = [], gone = []; let fresh = 0, mism = 0;
+      for (const r of m.rows){ const u = r[0], i = M.get(u); if (seen.has(u)) continue; seen.add(u);
+        if (i === undefined || (r[1] != null && L[i] !== r[1])){ fetch.push([u, r[1]]); if (i === undefined) fresh++; else mism++; }
         else if (P[i] !== r[2] || O[i] !== r[3]){ P[i] = r[2]; O[i] = r[3]; moved.push([u, r[2], r[3]]); } }
-      for (const [u, i] of M) if (!seen.has(u) && !keep.has(u) && (!m.scope || G[i] === m.scope)) gone.push(u);
+      if (m.only){ for (const u of m.only) if (!seen.has(u) && !keep.has(u) && M.has(u)) gone.push(u); }
+      else for (const u of M.keys()) if (!seen.has(u) && !keep.has(u)) gone.push(u);
       for (const u of gone) del(u);
-      return {fetch, moved, del:gone};
+      return {fetch, moved, del:gone, stats:{rows:m.rows.length, uniq:seen.size, fresh, mism, gone:gone.length}};
     },
     search(m){
       const qb = encQ(m.q), hits = [], lim = m.limit || 60, n = qb.length; let total = 0; const t0 = Date.now();
@@ -780,7 +783,7 @@ async function lPutRecs(recs, viaSync){              // recs: {u,s,p,g,o,h?,c?}
   for (const r of recs){ const b = {u:r.u, s:r.s, g:r.g}; if (r.h) b.h = r.h; if (r.c) b.c = 1; B.put(b); T.put({u:r.u, p:r.p, o:r.o}); }
   if (!viaSync){ const kv = t.objectStore("kv"), g = kv.get("tail"); g.onsuccess = () => kv.put((g.result || []).concat(recs.map(r => ({u:r.u, s:r.s, p:r.p, g:r.g, o:r.o}))), "tail"); }
   await txDone(t);
-  await W("add", {rows:recs.map(r => ({u:r.u, s:r.s, p:r.p, g:r.g, o:r.o}))});
+  await W("add", {rows:recs.map(r => ({u:r.u, s:r.s, p:r.p, g:r.g, o:r.o, n:r.n}))});
 }
 async function lShift(p, from, by){                  // أزح إخوة الموضع (سجلات صغيرة، بلا نصوص)
   const t = DB.transaction("tree", "readwrite"), T = t.objectStore("tree");
@@ -861,9 +864,9 @@ function syncMsg(m){ SYNC.msg = m; const e = $("#syncMsg"); if (e) e.textContent
 const Q_PAGES = "[:find ?u ?t :where [?p :node/title ?t] [?p :block/uid ?u]]";
 const Q_MAN = "[:find ?u ?n ?pu ?o :where [?b :block/string ?s] [?b :block/uid ?u] [(count ?s) ?n] [?par :block/children ?b] [?par :block/uid ?pu] [?b :block/order ?o]]";
 const Q_MAN2 = "[:find ?u ?pu ?o :where [?b :block/string] [?b :block/uid ?u] [?par :block/children ?b] [?par :block/uid ?pu] [?b :block/order ?o]]";
-const Q_MANP = "[:find ?u ?n ?pu ?o :in $ ?gu :where [?g :block/uid ?gu] [?b :block/page ?g] [?b :block/string ?s] [?b :block/uid ?u] [(count ?s) ?n] [?par :block/children ?b] [?par :block/uid ?pu] [?b :block/order ?o]]";
+const Q_CHECK = "[:find ?u ?n ?pu ?o :in $ [?u ...] :where [?b :block/uid ?u] [?b :block/string ?s] [(count ?s) ?n] [?par :block/children ?b] [?par :block/uid ?pu] [?b :block/order ?o]]";
 const Q_CHANGED = "[:find ?u :in $ ?since :where [?b :edit/time ?t] [(> ?t ?since)] [?b :block/string] [?b :block/uid ?u]]";
-const Q_BATCH = "[:find ?pu ?gu (pull ?b [:block/uid :block/string :block/order :block/heading :block/open]) :in $ [?u ...] :where [?b :block/uid ?u] [?par :block/children ?b] [?par :block/uid ?pu] [?b :block/page ?g] [?g :block/uid ?gu]]";
+const Q_BATCH = "[:find ?pu (pull ?b [:block/uid :block/string :block/order :block/heading :block/open]) :in $ [?u ...] :where [?b :block/uid ?u] [?par :block/children ?b] [?par :block/uid ?pu]]";
 async function syncGraph(full, scope){               // scope: معرّف صفحة لمزامنتها وحدها
   const g = G(); if (!g || SYNC.running) return;
   if (!g.token){ toast("أضف رمز الغراف أولاً"); return; }
@@ -893,14 +896,22 @@ async function syncGraph(full, scope){               // scope: معرّف صفح
     store.set("rq-pages:"+g.name, pages.map(x => x[1]).join("\n")); store.set("rqm-pagesAt:"+g.name, String(Date.now())); loadPages();
 
     }
-    let need = [];
+    let need = [], pmap = null; SYNC.stats = null;
     if (full || scope){
-      syncMsg(scope ? "يزامن الصفحة…" : "يجلب فهرس الكتل…");
-      r = scope ? await paced(Q_MANP, [scope]) : await paced(Q_MAN, null, 180000); let rows;
-      if (r.ok) rows = parse(r); else if (scope) throw new Error("مزامنة الصفحة فشلت ("+r.status+")");
-      else { r = await paced(Q_MAN2, null, 180000); if (!r.ok) throw new Error("جلب فهرس الكتل فشل ("+r.status+")"); rows = parse(r).map(x => [x[0], null, x[1], x[2]]); }
-      if (!scope) syncMsg("يقارن بما على الجهاز…");
-      const d = await W("diff", {rows, keep:[...PEND], scope:scope || null});
+      let rows, only = null;
+      if (scope){                                    // صفحة واحدة: تحقّق مما عندنا منها (حُذف؟ نُقل؟ تغيّر طوله؟)
+        syncMsg("يزامن الصفحة…"); only = await W("pageUids", {g:scope}); rows = [];
+        for (let k = 0; k < only.length; k += 800){ r = await paced(Q_CHECK, [only.slice(k, k + 800)]); if (!r.ok) throw new Error("مزامنة الصفحة فشلت ("+r.status+")"); rows = rows.concat(parse(r)); }
+      } else {
+        syncMsg("يجلب فهرس الكتل…");
+        r = await paced(Q_MAN, null, 180000);
+        if (r.ok) rows = parse(r);
+        else { r = await paced(Q_MAN2, null, 180000); if (!r.ok) throw new Error("جلب فهرس الكتل فشل ("+r.status+")"); rows = parse(r).map(x => [x[0], null, x[1], x[2]]); }
+        pmap = new Map(); for (const x of rows) pmap.set(x[0], x[2]);
+        syncMsg("يقارن بما على الجهاز…");
+      }
+      const d = await W("diff", {rows, keep:[...PEND], only});
+      SYNC.stats = d.stats;
       if (d.del.length || d.moved.length){
         const t = DB.transaction(["blocks","tree"], "readwrite"), B = t.objectStore("blocks"), T = t.objectStore("tree");
         for (const u of d.del){ B.delete(u); T.delete(u); }
@@ -920,7 +931,15 @@ async function syncGraph(full, scope){               // scope: معرّف صفح
         if (cur.length && (cur.length >= 800 || size + len > 1200000)){ queue.push(cur); cur = []; size = 0; }
         cur.push(u); size += len; }
       if (cur.length) queue.push(cur); }
-    let skipped = 0, nb = 0;
+    SYNC.missing = [];
+    let skipped = 0, nb = 0; const nmap = new Map(need), missing = [];
+    const pageOf = async recs => {                    // صفحة كل كتلة: بالصعود في الآباء حتى معرّف صفحة
+      const local = new Map(recs.map(x => [x.u, x.p])), ask = [];
+      for (const x of recs){ let y = x.p, k = 0;
+        while (!PT.has(y) && k++ < 500){ const nx = pmap && pmap.has(y) ? pmap.get(y) : local.get(y); if (nx === undefined) break; y = nx; }
+        if (PT.has(y)) x.g = y; else { x._y = y; ask.push(x); } }
+      if (ask.length){ const res = await W("gof", {uids:ask.map(x => x._y)}); ask.forEach((x, k) => { x.g = PT.has(res[k]) ? res[k] : ""; delete x._y; }); }
+    };
     while (queue.length){
       if (SYNC.stop) throw new Error("أُوقف — يُستأنف من حيث توقف عند الطلب التالي");
       syncMsg("ينزّل الكتل: " + AR(fetched) + " من " + AR(total) + (total ? " (" + AR(Math.floor(fetched * 100 / total)) + "٪)" : ""));
@@ -931,27 +950,45 @@ async function syncGraph(full, scope){               // scope: معرّف صفح
         skipped++; fetched++; continue;
       }
       const recs = [];
-      for (const row of parse(r)){ const o = row[2]; if (!o) continue; const u = K(o,"block/uid"); if (!u) continue;
-        const rec = {u, s:K(o,"block/string") || "", p:row[0], g:row[1], o:K(o,"block/order") || 0};
+      for (const row of parse(r)){ const o = row[1]; if (!o) continue; const u = K(o,"block/uid"); if (!u) continue;
+        const rec = {u, s:K(o,"block/string") || "", p:row[0], g:"", o:K(o,"block/order") || 0}; if (nmap.get(u) != null) rec.n = nmap.get(u);
         const h = K(o,"block/heading"); if (h) rec.h = h; if (K(o,"block/open") === false) rec.c = 1; recs.push(rec); }
-      if (recs.length) await lPutRecs(recs, true);
+      if (recs.length){ await pageOf(recs); await lPutRecs(recs, true); }
       const got = new Set(recs.map(x => x.u)), miss = batch.filter(u => !got.has(u));      // الخادم قد يقتطع الردّ: أعد طلب ما لم يرجع
       if (miss.length && recs.length && miss.length < batch.length){ const h = Math.ceil(miss.length / 2); queue.unshift(miss.slice(0, h)); if (miss.length > h) queue.unshift(miss.slice(h)); }
-      else if (miss.length) skipped += miss.length;
+      else if (miss.length){ skipped += miss.length; if (missing.length < 20) missing.push(...miss.slice(0, 5)); }
       fetched += batch.length - (miss.length && recs.length && miss.length < batch.length ? miss.length : 0);
       if (++nb % 25 === 0) await W("persist");
     }
+    SYNC.missing = missing;
     syncMsg("يحفظ الفهرس…");
     await W("persist");
-    if (!scope){ await kvSet("since", t0 - 600000); if (full){ await kvSet("fullAt", t0); store.set("rqm-fullv:"+g.name, "2"); }
+    if (!scope){ await kvSet("since", t0 - 600000); if (full){ await kvSet("fullAt", t0); store.set("rqm-fullv:"+g.name, "3"); }
       store.set("rqm-local:"+g.name, "1"); store.set("rqm-syncAt:"+g.name, String(Date.now())); }
     if (G() === g) LOC = true;
     const st = await W("stats");
-    syncMsg("تمّت ✓ " + AR(st.n) + " كتلة · " + AR(Math.round((Date.now() - t0) / 1000)) + " ث" + (total ? " · جُلب " + AR(total) : "") + (skipped ? " · لم يرجع من الخادم " + AR(skipped) : ""));
+    syncMsg("تمّت ✓ " + AR(st.n) + " كتلة · " + AR(Math.round((Date.now() - t0) / 1000)) + " ث" + (total ? " · جُلب " + AR(total) : "") + (skipped ? " · لم يرجع من الخادم " + AR(skipped) : "") + (SYNC.stats && full ? " · في الخادم " + AR(SYNC.stats.uniq) + " (جديد " + AR(SYNC.stats.fresh) + "، متغيّر " + AR(SYNC.stats.mism) + ")" : ""));
     pageCache.clear();
     return true;
   } catch(e){ syncMsg("توقف: " + e.message); return false; }
   finally { SYNC.running = false; if (ROUTE.name === "settings") renderSettings(); if (ROUTE.name === "search") drawSearch(); }
+}
+async function diagnose(){
+  const g = G(), out = [];
+  const q = async (query, args) => { try { await sleep(1300); const r = await roam("q", args ? {query, args} : {query}, {graph:g, timeout:120000}); return r.result; } catch(e){ return "ERR " + e.message; } };
+  out.push("strings: " + JSON.stringify(await q("[:find (count ?b) . :where [?b :block/string]]")));
+  out.push("with page: " + JSON.stringify(await q("[:find (count ?b) . :where [?b :block/string] [?b :block/page]]")));
+  out.push("with parent: " + JSON.stringify(await q("[:find (count ?b) . :where [?b :block/string] [?p :block/children ?b]]")));
+  out.push("with uid: " + JSON.stringify(await q("[:find (count ?b) . :where [?b :block/string] [?b :block/uid]]")));
+  out.push("pages: " + JSON.stringify(await q("[:find (count ?b) . :where [?b :node/title]]")));
+  try { out.push("local: " + JSON.stringify(await W("stats")) + " last: " + JSON.stringify(SYNC.stats || null)); } catch(e){}
+  const miss = (SYNC.missing || []).slice(0, 3); out.push("missing: " + JSON.stringify(miss));
+  if (miss.length){
+    const cut = (k, v) => typeof v === "string" && v.length > 60 ? v.slice(0, 60) + "…" : v;
+    out.push("pull: " + JSON.stringify(await q("[:find (pull ?b [*]) :in $ [?u ...] :where [?b :block/uid ?u]]", [miss]), cut).slice(0, 2500));
+    out.push("parent: " + JSON.stringify(await q("[:find ?u ?pu :in $ [?u ...] :where [?b :block/uid ?u] [?par :block/children ?b] [?par :block/uid ?pu]]", [miss])));
+  }
+  return out.join("\n");
 }
 async function dropLocal(){
   const g = G(); if (!g) return;
@@ -962,8 +999,8 @@ async function dropLocal(){
 }
 async function autoSync(){
   const g = G(); if (!g || !LOC || !navigator.onLine || SYNC.running) return;
-  const at = +store.get("rqm-syncAt:"+g.name) || 0; if (store.get("rqm-fullv:"+g.name) === "2" && Date.now() - at < 5 * 60000) return;
-  try { await openLocal(); const fullAt = (await kvGet("fullAt")) || 0; await syncGraph(store.get("rqm-fullv:"+g.name) !== "2" || Date.now() - fullAt > 7 * 86400000); } catch(e){}
+  const at = +store.get("rqm-syncAt:"+g.name) || 0; if (store.get("rqm-fullv:"+g.name) === "3" && Date.now() - at < 5 * 60000) return;
+  try { await openLocal(); const fullAt = (await kvGet("fullAt")) || 0; await syncGraph(store.get("rqm-fullv:"+g.name) !== "3" || Date.now() - fullAt > 7 * 86400000); } catch(e){}
 }
 
 /* ============================================================
@@ -1847,6 +1884,7 @@ function localBox(g){
       const d = btn("حذف النسخة", "d", async () => { if (d.dataset.arm !== "1"){ d.dataset.arm = "1"; d.textContent = "اضغط ثانية للتأكيد"; setTimeout(() => { d.dataset.arm = ""; d.textContent = "حذف النسخة"; }, 2500); return; } await dropLocal(); SYNC.msg = ""; renderSettings(); });
       W("stats").then(s => { if (!SYNC.running && !SYNC.msg && msg.isConnected && s.n) msg.textContent += " · " + AR(s.n) + " كتلة · فهرس البحث " + AR(Math.round(s.bytes / 1048576)) + " م.ب"; }).catch(() => {});
     }
+    if (loc) btn("تشخيص", async () => { msg.textContent = "يشخّص…"; const t = await diagnose(); const a = el("textarea"); a.readOnly = true; a.value = t; a.style.cssText = "width:100%;height:160px;direction:ltr;font-size:11px"; b.appendChild(a); msg.textContent = "انسخ النص التالي وأرسله:"; });
     if (QUEUE.length){ const q = el("div", "note"); q.textContent = "في انتظار الإرسال: " + AR(QUEUE.length); b.appendChild(q); btn("أرسل الآن", "", () => flush()); }
     if (!loc) btn(refreshing ? "يجلب…" : "تحديث أسماء الصفحات فقط", "", () => { refreshPages(false); renderSettings(); });
   }
