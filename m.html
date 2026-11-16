@@ -212,6 +212,9 @@ textarea.live{flex:1;min-width:0;display:block;border:0;outline:0;resize:none;ov
 .gsel{display:none!important}
 #settings{padding-top:env(safe-area-inset-top)}
 .txt,.comp textarea,textarea.live,#ta{unicode-bidi:normal}
+.it{touch-action:pan-y}
+.it.swp{transition:none;background:var(--sel)}
+.it.back{transition:transform .18s ease-out}
 </style>
 
 <body>
@@ -1215,7 +1218,7 @@ function tClear(){ DR.set = false; DR.page = {kind:"today", title:""}; saveDR();
 function tDraw(){
   const box = $("#tList"), q = $("#tq").value.trim(), multi = graphs().length > 1; box.innerHTML = "";
   const row = (title, g, page, special) => { const d = el("div", "it" + (special ? " sp" : "")), a = el("span", "t"); a.textContent = title; d.appendChild(el("span", "pi", IC_PAGE)); d.appendChild(a);
-    if (multi){ const l = el("span", "gl"); l.textContent = glabel(g); d.appendChild(l); } d.onclick = () => tSet(g, page); box.appendChild(d); };
+    if (multi){ const l = el("span", "gl"); l.textContent = glabel(g); d.appendChild(l); } d.dataset.g = g; d.dataset.k = page.kind; d.dataset.title = page.title || ""; d.onclick = () => { if (d._swiped) return; tSet(g, page); }; box.appendChild(d); };
   if (!q || "اليوم".includes(q)) for (const g of graphs()) row("اليوم", g.name, {kind:"today", title:""}, true);
   if (q){
     const qn = norm(q), a = [], b = [];
@@ -1226,6 +1229,32 @@ function tDraw(){
   } else recents().slice(0, 8).forEach(t => row(t, RAW.roam.current, {kind:"page", title:t}));
   box.hidden = false;
 }
+/* تمرير الإصبع أفقياً على نتيجة: افتحها في اللسان المجاور */
+function swipeable(list, onSwipe){
+  let st = null;
+  list.addEventListener("touchstart", e => { const r = e.target.closest(".it"); if (!r || e.touches.length !== 1){ st = null; return; } const t = e.touches[0]; st = {r, x:t.clientX, y:t.clientY, on:false, dx:0}; r._swiped = false; r.classList.remove("back"); }, {passive:true});
+  list.addEventListener("touchmove", e => {
+    if (!st) return; const t = e.touches[0], dx = t.clientX - st.x, dy = t.clientY - st.y;
+    if (!st.on){ if (Math.abs(dy) > 12 && Math.abs(dy) > Math.abs(dx)){ st = null; return; } if (Math.abs(dx) < 14 || Math.abs(dx) < Math.abs(dy) * 1.4) return; st.on = true; st.r.classList.add("swp"); }
+    st.dx = dx; st.r.style.transform = "translateX(" + dx + "px)"; st.r.style.opacity = String(Math.max(.35, 1 - Math.abs(dx) / 260));
+  }, {passive:true});
+  const end = () => {
+    if (!st) return; const {r, on, dx} = st; st = null; if (!on) return;
+    r._swiped = true; setTimeout(() => { r._swiped = false; }, 400);
+    r.classList.remove("swp"); r.classList.add("back"); r.style.transform = ""; r.style.opacity = "";
+    if (Math.abs(dx) > 72) onSwipe(r);
+  };
+  list.addEventListener("touchend", end); list.addEventListener("touchcancel", end);
+}
+function openAdjacent(g, title){                     // من المسودة: افتح الصفحة في اللسان الآخر، في غرافها
+  const i = 1 - TABI, t = TABS[i]; if (!(t && t.kind === "graph" && t.graph === g)) TABS[i] = {kind:"graph", graph:g, q:""};
+  TABS[i].hash = pageHash(title); $("#tList").hidden = true; tabGo(i);
+}
+function draftAdjacent(title){                       // من بحث الغراف: افتح المسودة في اللسان الآخر ووجهتها هذه الصفحة
+  DR.graph = RAW.roam.current; DR.set = true; DR.page = title === "@today" ? {kind:"today", title:""} : {kind:"page", title}; saveDR();
+  const i = 1 - TABI; TABS[i] = {kind:"draft", hash:"c"}; tabGo(i);
+}
+
 
 /* ============================================================
    أدوات الكتابة المشتركة (شاشة الكتابة، والكتابة داخل العرض)
@@ -1411,6 +1440,7 @@ function enterHome(){
   setTimeout(() => ta.focus(), 60);
 }
 $("#tq").addEventListener("input", tDraw);
+swipeable($("#tList"), r => openAdjacent(r.dataset.g, r.dataset.k === "today" ? dailyTitle() : r.dataset.title));
 $("#tq").addEventListener("focus", tDraw);
 $("#tq").addEventListener("keydown", e => { if (e.key === "Enter"){ e.preventDefault(); const f = $("#tList .it"); if (f) f.click(); } else if (e.key === "Escape"){ $("#tList").hidden = true; ta.focus(); } });
 $("#tPen").onclick = () => { if (DR.set){ tClear(); toast("الوجهة: اليوم"); } else $("#tq").focus(); };
@@ -1529,9 +1559,10 @@ function drawSearch(){
   }, 140);
 }
 sq.addEventListener("input", () => { NOBLK = false; drawSearch(); });
+swipeable($("#sPages"), r => { if (r.dataset.t) draftAdjacent(r.dataset.t); });
 sq.addEventListener("keydown", e => { if (e.key === "Enter"){ e.preventDefault(); const f = $("#sPages .it") || $("#sBlocks .it"); if (f) f.click(); } });
 $("#sList").addEventListener("click", e => {
-  const it = e.target.closest(".it"); if (!it) return;
+  const it = e.target.closest(".it"); if (!it || it._swiped) return;
   if (it.dataset.u){ go("b=" + it.dataset.u + (SMODE === 2 ? "&m=2" : "") + "&q=" + encodeURIComponent($("#sBlocks")._q || sq.value.trim())); return; }
   const t = it.dataset.t;
   go(pageHash(t === "@today" ? dailyTitle() : t));
@@ -2173,6 +2204,9 @@ function renderSettings(){
   h3("العرض");
   sel("الخط", [["","خط النظام"],["vazir","Vazirmatn"],["naskh","Noto Naskh Arabic"]], FONTS[PREFS.font] ? PREFS.font : "", v => { PREFS.font = v; savePrefs(); applyFont(); });
   { const ckm = el("label", "ck"), cbm = el("input"); cbm.type = "checkbox"; cbm.checked = SMODE === 2; cbm.onchange = () => { SMODE = cbm.checked ? 2 : 1; PREFS.smode = SMODE; savePrefs(); }; ckm.append(cbm, "البحث المجرّد: تجريد الكلمات من الزوائد، ووجودها كلها في الكتلة ولو متفرقة"); box.appendChild(ckm); }
+  h3("الكتابة من المسودة");
+  { const ckh = el("label", "ck"), cbh = el("input"); cbh.type = "checkbox"; cbh.checked = graphs().length > 0 && graphs().every(g => g.header !== false);
+    cbh.onchange = () => { graphs().forEach(g => { g.header = cbh.checked; }); saveCfg(); }; ckh.append(cbh, "ترويسة التاريخ والوقت فوق كل ما يُرسل من المسودة"); box.appendChild(ckh); }
   h3("أسماء الألسنة");
   for (const g of graphs()){ const l = el("label", "f"), inp = el("input"); inp.type = "text"; inp.dir = "rtl"; inp.style.direction = "rtl"; inp.style.textAlign = "right"; inp.placeholder = g.name; inp.value = GLAB[g.name] || "";
     inp.oninput = () => { const v = inp.value.trim(); if (v) GLAB[g.name] = v; else delete GLAB[g.name]; store.set("rq-glabels", JSON.stringify(GLAB)); }; l.append(g.name, inp); box.appendChild(l); }
