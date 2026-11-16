@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <!-- أمان: لا اتصال إلا بخادم Roam -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: 'self'; manifest-src 'self'; worker-src 'self'; connect-src https://api.roamresearch.com https://*.api.roamresearch.com:*;">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: 'self'; manifest-src 'self'; worker-src 'self' blob:; connect-src https://api.roamresearch.com https://*.api.roamresearch.com:*;">
 <title>المحرر (جوال)</title>
 <link rel="manifest" href="manifest-mobile.webmanifest">
 <meta name="theme-color" content="#0f8f7e">
@@ -25,6 +25,15 @@ button{background:none;border:0;padding:0;margin:0;cursor:pointer}
 .ic svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .chip{height:38px;border:1px solid var(--line);border-radius:19px;padding:0 12px;background:var(--bg);max-width:38vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:14px}
 select.chip{appearance:none;-webkit-appearance:none;padding-inline-end:12px;text-align:center}
+.chip.view{flex:none;display:flex;align-items:center;gap:5px;padding:0 10px;border-color:var(--acc);color:var(--acc);font-weight:600;max-width:none}
+.chip.view svg{width:17px;height:17px}
+select.chip{max-width:24vw;padding:0 8px}
+#home .bar{gap:4px}
+#home .bar .ic{width:36px}
+#home .chip.view{padding:0 8px;gap:4px}
+#target{padding:0 9px}
+.it .act{flex:none;height:34px;padding:0 12px;border:1px solid var(--acc);color:var(--acc);border-radius:17px;font-size:13px;font-weight:600}
+.it .act:active{background:var(--sel)}
 .chip.grow{flex:1;max-width:none;text-align:start;min-width:0}
 .chip .tl{color:var(--mut);font-size:12px}
 #prog{position:fixed;top:0;inset-inline:0;height:3px;background:linear-gradient(90deg,transparent,var(--acc),transparent);background-size:40% 100%;background-repeat:no-repeat;animation:pr 1s linear infinite;z-index:50}
@@ -39,16 +48,16 @@ select.chip{appearance:none;-webkit-appearance:none;padding-inline-end:12px;text
 #err{flex:none;padding:8px 12px;background:#fdecea;color:#8c1d12;font-size:13px;display:flex;gap:8px;align-items:flex-start}
 @media (prefers-color-scheme:dark){#err{background:#3a1b17;color:#f3b4ab}}
 #err div{flex:1;word-break:break-word}
-#sugg{flex:none;display:flex;gap:6px;overflow-x:auto;padding:6px 8px;border-top:1px solid var(--line);scrollbar-width:none}
-#sugg::-webkit-scrollbar,#keys .ks::-webkit-scrollbar{display:none}
+.sugg{flex:none;display:flex;gap:6px;overflow-x:auto;padding:6px 8px;border-top:1px solid var(--line);scrollbar-width:none}
+.sugg::-webkit-scrollbar,.keys .ks::-webkit-scrollbar{display:none}
 .sg{flex:none;height:36px;padding:0 12px;border-radius:18px;background:var(--card);border:1px solid var(--line);font-size:14px;max-width:70vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sg.new{border-style:dashed;color:var(--mut)}
-#keys{flex:none;display:flex;align-items:stretch;border-top:1px solid var(--line);background:var(--card);padding-bottom:env(safe-area-inset-bottom);user-select:none;-webkit-user-select:none}
-#keys .ks{flex:1;min-width:0;display:flex;overflow-x:auto;scrollbar-width:none}
+.keys{flex:none;display:flex;align-items:stretch;border-top:1px solid var(--line);background:var(--card);padding-bottom:env(safe-area-inset-bottom);user-select:none;-webkit-user-select:none}
+.keys .ks{flex:1;min-width:0;display:flex;overflow-x:auto;scrollbar-width:none}
 .k{flex:none;min-width:46px;height:48px;padding:0 10px;display:grid;place-items:center;font-size:16px;font-weight:600;color:var(--fg);border-inline-end:1px solid var(--line);direction:ltr}
 .k.w{font-size:13px;font-weight:500;direction:rtl}
-#send{flex:none;min-width:86px;height:48px;background:var(--acc);color:var(--accfg);font-weight:700;font-size:15px}
-#send:disabled{opacity:.55}
+.send{flex:none;min-width:86px;height:48px;background:var(--acc);color:var(--accfg);font-weight:700;font-size:15px}
+.send:disabled{opacity:.55}
 
 /* ---- البحث ---- */
 #sq{flex:1;min-width:0;height:40px;border:1px solid var(--line);border-radius:20px;padding:0 14px;background:var(--card);outline:0;font-size:16px}
@@ -131,52 +140,68 @@ a.ext{color:var(--link);text-decoration:underline;word-break:break-all}
 .note{font-size:12px;color:var(--mut);line-height:1.6;margin-top:6px}
 #toast{position:fixed;inset-inline:0;bottom:calc(72px + env(safe-area-inset-bottom));margin:auto;width:max-content;max-width:88vw;background:var(--fg);color:var(--bg);padding:9px 16px;border-radius:20px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:60;text-align:center}
 #toast.show{opacity:.96}
+
+/* ---- إضافات: بحث موحّد، كتابة في الموضع، نسخة محلية ---- */
+#sq{font-size:var(--fs)}
+.it .pi{flex:none;width:20px;height:20px;color:var(--mut);display:grid;place-items:center}
+.it .pi svg{width:17px;height:17px}
+.it .pen{flex:none;width:42px;height:38px;border:1px solid var(--acc);color:var(--acc);border-radius:19px;display:grid;place-items:center}
+.it .pen svg{width:18px;height:18px}
+.it .pen:active{background:var(--sel)}
+.it.bk{align-items:flex-start}
+.it.bk .t{font-size:calc(var(--fs) - 2px);line-height:1.6}
+.it.bk .sn b{background:var(--mark);font-weight:inherit;border-radius:3px}
+.it.bk .pg{display:block;font-size:12px;color:var(--mut);margin-top:2px}
+.it .dot{flex:none;width:20px;height:1.6em;position:relative}
+.it .dot::before{content:"";position:absolute;top:50%;left:50%;width:6px;height:6px;margin:-3px;border-radius:50%;background:var(--mut)}
+.row.unsent>.txt{opacity:.6}
+.row.unsent>.bul::after{content:"";position:absolute;top:calc(var(--fs)*var(--lh)/2 - 6px);inset-inline-start:5px;width:10px;height:10px;border:2px solid var(--acc);border-top-color:transparent;border-radius:50%;animation:sp .9s linear infinite}
+.row.fail>.txt{color:var(--danger)}
+@keyframes sp{to{transform:rotate(360deg)}}
+.row.tgt{background:var(--sel)}
+mark.hit{background:#ffd54a;color:#000;border-radius:3px}
+mark.hit.cur{outline:2px solid var(--acc)}
+.more{display:block;margin:6px 22px;padding:6px 14px;border:1px solid var(--line);border-radius:16px;font-size:13px;color:var(--mut)}
+.comp{margin:4px 0 4px 0;margin-inline-start:22px;border:2px solid var(--acc);border-radius:10px;background:var(--bg)}
+.comp textarea{display:block;width:100%;min-height:calc(var(--fs)*var(--lh) + 12px);max-height:46vh;border:0;outline:0;resize:none;background:transparent;padding:6px 8px;font-size:var(--fs);line-height:var(--lh);unicode-bidi:plaintext;text-align:start}
+#pEdit{flex:none}
+#hitNav{position:fixed;inset-inline-start:10px;bottom:calc(14px + env(safe-area-inset-bottom));display:flex;align-items:center;gap:2px;background:var(--fg);color:var(--bg);border-radius:22px;padding:3px;z-index:18;font-size:13px}
+#hitNav button{width:40px;height:38px;color:inherit;font-size:18px}
+#hitNav span{min-width:44px;text-align:center}
+.selbar button{font-size:13px}
+.syncbox{margin-top:10px;padding-top:10px;border-top:1px dashed var(--line)}
 </style>
-</head>
+
 <body>
 
-<!-- ============ الالتقاط ============ -->
-<div id="home" class="scr">
-  <header class="bar">
-    <select id="graph" class="chip" aria-label="الغراف"></select>
-    <button id="target" class="chip grow"><span class="tl">إلى </span><b id="targetName">اليوم</b></button>
-    <button id="bSearch" class="ic" aria-label="بحث عن صفحة"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></button>
-    <button class="ic bFont" aria-label="حجم الخط">Aa</button>
-    <button id="bSet" class="ic" aria-label="الإعدادات"><svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg></button>
-  </header>
-  <div id="ctx" hidden><div></div><button class="ic" id="ctxX" style="width:32px;height:32px" aria-label="إلغاء">✕</button></div>
-  <textarea id="ta" dir="rtl" placeholder="اكتب… كل سطر كتلة" autocomplete="off" autocapitalize="sentences" spellcheck="false"></textarea>
-  <div id="err" hidden><div></div><button id="errX" aria-label="إخفاء">✕</button></div>
-  <div id="sugg" hidden></div>
-  <div id="keys">
-    <div class="ks">
-      <button class="k" data-k="page">[[ ]]</button>
-      <button class="k" data-k="tag">#</button>
-      <button class="k w" data-k="in">أدخِل</button>
-      <button class="k w" data-k="out">أخرِج</button>
-      <button class="k" data-k="bold">**</button>
-      <button class="k" data-k="hl">^^</button>
-      <button class="k" data-k="ref">(( ))</button>
-      <button class="k" data-k="todo">☐</button>
-      <button class="k" data-k="undo">↶</button>
-      <button class="k" data-k="redo">↷</button>
-    </div>
-    <button id="send">إرسال</button>
-  </div>
-</div>
-
-<!-- ============ البحث ============ -->
+<!-- ============ البحث الموحّد ============ -->
 <div id="search" class="scr" hidden>
   <header class="bar">
-    <button class="ic back" aria-label="رجوع"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
-    <input id="sq" type="search" enterkeyhint="go" placeholder="ابحث عن صفحة…" autocomplete="off" autocapitalize="off" spellcheck="false">
-    <button id="sRefresh" class="ic" aria-label="تحديث قائمة الصفحات"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.6-5.9M20 4v5h-5"/></svg></button>
+    <select id="graphS" class="chip gsel" aria-label="الغراف"></select>
+    <input id="sq" type="search" enterkeyhint="search" placeholder="ابحث…" autocomplete="off" autocapitalize="off" spellcheck="false">
+    <button id="sWrite" class="ic" aria-label="شاشة الكتابة"><svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16v4zM13.5 6.5l4 4"/></svg></button>
+    <button class="ic bSet" aria-label="الإعدادات"><svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg></button>
   </header>
   <div id="sInfo" class="hint"></div>
-  <div id="sList" class="list"></div>
+  <div id="sList" class="list"><div id="sPages"></div><div id="sBlocks"></div></div>
 </div>
 
-<!-- ============ الصفحة ============ -->
+<!-- ============ الكتابة ============ -->
+<div id="home" class="scr" hidden>
+  <header class="bar">
+    <select id="graphC" class="chip gsel" aria-label="الغراف"></select>
+    <button id="target" class="chip grow"><span class="tl">إلى </span><b id="targetName">اليوم</b></button>
+    <button id="bSearch" class="ic" aria-label="البحث"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></button>
+    <button class="ic bFont" aria-label="حجم الخط">Aa</button>
+    <button class="ic bSet" aria-label="الإعدادات"><svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg></button>
+  </header>
+  <textarea id="ta" dir="rtl" placeholder="اكتب… كل سطر كتلة" autocomplete="off" autocapitalize="sentences" spellcheck="false"></textarea>
+  <div id="err" hidden><div></div><button id="errX" aria-label="إخفاء">✕</button></div>
+  <div id="sugg" class="sugg" hidden></div>
+  <div id="keys" class="keys"></div>
+</div>
+
+<!-- ============ العرض (صفحة أو كتلة مع أبيها) ============ -->
 <div id="page" class="scr" hidden>
   <header class="bar">
     <button class="ic back" aria-label="رجوع"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
@@ -186,13 +211,16 @@ a.ext{color:var(--link);text-decoration:underline;word-break:break-all}
     <button id="pReload" class="ic" aria-label="تحديث"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.6-5.9M20 4v5h-5"/></svg></button>
   </header>
   <div id="pBody" class="body"><div id="pTree"></div><div id="pRefs"></div></div>
+  <div id="pEdit" hidden><div id="psugg" class="sugg" hidden></div><div id="pkeys" class="keys"></div></div>
   <div id="pSel" class="selbar" hidden>
     <button data-a="under">＋ تحتها</button>
     <button data-a="after">＋ بعدها</button>
-    <button data-a="copy">نسخ</button>
+    <button data-a="edit">تعديل</button>
+    <button data-a="ref">(( ))</button>
     <button data-a="x" class="x" aria-label="إلغاء">✕</button>
   </div>
-  <button id="pAdd" class="fab" aria-label="اكتب في هذه الصفحة"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+  <div id="hitNav" hidden><button data-h="-1" aria-label="السابق">‹</button><span></span><button data-h="1" aria-label="التالي">›</button></div>
+  <button id="pAdd" class="fab" aria-label="اكتب في آخر الصفحة"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
 </div>
 
 <!-- ============ الإعدادات ============ -->
@@ -268,7 +296,7 @@ function saveCfg(){
 const graphs = () => RAW.roam.graphs;
 const G = () => graphs().find(g => g.name === RAW.roam.current) || graphs()[0] || null;
 
-const PREFS = {fs:17, lh:1.7, autoRefs:true};
+const PREFS = {fs:17, lh:1.7, autoRefs:true, start:"search", defGraph:""};
 function loadPrefs(){ try { Object.assign(PREFS, JSON.parse(store.get("rqm-prefs") || "{}")); } catch(e){} applyFont(); }
 function savePrefs(){ store.set("rqm-prefs", JSON.stringify(PREFS)); }
 function applyFont(){
@@ -354,21 +382,24 @@ async function roam(kind, body, opt={}){
 /* مفاتيح الردّ قد تأتي ":block/uid" أو "block/uid" أو "uid" */
 const K = (o,k) => o == null ? undefined : (o[":"+k] !== undefined ? o[":"+k] : (o[k] !== undefined ? o[k] : o[k.split("/")[1]]));
 const BP = "[:block/uid :block/string :block/order :block/heading :block/open {:block/children ...}]";
-function nb(o, parent){                              // كتلة Roam ← كتلتنا
-  const n = {uid:K(o,"block/uid"), s:K(o,"block/string") || "", order:K(o,"block/order") || 0, h:K(o,"block/heading") || 0,
-             open:K(o,"block/open") !== false, parent, kids:[]};
+function mkNode(o){
+  return Object.assign({uid:null, s:"", order:0, h:0, open:true, parent:null, pn:null, g:null, kids:[], lazy:false, loaded:true, more:false, loc:false}, o);
+}
+const hasKids = n => n.kids.length > 0 || n.lazy;
+function nb(o, pn){                                  // كتلة Roam ← كتلتنا
+  const n = mkNode({uid:K(o,"block/uid"), s:K(o,"block/string") || "", order:K(o,"block/order") || 0, h:K(o,"block/heading") || 0,
+             open:K(o,"block/open") !== false, parent:pn ? pn.uid : null, pn:pn || null});
   const ch = K(o,"block/children");
-  if (Array.isArray(ch)) n.kids = ch.filter(c => K(c,"block/uid")).map(c => nb(c, n.uid)).sort((a,b) => a.order - b.order);
+  if (Array.isArray(ch)) n.kids = ch.filter(c => K(c,"block/uid")).map(c => nb(c, n)).sort((a,b) => a.order - b.order);
   return n;
 }
 async function pullPage(title){
   const q = "[:find (pull ?p [:block/uid :node/title {:block/children "+BP+"}]) :in $ ?t :where [?p :node/title ?t]]";
   const res = await roam("q", {query:q, args:[title]});
   const row = res && res.result && res.result[0], o = row && row[0];
-  if (!o) return {title, uid:null, kids:[], missing:true};
-  const uid = K(o,"block/uid");
-  const kids = (K(o,"block/children") || []).filter(c => K(c,"block/uid")).map(c => nb(c, uid)).sort((a,b) => a.order - b.order);
-  return {title, uid, kids};
+  if (!o) return null;
+  const root = nb(o, null); root.isPage = true; root.g = root.uid;
+  return root;
 }
 async function pullRefs(title){
   const q = "[:find (pull ?b [:block/uid :block/string :block/heading :block/order :block/children {:block/page [:node/title]}]) :in $ ?t :where [?p :node/title ?t] [?b :block/refs ?p]]";
@@ -379,8 +410,8 @@ async function pullRefs(title){
     const pg = K(K(o,"block/page"),"node/title") || "؟";
     if (pg === title) continue;                      // إشارة الصفحة إلى نفسها
     const ch = K(o,"block/children");
-    const n = {uid:K(o,"block/uid"), s:K(o,"block/string") || "", order:K(o,"block/order") || 0, h:K(o,"block/heading") || 0,
-               open:false, parent:null, kids:[], lazy:Array.isArray(ch) && ch.length > 0, isRef:true};
+    const n = mkNode({uid:K(o,"block/uid"), s:K(o,"block/string") || "", order:K(o,"block/order") || 0, h:K(o,"block/heading") || 0,
+               lazy:Array.isArray(ch) && ch.length > 0, loaded:!(Array.isArray(ch) && ch.length > 0)});
     if (!groups.has(pg)) groups.set(pg, []);
     groups.get(pg).push(n);
   }
@@ -389,11 +420,11 @@ async function pullRefs(title){
   return out;
 }
 async function pullSubtrees(nodes){                  // يملأ ما تحت كتل المراجع
-  const want = nodes.filter(n => n.lazy && !n.loaded); if (!want.length) return;
+  const want = nodes.filter(n => n.lazy); if (!want.length) return;
   const q = "[:find (pull ?b "+BP+") :in $ [?u ...] :where [?b :block/uid ?u]]";
   const res = await roam("q", {query:q, args:[want.map(n => n.uid)]});
   const by = new Map(); for (const row of (res.result || [])){ const o = row[0]; if (o) by.set(K(o,"block/uid"), o); }
-  for (const n of want){ const o = by.get(n.uid); n.kids = o ? nb(o, null).kids : []; n.loaded = true; }
+  for (const n of want){ const o = by.get(n.uid); n.kids = o ? nb(o, null).kids : []; n.kids.forEach(k => { k.pn = n; k.parent = n.uid; }); n.loaded = true; n.lazy = false; }
 }
 async function pageUid(title, create){
   const res = await roam("q", {query:"[:find ?u :in $ ?t :where [?e :node/title ?t] [?e :block/uid ?u]]", args:[title]});
@@ -515,109 +546,451 @@ function inl(text){
   }).join("").replace(/\n/g, "<br>");
 }
 
+
+/* ============================================================
+   النسخة المحلية للغراف (IndexedDB) وفهرس البحث (في عامل خلفي)
+   ============================================================ */
+/* طيّ الحرف إلى بايت واحد: بلا تشكيل، والهمزات على الألف، واللاتيني صغير. -1 = يُحذف */
+function foldCode(c){
+  if (c < 128){
+    if (c >= 65 && c <= 90) return c + 32;
+    if (c === 10 || c === 13 || c === 9) return 32;
+    return (c < 32 || c === 127) ? -1 : c;
+  }
+  if ((c >= 0x64B && c <= 0x65F) || c === 0x670 || c === 0x640 || (c >= 0x6D6 && c <= 0x6ED) ||
+      (c >= 0x200B && c <= 0x200F) || (c >= 0x202A && c <= 0x202E) || (c >= 0x2066 && c <= 0x2069) || c === 0xFEFF) return -1;
+  if (c === 0x622 || c === 0x623 || c === 0x625 || c === 0x671) return 134;      // ا
+  if (c === 0x649 || c === 0x6CC) return 169;                                    // ي
+  if (c === 0x6A9) return 162;                                                   // ك
+  if (c >= 0x621 && c <= 0x64A) return 128 + (c - 0x621);
+  if (c >= 0x660 && c <= 0x669) return 48 + (c - 0x660);
+  if (c >= 0x6F0 && c <= 0x6F9) return 48 + (c - 0x6F0);
+  if (c === 0x67E) return 180; if (c === 0x686) return 181; if (c === 0x698) return 182; if (c === 0x6AF) return 183;
+  if (c === 0x60C) return 44; if (c === 0x61B) return 59; if (c === 0x61F) return 63;
+  if (c === 0xA0) return 32; if (c === 0xAB || c === 0xBB) return 34;
+  return 127;
+}
+function foldStr(s){ const out = []; for (let i=0;i<s.length;i++){ const b = foldCode(s.charCodeAt(i)); if (b >= 0) out.push(b); } return out; }
+
+function openDB(name){
+  return new Promise((res, rej) => {
+    const r = indexedDB.open(name, 1);
+    r.onupgradeneeded = () => {
+      const d = r.result;
+      d.createObjectStore("blocks", {keyPath:"u"});                 // {u, s, g, h?, c?}  النص
+      d.createObjectStore("tree", {keyPath:"u"}).createIndex("po", ["p","o"]);   // {u, p, o}  الموضع
+      d.createObjectStore("pages", {keyPath:"u"}).createIndex("t", "t");         // {u, t}
+      d.createObjectStore("kv");
+    };
+    r.onsuccess = () => res(r.result);
+    r.onerror = () => rej(r.error || new Error("تعذّر فتح التخزين"));
+  });
+}
+
+/* ---- العامل الخلفي: يحمل نسخة البحث المضغوطة في الذاكرة ---- */
+function workerMain(){
+  let db = null, T = new Uint8Array(1 << 22), tl = 0, U = [], P = [], G = [], O = [], L = [], S = [], E = [], A = [], M = new Map(), dead = 0, FQ = null;
+  const rq = r => new Promise((res, rej) => { r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); });
+  function reset(){ T = new Uint8Array(1 << 22); tl = 0; U = []; P = []; G = []; O = []; L = []; S = []; E = []; A = []; M = new Map(); dead = 0; }
+  function need(n){ if (tl + n > T.length){ let c = T.length; while (c < tl + n) c *= 2; const N = new Uint8Array(c); N.set(T.subarray(0, tl)); T = N; } }
+  function add(r){
+    const old = M.get(r.u); if (old !== undefined){ A[old] = 0; dead++; }
+    const s = r.s || ""; need(s.length + 1); const st = tl;
+    for (let i=0;i<s.length;i++){ const b = foldCode(s.charCodeAt(i)); if (b >= 0) T[tl++] = b; }
+    const i = U.length; U.push(r.u); P.push(r.p || ""); G.push(r.g || ""); O.push(r.o || 0); L.push(s.length); S.push(st); E.push(tl); A.push(1);
+    T[tl++] = 0; M.set(r.u, i);
+  }
+  function del(u){ const i = M.get(u); if (i !== undefined){ A[i] = 0; dead++; M.delete(u); } }
+  function encQ(q){ const out = []; for (let i=0;i<q.length;i++){ const b = foldCode(q.charCodeAt(i)); if (b >= 0) out.push(b); } return out; }
+  function dec(a, z){
+    let s = "";
+    for (let i=a;i<z;i++){ const b = T[i];
+      s += b < 127 ? String.fromCharCode(b) : b === 127 ? "·" : b < 180 ? String.fromCharCode(0x621 + b - 128) : "پچژگ"[b-180] || ""; }
+    return s;
+  }
+  function blockAt(pos){ let lo = 0, hi = S.length - 1; while (lo < hi){ const m = (lo + hi + 1) >> 1; if (S[m] <= pos) lo = m; else hi = m - 1; } return lo; }
+  function scan(qb, cb, acc){                        // أول موضع في كل كتلة حيّة
+    const n = qb.length; let pos = 0; if (!n) return;
+    if (!FQ){ FQ = new Uint32Array(256); const step = Math.max(1, tl >> 20); for (let i=0;i<tl;i+=step) FQ[T[i]]++; }   // تواتر الحروف (عيّنة)
+    let j = 0; for (let i=1;i<n;i++) if (FQ[qb[i]] < FQ[qb[j]]) j = i;                                              // ابحث بأندر حرف في العبارة
+    const bj = qb[j];
+    for (;;){
+      const f = T.indexOf(bj, pos + j); if (f < 0 || f >= tl) break; pos = f - j;
+      let k = 0; while (k < n && T[pos+k] === qb[k]) k++;
+      if (k === n){ const i = blockAt(pos); if (!A[i]){ pos = E[i] + 1; continue; } if (!acc || acc(pos + n)){ cb(i, pos); pos = E[i] + 1; continue; } }
+      pos++;
+    }
+  }
+  function compact(){
+    const n = U.length, NT = new Uint8Array(Math.max(1 << 22, tl)); let nl = 0;
+    const u = [], p = [], g = [], o = [], l = [], s = [], e = [], a = []; M = new Map();
+    for (let i=0;i<n;i++){ if (!A[i]) continue; const len = E[i] - S[i]; NT.set(T.subarray(S[i], E[i]), nl);
+      M.set(U[i], u.length); u.push(U[i]); p.push(P[i]); g.push(G[i]); o.push(O[i]); l.push(L[i]); s.push(nl); nl += len; e.push(nl); a.push(1); NT[nl++] = 0; }
+    T = NT; tl = nl; U = u; P = p; G = g; O = o; L = l; S = s; E = e; A = a; dead = 0;
+  }
+  const OPS = {
+    async open(m){
+      reset(); if (db){ try { db.close(); } catch(e){} } db = await openDB(m.name);
+      const t = db.transaction("kv"), ix = await rq(t.objectStore("kv").get("index")), tail = await rq(t.objectStore("kv").get("tail"));
+      if (ix && ix.v === 1 && ix.n){
+        const buf = new Uint8Array(ix.buf); T = new Uint8Array(Math.max(1 << 22, Math.ceil(buf.length * 1.25))); T.set(buf); tl = buf.length;
+        U = ix.U.split("\n"); P = ix.P.split("\n"); G = ix.G.split("\n");
+        O = Array.from(ix.O); L = Array.from(ix.L); S = Array.from(ix.S); E = Array.from(ix.E); A = new Array(U.length).fill(1);
+        for (let i=0;i<U.length;i++) M.set(U[i], i);
+      }
+      if (Array.isArray(tail)) for (const r of tail) add(r);
+      return {n:M.size};
+    },
+    close(){ reset(); if (db){ try { db.close(); } catch(e){} db = null; } return true; },
+    add(m){ for (const r of m.rows) add(r); return M.size; },
+    upd(m){ const i = M.get(m.u); if (i === undefined) return false; add({u:m.u, s:m.s, p:P[i], g:G[i], o:O[i]}); return true; },
+    del(m){ for (const u of m.uids) del(u); return M.size; },
+    move(m){ for (const r of m.rows){ const i = M.get(r[0]); if (i !== undefined){ P[i] = r[1]; O[i] = r[2]; } } return true; },
+    has(m){ return m.uids.filter(u => M.has(u)); },
+    diff(m){                                         // قائمة الخادم [u, n, pu, o] مقابل ما عندنا
+      const keep = new Set(m.keep || []), seen = new Set(), fetch = [], moved = [], gone = [];
+      for (const r of m.rows){ const u = r[0], i = M.get(u); seen.add(u);
+        if (i === undefined || (r[1] != null && L[i] !== r[1])) fetch.push([u, r[1]]);
+        else if (P[i] !== r[2] || O[i] !== r[3]){ P[i] = r[2]; O[i] = r[3]; moved.push([u, r[2], r[3]]); } }
+      for (const u of M.keys()) if (!seen.has(u) && !keep.has(u)) gone.push(u);
+      for (const u of gone) del(u);
+      return {fetch, moved, del:gone};
+    },
+    search(m){
+      const qb = encQ(m.q), hits = [], lim = m.limit || 60, n = qb.length; let total = 0; const t0 = Date.now();
+      scan(qb, (i, pos) => { total++;
+        if (hits.length < lim){ const a = Math.max(S[i], pos - 36), z = Math.min(E[i], pos + n + 64);
+          hits.push({u:U[i], g:G[i], pre:(a > S[i] ? "…" : "") + dec(a, pos), hit:dec(pos, pos + n), post:dec(pos + n, z) + (z < E[i] ? "…" : "")}); } });
+      return {total, hits, ms:Date.now() - t0};
+    },
+    refs(m){
+      const set = new Set(), out = [], lim = m.limit || 300;
+      scan(encQ("[[" + m.title + "]]"), i => set.add(i));
+      scan(encQ("#" + m.title), i => set.add(i), end => { const b = T[end]; return b === 0 || b === 32 || (b < 48 && b !== 45) || b === 58 || b === 59 || b === 63 || b === 93; });
+      for (const i of [...set].sort((a, b) => a - b)){ if (out.length >= lim) break; out.push({u:U[i], g:G[i]}); }
+      return {total:set.size, list:out};
+    },
+    stats(){ return {n:M.size, bytes:tl, dead}; },
+    async persist(){
+      if (!db) return false;
+      if (dead > 3000 && dead > U.length * 0.15) compact();
+      const live = []; for (let i=0;i<U.length;i++) if (!A[i]) live.push(i);
+      if (live.length) compact();
+      const ix = {v:1, n:U.length, buf:T.slice(0, tl).buffer, U:U.join("\n"), P:P.join("\n"), G:G.join("\n"),
+                  O:Float64Array.from(O), L:Uint32Array.from(L), S:Uint32Array.from(S), E:Uint32Array.from(E)};
+      const t = db.transaction("kv", "readwrite"); t.objectStore("kv").put(ix, "index"); t.objectStore("kv").put([], "tail");
+      await new Promise((res, rej) => { t.oncomplete = res; t.onerror = t.onabort = () => rej(t.error || new Error("حفظ الفهرس فشل")); });
+      return true;
+    }
+  };
+  self.onmessage = async e => {
+    const m = e.data;
+    try { const res = await OPS[m.op](m); self.postMessage({id:m.id, ok:true, res}); }
+    catch(err){ self.postMessage({id:m.id, ok:false, err:String(err && err.message || err)}); }
+  };
+}
+let wk = null, wid = 0; const wcb = new Map();
+function W(op, data){
+  if (!wk){
+    const src = foldCode.toString() + "\n" + openDB.toString() + "\n(" + workerMain.toString() + ")();";
+    wk = new Worker(URL.createObjectURL(new Blob([src], {type:"text/javascript"})));
+    wk.onmessage = e => { const m = e.data, c = wcb.get(m.id); if (!c) return; wcb.delete(m.id); if (m.ok) c[0](m.res); else c[1](new Error(m.err)); };
+    wk.onerror = e => { for (const c of wcb.values()) c[1](new Error("عطل في فهرس البحث")); wcb.clear(); };
+  }
+  return new Promise((res, rej) => { const id = ++wid; wcb.set(id, [res, rej]); wk.postMessage(Object.assign({id, op}, data || {})); });
+}
+
+const rq = r => new Promise((res, rej) => { r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); });
+const txDone = t => new Promise((res, rej) => { t.oncomplete = () => res(); t.onerror = t.onabort = () => rej(t.error || new Error("خطأ في التخزين المحلي")); });
+const isLocal = name => store.get("rqm-local:"+name) === "1";
+let DB = null, DBNAME = "", readyP = null, LOC = false;
+const PT = new Map();                                // معرّف الصفحة ← عنوانها
+function openLocal(){
+  const g = G(); if (!g) return Promise.reject(new Error("لا غراف"));
+  const name = "rqm-" + g.name;
+  if (DBNAME === name && readyP) return readyP;
+  DBNAME = name; if (DB){ try { DB.close(); } catch(e){} } DB = null; PT.clear();
+  readyP = (async () => {
+    DB = await openDB(name);
+    const r = await W("open", {name});
+    for (const p of await rq(DB.transaction("pages").objectStore("pages").getAll())) PT.set(p.u, p.t);
+    return r;
+  })();
+  readyP.catch(() => { if (DBNAME === name) readyP = null; });
+  return readyP;
+}
+function setGraphLocal(){ const g = G(); LOC = !!g && isLocal(g.name); if (LOC) openLocal().catch(e => toast("النسخة المحلية: " + e.message, 4000)); }
+const kvGet = async k => rq(DB.transaction("kv").objectStore("kv").get(k));
+async function kvSet(k, v){ const t = DB.transaction("kv", "readwrite"); t.objectStore("kv").put(v, k); await txDone(t); }
+const kidRange = u => IDBKeyRange.bound([u, -Infinity], [u, Infinity]);
+async function lNodes(uids, pn){                     // كتل محلية ← كتلنا (مع معرفة هل لها أولاد)
+  if (!uids.length) return [];
+  const t = DB.transaction(["blocks","tree"]), B = t.objectStore("blocks"), T = t.objectStore("tree"), I = T.index("po");
+  const res = await Promise.all(uids.map(u => Promise.all([rq(B.get(u)), rq(T.get(u)), rq(I.count(kidRange(u)))])));
+  return res.filter(x => x[0] && x[1]).map(([b, tr, cnt]) => mkNode({uid:b.u, s:b.s || "", h:b.h || 0, open:!b.c, g:b.g, parent:tr.p, order:tr.o,
+    pn:pn || null, loc:true, lazy:cnt > 0, loaded:cnt === 0}));
+}
+const KPAGE = 60;
+async function lLoadKids(n){                         // الدفعة التالية من أولاد كتلة أو صفحة
+  const have = new Set(n.kids.map(k => k.uid)); if (n.added) n.added.forEach(u => have.add(u));
+  const last = n.kids.length ? n.kids[n.kids.length-1].order : -Infinity;
+  const recs = await rq(DB.transaction("tree").objectStore("tree").index("po").getAll(IDBKeyRange.bound([n.uid, last], [n.uid, Infinity]), KPAGE + have.size + 1));
+  const fresh = recs.filter(r => !have.has(r.u)), more = fresh.length > KPAGE;
+  const nodes = await lNodes(fresh.slice(0, KPAGE).map(r => r.u), n);
+  n.kids.push(...nodes); n.loaded = true; n.lazy = false; n.more = more;
+}
+async function loadKids(n){ if (n.loc) await lLoadKids(n); else await pullSubtrees([n]); }
+async function lMaxOrder(p){
+  const c = await rq(DB.transaction("tree").objectStore("tree").index("po").openCursor(kidRange(p), "prev"));
+  return c ? c.value.o : -1;
+}
+async function lPutRecs(recs, viaSync){              // recs: {u,s,p,g,o,h?,c?}
+  const t = DB.transaction(viaSync ? ["blocks","tree"] : ["blocks","tree","kv"], "readwrite"), B = t.objectStore("blocks"), T = t.objectStore("tree");
+  for (const r of recs){ const b = {u:r.u, s:r.s, g:r.g}; if (r.h) b.h = r.h; if (r.c) b.c = 1; B.put(b); T.put({u:r.u, p:r.p, o:r.o}); }
+  if (!viaSync){ const kv = t.objectStore("kv"), g = kv.get("tail"); g.onsuccess = () => kv.put((g.result || []).concat(recs.map(r => ({u:r.u, s:r.s, p:r.p, g:r.g, o:r.o}))), "tail"); }
+  await txDone(t);
+  await W("add", {rows:recs.map(r => ({u:r.u, s:r.s, p:r.p, g:r.g, o:r.o}))});
+}
+async function lShift(p, from, by){                  // أزح إخوة الموضع (سجلات صغيرة، بلا نصوص)
+  const t = DB.transaction("tree", "readwrite"), T = t.objectStore("tree");
+  const recs = await rq(T.index("po").getAll(IDBKeyRange.bound([p, from], [p, Infinity])));
+  for (const r of recs){ r.o += by; T.put(r); }
+  await txDone(t);
+  if (recs.length) await W("move", {rows:recs.map(r => [r.u, r.p, r.o])});
+}
+async function lPutPage(uid, title){
+  PT.set(uid, title); const t = DB.transaction("pages", "readwrite"); t.objectStore("pages").put({u:uid, t:title}); await txDone(t);
+}
+function addPageTitle(title){
+  if (PAGES.includes(title)) return; const g = G(); if (!g) return;
+  PAGES.push(title); PAGESN.push(norm(title)); store.set("rq-pages:"+g.name, PAGES.join("\n"));
+}
+
+/* ---- التنزيل والمزامنة ---- */
+const SYNC = {running:false, stop:false, msg:""};
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+function syncMsg(m){ SYNC.msg = m; const e = $("#syncMsg"); if (e) e.textContent = m; }
+const Q_PAGES = "[:find ?u ?t :where [?p :node/title ?t] [?p :block/uid ?u]]";
+const Q_MAN = "[:find ?u ?n ?pu ?o :where [?b :block/string ?s] [?b :block/uid ?u] [(count ?s) ?n] [?par :block/children ?b] [?par :block/uid ?pu] [?b :block/order ?o]]";
+const Q_MAN2 = "[:find ?u ?pu ?o :where [?b :block/string] [?b :block/uid ?u] [?par :block/children ?b] [?par :block/uid ?pu] [?b :block/order ?o]]";
+const Q_CHANGED = "[:find ?u :in $ ?since :where [?b :edit/time ?t] [(> ?t ?since)] [?b :block/string] [?b :block/uid ?u]]";
+const Q_BATCH = "[:find ?pu ?gu (pull ?b [:block/uid :block/string :block/order :block/heading :block/open]) :in $ [?u ...] :where [?b :block/uid ?u] [?par :block/children ?b] [?par :block/uid ?pu] [?b :block/page ?g] [?g :block/uid ?gu]]";
+async function syncGraph(full){
+  const g = G(); if (!g || SYNC.running) return;
+  if (!g.token){ toast("أضف رمز الغراف أولاً"); return; }
+  SYNC.running = true; SYNC.stop = false; const t0 = Date.now(); let lastReq = 0, fetched = 0;
+  const paced = async (q, args, timeout) => {                       // لا نتجاوز حدّ الطلبات في الدقيقة
+    for (let tries = 0;; tries++){
+      const wait = 1300 - (Date.now() - lastReq); if (wait > 0) await sleep(wait); lastReq = Date.now();
+      let r; try { r = await roam("q", args ? {query:q, args} : {query:q}, {graph:g, soft:true, timeout:timeout || 120000}); }
+      catch(e){ if (tries >= 3) throw e; syncMsg("انقطاع، يعيد المحاولة…"); await sleep(4000); continue; }
+      if (r.status === 429){ if (tries >= 8) throw new Error("حدّ الطلبات — أعد لاحقاً، وسيُستأنف من حيث توقف"); syncMsg("حدّ الطلبات؛ ينتظر قليلاً…"); await sleep(20000); continue; }
+      if (r.status === 401 || r.status === 403) throw new Error("الرمز غير صالح ("+r.status+")");
+      return r;
+    }
+  };
+  const parse = r => { try { return JSON.parse(r.text).result || []; } catch(e){ throw new Error("ردّ غير مفهوم من Roam"); } };
+  try {
+    const first = !isLocal(g.name); if (first) full = true;
+    await openLocal();
+    try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch(e){}
+    syncMsg("يجلب أسماء الصفحات…");
+    let r = await paced(Q_PAGES); if (!r.ok) throw new Error("جلب الصفحات فشل ("+r.status+")");
+    const pages = parse(r).filter(x => x[0] && x[1]);
+    { const t = DB.transaction("pages", "readwrite"), P = t.objectStore("pages"); P.clear(); for (const x of pages) P.put({u:x[0], t:x[1]}); await txDone(t); }
+    PT.clear(); for (const x of pages) PT.set(x[0], x[1]);
+    store.set("rq-pages:"+g.name, pages.map(x => x[1]).join("\n")); store.set("rqm-pagesAt:"+g.name, String(Date.now())); loadPages();
+
+    let need = [];
+    if (full){
+      syncMsg("يجلب فهرس الكتل…");
+      r = await paced(Q_MAN, null, 180000); let rows;
+      if (r.ok) rows = parse(r); else { r = await paced(Q_MAN2, null, 180000); if (!r.ok) throw new Error("جلب فهرس الكتل فشل ("+r.status+")"); rows = parse(r).map(x => [x[0], null, x[1], x[2]]); }
+      syncMsg("يقارن بما على الجهاز…");
+      const d = await W("diff", {rows, keep:[...PEND]});
+      if (d.del.length || d.moved.length){
+        const t = DB.transaction(["blocks","tree"], "readwrite"), B = t.objectStore("blocks"), T = t.objectStore("tree");
+        for (const u of d.del){ B.delete(u); T.delete(u); }
+        for (const m of d.moved) T.put({u:m[0], p:m[1], o:m[2]});
+        await txDone(t);
+      }
+      need = d.fetch;
+    } else {
+      const since = (await kvGet("since")) || 0;
+      r = await paced(Q_CHANGED, [since]); if (!r.ok) throw new Error("جلب التغييرات فشل ("+r.status+")");
+      need = parse(r).map(x => [x[0], null]);
+    }
+    const total = need.length, queue = [];
+    { let cur = [], size = 0;
+      for (const [u, n] of need){ const len = n == null ? 800 : n;
+        if (cur.length && (cur.length >= 2000 || size + len > 1500000)){ queue.push(cur); cur = []; size = 0; }
+        cur.push(u); size += len; }
+      if (cur.length) queue.push(cur); }
+    let skipped = 0, nb = 0;
+    while (queue.length){
+      if (SYNC.stop) throw new Error("أُوقف — يُستأنف من حيث توقف عند الطلب التالي");
+      syncMsg("ينزّل الكتل: " + AR(fetched) + " من " + AR(total) + (total ? " (" + AR(Math.floor(fetched * 100 / total)) + "٪)" : ""));
+      const batch = queue.shift();
+      r = await paced(Q_BATCH, [batch]);
+      if (!r.ok){
+        if (batch.length > 1){ const h = batch.length >> 1; queue.unshift(batch.slice(0, h), batch.slice(h)); continue; }
+        skipped++; fetched++; continue;
+      }
+      const recs = [];
+      for (const row of parse(r)){ const o = row[2]; if (!o) continue; const u = K(o,"block/uid"); if (!u) continue;
+        const rec = {u, s:K(o,"block/string") || "", p:row[0], g:row[1], o:K(o,"block/order") || 0};
+        const h = K(o,"block/heading"); if (h) rec.h = h; if (K(o,"block/open") === false) rec.c = 1; recs.push(rec); }
+      if (recs.length) await lPutRecs(recs, true);
+      fetched += batch.length;
+      if (++nb % 25 === 0) await W("persist");
+    }
+    syncMsg("يحفظ الفهرس…");
+    await W("persist");
+    await kvSet("since", t0 - 600000); if (full) await kvSet("fullAt", t0);
+    store.set("rqm-local:"+g.name, "1"); store.set("rqm-syncAt:"+g.name, String(Date.now()));
+    if (G() === g) LOC = true;
+    const st = await W("stats");
+    syncMsg("تمّت ✓ " + AR(st.n) + " كتلة · " + AR(Math.round((Date.now() - t0) / 1000)) + " ث" + (total ? " · جُلب " + AR(total) : "") + (skipped ? " · تعذّر " + AR(skipped) : ""));
+    pageCache.clear();
+    return true;
+  } catch(e){ syncMsg("توقف: " + e.message); return false; }
+  finally { SYNC.running = false; if (ROUTE.name === "settings") renderSettings(); if (ROUTE.name === "search") drawSearch(); }
+}
+async function dropLocal(){
+  const g = G(); if (!g) return;
+  try { await W("close"); } catch(e){}
+  if (DB){ try { DB.close(); } catch(e){} } DB = null; DBNAME = ""; readyP = null; LOC = false; PT.clear();
+  await new Promise(res => { const r = indexedDB.deleteDatabase("rqm-"+g.name); r.onsuccess = r.onerror = r.onblocked = () => res(); });
+  store.del("rqm-local:"+g.name); store.del("rqm-syncAt:"+g.name); pageCache.clear();
+}
+async function autoSync(){
+  const g = G(); if (!g || !LOC || !navigator.onLine || SYNC.running) return;
+  const at = +store.get("rqm-syncAt:"+g.name) || 0; if (Date.now() - at < 5 * 60000) return;
+  try { await openLocal(); const fullAt = (await kvGet("fullAt")) || 0; await syncGraph(Date.now() - fullAt > 7 * 86400000); } catch(e){}
+}
+
+/* ============================================================
+   طابور الإرسال: ما يُكتب يظهر فوراً ويُرسل في الخلفية
+   ============================================================ */
+let QUEUE = []; const PEND = new Set(); let flushing = false;
+const qKey = () => "rqm-queue:" + (G() ? G().name : "");
+function loadQueue(){ try { QUEUE = JSON.parse(store.get(qKey()) || "[]"); } catch(e){ QUEUE = []; } PEND.clear(); for (const it of QUEUE) for (const u of it.uids || []) PEND.add(u); }
+function saveQueue(){ store.set(qKey(), JSON.stringify(QUEUE)); }
+function enqueue(body, uids){ QUEUE.push({id:newUid(), body, uids:uids || [], tries:0}); for (const u of uids || []) PEND.add(u); saveQueue(); flush(); }
+function markRows(uids, cls, on){ for (const u of uids) document.querySelectorAll('.blk[data-u="'+u+'"] > .row').forEach(r => r.classList.toggle(cls, on)); }
+async function flush(){
+  if (flushing || !QUEUE.length) return; flushing = true; const g = G(), key = qKey();
+  try {
+    while (QUEUE.length && G() === g){
+      const it = QUEUE[0]; let r;
+      try { r = await roam("write", it.body, {graph:g, soft:true, timeout:30000}); }
+      catch(e){ it.tries++; saveQueue(); break; }
+      if (!r.ok){
+        const benign = r.status === 400 && (it.tries > 0 || it.body.action === "create-page");
+        if (!benign && r.status === 400){ markRows(it.uids, "fail", true); toast("رفض Roam كتابةً: " + r.text.replace(/\s+/g," ").slice(0, 90), 5000); }
+        else if (!benign){ it.tries++; saveQueue(); break; }
+      }
+      QUEUE.shift(); for (const u of it.uids) PEND.delete(u); markRows(it.uids, "unsent", false);
+      store.set(key, JSON.stringify(QUEUE));
+    }
+  } finally { flushing = false; }
+}
+window.addEventListener("online", flush);
+document.addEventListener("visibilitychange", () => { if (!document.hidden){ flush(); } });
+
+/* خطة إضافة: كتل النص ← أوامر Roam + سجلات محلية + كتل للعرض */
+function plan(blocks, pn, parentUid, pageUid, base, numeric){
+  const acts = [], recs = [], tops = [];
+  (function walk(list, pu, pnode, start, num, top){
+    list.forEach((b, i) => {
+      const uid = newUid(), o = start + i;
+      const node = mkNode({uid, s:b.string, order:o, h:b.heading || 0, parent:pu, pn:pnode, g:pageUid, loc:LOC, _open:b.children.length > 0});
+      const blk = {uid, string:b.string}; if (b.heading) blk.heading = b.heading;
+      acts.push({action:"create-block", location:{"parent-uid":pu, order:num ? o : "last"}, block:blk});
+      const rec = {u:uid, s:b.string, p:pu, g:pageUid, o}; if (b.heading) rec.h = b.heading; recs.push(rec);
+      if (top) tops.push(node); else pnode.kids.push(node);
+      walk(b.children, uid, node, 0, false, false);
+    });
+  })(blocks, parentUid, pn, base, numeric, true);
+  return {acts, recs, tops};
+}
+
 /* ============================================================
    التوجيه بين الشاشات (زر الرجوع في أندرويد يعمل)
    ============================================================ */
-const SCREENS = ["home","search","page","settings"];
-let ROUTE = {name:"home"};
+const SCREENS = ["search","home","page","settings"];
+let ROUTE = {name:""}, PREV = "";
+const startHash = () => PREFS.start === "write" ? "c" : "s";
 function parseHash(){
   const h = location.hash.slice(1);
-  if (h === "s") return {name:"search", mode:"open"};
-  if (h === "st") return {name:"search", mode:"target"};
+  if (h === "s") return {name:"search"};
+  if (h === "c") return {name:"home"};
   if (h === "set") return {name:"settings"};
-  if (h === "w") return {name:"home", write:true};
-  if (h.startsWith("p=")){ let t = h.slice(2); try { t = decodeURIComponent(t); } catch(e){} return {name:"page", title:t === "@today" ? dailyTitle() : t}; }
-  return {name:"home"};
+  if (h.startsWith("p=")){ let t = h.slice(2); try { t = decodeURIComponent(t); } catch(e){} return {name:"page", kind:"page", title:t === "@today" ? dailyTitle() : t}; }
+  if (h.startsWith("b=")){ const m = h.slice(2).split("&q="); let q = m[1] || ""; try { q = decodeURIComponent(q); } catch(e){} return {name:"page", kind:"block", uid:m[0], q}; }
+  return {name:""};
 }
 const depth = () => (history.state && history.state.d) || 0;
 function go(h){ if (location.hash.slice(1) !== h) history.pushState({d:depth()+1}, "", "#"+h); route(); }
-function back(){ if (depth() > 0) history.back(); else goReplace(""); }
-function goReplace(h){ history.replaceState(history.state, "", h ? "#"+h : location.pathname + location.search); route(); }
+function goReplace(h){ history.replaceState(history.state, "", (h ? "#"+h : location.pathname + location.search)); route(); }
+function back(){ if (depth() > 0) history.back(); else goReplace(startHash()); }
 const pageHash = t => "p="+encodeURIComponent(t);
 function route(){
   leavePage();
-  ROUTE = parseHash();
+  PREV = ROUTE.name; ROUTE = parseHash();
   $("#fontPop").hidden = true;
-  if (ROUTE.name === "home" && ROUTE.write && !CTX){ goReplace(""); return; }
-  if (ROUTE.name === "home" && !ROUTE.write) CTX = null;
   if (!G() && ROUTE.name !== "settings"){ goReplace("set"); return; }
+  if (!ROUTE.name){ goReplace(startHash()); return; }
   SCREENS.forEach(s => $("#"+s).hidden = s !== ROUTE.name);
   if (ROUTE.name === "home") enterHome();
   else if (ROUTE.name === "search") enterSearch();
-  else if (ROUTE.name === "page") enterPage(ROUTE.title);
+  else if (ROUTE.name === "page") enterView();
   else if (ROUTE.name === "settings") renderSettings();
 }
 window.addEventListener("popstate", route);
 document.querySelectorAll(".back").forEach(b => b.onclick = back);
+document.querySelectorAll(".bSet").forEach(b => b.onclick = () => go("set"));
+
+/* ---- الغرافات ---- */
+function fillGraphs(){
+  document.querySelectorAll(".gsel").forEach(s => {
+    s.innerHTML = ""; graphs().forEach(g => { const o = el("option"); o.value = g.name; o.textContent = g.name; s.appendChild(o); });
+    if (G()) s.value = G().name; s.hidden = graphs().length < 2;
+  });
+}
+function useGraph(name, quiet){
+  RAW.roam.current = name; saveCfg(); loadPages(); initTarget(); pageCache.clear(); loadQueue(); setGraphLocal(); fillGraphs();
+  if (!quiet){ toast("الغراف: " + name); route(); }
+  flush(); autoSync();
+}
+document.querySelectorAll(".gsel").forEach(s => s.onchange = e => useGraph(e.target.value));
 
 /* ============================================================
-   شاشة الالتقاط
+   أدوات الكتابة المشتركة (شاشة الكتابة، والكتابة داخل العرض)
    ============================================================ */
-const ta = $("#ta");
-let TARGET = {kind:"today"};                         // الوجهة الدائمة لهذا الغراف
-let CTX = null;                                      // وجهة مؤقتة آتية من صفحة معروضة (صفحة أو كتلة)
-function initTarget(){
-  const g = G();
-  TARGET = (g && g.pageMode === "last" && g.lastPage && g.lastPage.kind === "page" && g.lastPage.title)
-    ? {kind:"page", title:g.lastPage.title} : {kind:"today"};
-}
-function setTarget(t){
-  TARGET = t; const g = G();
-  if (g){ g.lastPage = t.kind === "page" ? {kind:"page", title:t.title} : {kind:"today", title:""}; saveCfg(); }
-  if (t.kind === "page") addRecent(t.title);
-}
-function fillGraphs(){
-  const s = $("#graph"); s.innerHTML = "";
-  graphs().forEach(g => { const o = el("option"); o.value = g.name; o.textContent = g.name; s.appendChild(o); });
-  if (G()) s.value = G().name;
-  s.hidden = graphs().length < 2;
-}
-$("#graph").onchange = e => switchGraph(e.target.value);
-function switchGraph(name){
-  RAW.roam.current = name; saveCfg(); loadPages(); initTarget(); pageCache.clear(); fillGraphs(); enterHome();
-  toast("الغراف: "+name);
-}
-function enterHome(){
-  fillGraphs();
-  const t = CTX || TARGET;
-  $("#targetName").textContent = t.kind === "today" ? "اليوم" : (t.kind === "page" ? t.title : t.page);
-  const c = $("#ctx");
-  if (CTX){
-    c.hidden = false;
-    c.firstElementChild.innerHTML = CTX.kind === "block"
-      ? (CTX.order === "last" ? "تحت: " : "بعد: ")+"<b>"+esc(CTX.label)+"</b>"
-      : "في آخر صفحة: <b>"+esc(CTX.title)+"</b>";
-  } else c.hidden = true;
-  $("#target").disabled = !!CTX;
-  taDir(); updateSugg();
-  if (ROUTE.write) setTimeout(() => ta.focus(), 60);
-}
-$("#ctxX").onclick = back;
-$("#target").onclick = () => go("st");
-$("#bSearch").onclick = () => go("s");
-$("#bSet").onclick = () => go("set");
-
-/* ---- المسودة ---- */
-ta.value = store.get("rqm-draft") || "";
-let draftTimer;
-function saveDraft(){ clearTimeout(draftTimer); draftTimer = setTimeout(() => store.set("rqm-draft", ta.value), 250); }
-function taDir(){ const m = ta.value.match(/[A-Za-z؀-ۿ]/); ta.classList.toggle("ltr", !!m && /[A-Za-z]/.test(m[0])); }
-
-/* ---- إدراج يحفظ التراجع ---- */
+const KEYS_HTML = '<div class="ks">' +
+  '<button class="k" data-k="page">[[ ]]</button><button class="k" data-k="tag">#</button>' +
+  '<button class="k w" data-k="in">أدخِل</button><button class="k w" data-k="out">أخرِج</button>' +
+  '<button class="k" data-k="bold">**</button><button class="k" data-k="hl">^^</button>' +
+  '<button class="k" data-k="ref">(( ))</button><button class="k" data-k="todo">☐</button>' +
+  '<button class="k" data-k="undo">↶</button><button class="k" data-k="redo">↷</button></div>';
+$("#keys").innerHTML = KEYS_HTML + '<button class="send">إرسال</button>';
+$("#pkeys").innerHTML = '<button class="k w" data-k="close" style="flex:none">✕</button>' + KEYS_HTML + '<button class="send">أضف</button>';
+let ED = {ta:$("#ta"), sugg:$("#sugg")};             // مربع الكتابة النشط وشريط اقتراحه
 function ins(text, selStart, selEnd){
-  ta.focus();
+  const ta = ED.ta; ta.focus();
   if (selStart != null) ta.setSelectionRange(selStart, selEnd == null ? selStart : selEnd);
   let ok = false; try { ok = document.execCommand("insertText", false, text); } catch(e){}
   if (!ok){ const s = ta.selectionStart; ta.setRangeText(text, s, ta.selectionEnd, "end"); ta.dispatchEvent(new Event("input", {bubbles:true})); }
 }
 function wrapPair(open, close){
-  const s = ta.selectionStart, e = ta.selectionEnd, sel = ta.value.slice(s, e);
+  const ta = ED.ta, s = ta.selectionStart, e = ta.selectionEnd, sel = ta.value.slice(s, e);
   ins(open + sel + close);
   const p = sel ? s + open.length + sel.length + close.length : s + open.length;
   ta.setSelectionRange(p, p);
 }
 function shiftLines(dir){                            // أدخِل / أخرِج: مسافتان في أول السطر
-  const v = ta.value, s = ta.selectionStart, e = ta.selectionEnd;
+  const ta = ED.ta, v = ta.value, s = ta.selectionStart, e = ta.selectionEnd;
   const ls = v.lastIndexOf("\n", s-1) + 1; let le = v.indexOf("\n", Math.max(e, ls)); if (le < 0) le = v.length;
   const lines = v.slice(ls, le).split("\n"); let d0 = 0, dAll = 0;
   const out = lines.map((ln, i) => {
@@ -634,21 +1007,23 @@ const KEYS = {
   ref(){ wrapPair("((", "))"); },
   bold(){ wrapPair("**", "**"); },
   hl(){ wrapPair("^^", "^^"); },
-  tag(){ const s = ta.selectionStart, prev = ta.value[s-1]; ins((s === 0 || /\s/.test(prev) ? "" : " ") + "#"); },
-  todo(){ const v = ta.value, s = ta.selectionStart, ls = v.lastIndexOf("\n", s-1) + 1, ind = v.slice(ls).match(/^[ \t]*/)[0].length;
+  tag(){ const ta = ED.ta, s = ta.selectionStart, prev = ta.value[s-1]; ins((s === 0 || /\s/.test(prev) ? "" : " ") + "#"); },
+  todo(){ const ta = ED.ta, v = ta.value, s = ta.selectionStart, ls = v.lastIndexOf("\n", s-1) + 1, ind = v.slice(ls).match(/^[ \t]*/)[0].length;
           if (v.slice(ls+ind).startsWith("{{[[TODO]]}} ")) return; ins("{{[[TODO]]}} ", ls+ind); const p = s + 13; ta.setSelectionRange(p, p); },
   in(){ shiftLines(1); },
   out(){ shiftLines(-1); },
-  undo(){ ta.focus(); document.execCommand("undo"); },
-  redo(){ ta.focus(); document.execCommand("redo"); }
+  undo(){ ED.ta.focus(); document.execCommand("undo"); },
+  redo(){ ED.ta.focus(); document.execCommand("redo"); },
+  close(){ closeComp(); }
 };
-const keysEl = $("#keys");
-keysEl.addEventListener("mousedown", e => e.preventDefault());           // لا تسحب التركيز من مربع الكتابة
-keysEl.addEventListener("click", e => { const b = e.target.closest("[data-k]"); if (b && KEYS[b.dataset.k]){ KEYS[b.dataset.k](); updateSugg(); } });
-
-/* ---- اقتراح الصفحات والوسوم أثناء الكتابة ---- */
+document.querySelectorAll(".keys, .sugg").forEach(k => k.addEventListener("mousedown", e => e.preventDefault()));   // لا تسحب التركيز من مربع الكتابة
+document.querySelectorAll(".keys").forEach(k => k.addEventListener("click", e => {
+  const b = e.target.closest("[data-k]");
+  if (b && KEYS[b.dataset.k]){ KEYS[b.dataset.k](); if (b.dataset.k !== "close") updateSugg(); return; }
+  if (e.target.closest(".send")){ if (k.id === "keys") send(); else compSend(); }
+}));
 function caretCtx(){
-  const c = ta.selectionStart; if (c !== ta.selectionEnd) return null;
+  const ta = ED.ta, c = ta.selectionStart; if (c !== ta.selectionEnd) return null;
   const before = ta.value.slice(0, c), ls = before.lastIndexOf("\n") + 1, line = before.slice(ls);
   const o = line.lastIndexOf("[[");
   if (o >= 0 && line.indexOf("]]", o) < 0){ const q = line.slice(o+2); if (!/[\[\]]/.test(q)) return {kind:"page", q, start:ls+o+2, end:c}; }
@@ -658,8 +1033,8 @@ function caretCtx(){
 }
 let suggCtx = null;
 function updateSugg(){
-  const box = $("#sugg");
-  suggCtx = (document.activeElement === ta) ? caretCtx() : null;
+  const box = ED.sugg;
+  suggCtx = (document.activeElement === ED.ta) ? caretCtx() : null;
   if (!suggCtx){ box.hidden = true; return; }
   const q = suggCtx.q.trim();
   const items = q ? findPages(q, 14) : recents().slice(0, 10);
@@ -668,32 +1043,58 @@ function updateSugg(){
   if (q && !items.some(t => norm(t) === norm(q))){ const b = el("button", "sg new"); b.textContent = "＋ " + q; b.dataset.t = q; box.appendChild(b); }
   box.hidden = box.children.length === 0; box.scrollLeft = 0;
 }
-$("#sugg").addEventListener("mousedown", e => e.preventDefault());
-$("#sugg").addEventListener("click", e => {
+document.querySelectorAll(".sugg").forEach(box => box.addEventListener("click", e => {
   const b = e.target.closest(".sg"); if (!b || !suggCtx) return;
-  const t = b.dataset.t, c = suggCtx;
+  const ta = ED.ta, t = b.dataset.t, c = suggCtx;
   if (c.kind === "page"){
     const closed = ta.value.slice(c.end, c.end+2) === "]]";
     ins(t + (closed ? "" : "]]"), c.start, c.end);
     const p = c.start + t.length + 2; ta.setSelectionRange(p, p);
-  } else {
-    ins((/\s/.test(t) ? "[["+t+"]]" : t) + " ", c.start, c.end);
-  }
+  } else ins((/\s/.test(t) ? "[["+t+"]]" : t) + " ", c.start, c.end);
   updateSugg();
-});
-ta.addEventListener("input", e => {
-  saveDraft(); taDir();
-  if (e.inputType === "insertLineBreak" || (e.inputType === "insertText" && e.data === "\n")){   // السطر الجديد يرث إزاحة سابقه
+}));
+function edInput(e, inherit){
+  const ta = ED.ta;
+  if (inherit && (e.inputType === "insertLineBreak" || (e.inputType === "insertText" && e.data === "\n"))){   // السطر الجديد يرث إزاحة سابقه
     const c = ta.selectionStart, v = ta.value, ps = v.lastIndexOf("\n", c-2) + 1;
     const ind = v.slice(ps, c-1).match(/^[ \t]*/)[0];
     if (ind && v[c-1] === "\n" && !/^[ \t]/.test(v.slice(c))) ins(ind);
   }
   updateSugg();
-});
-document.addEventListener("selectionchange", () => { if (document.activeElement === ta) updateSugg(); });
+}
+document.addEventListener("selectionchange", () => { if (document.activeElement === ED.ta) updateSugg(); });
+
+/* ============================================================
+   شاشة الكتابة
+   ============================================================ */
+const ta = $("#ta");
+let TARGET = {kind:"today"};
+function initTarget(){
+  const g = G();
+  TARGET = (g && g.pageMode === "last" && g.lastPage && g.lastPage.kind === "page" && g.lastPage.title)
+    ? {kind:"page", title:g.lastPage.title} : {kind:"today"};
+}
+function setTarget(t){
+  TARGET = t; const g = G();
+  if (g){ g.lastPage = t.kind === "page" ? {kind:"page", title:t.title} : {kind:"today", title:""}; saveCfg(); }
+  if (t.kind === "page") addRecent(t.title);
+}
+function enterHome(){
+  fillGraphs(); ED = {ta, sugg:$("#sugg")};
+  $("#targetName").textContent = TARGET.kind === "today" ? "اليوم" : TARGET.title;
+  taDir(); updateSugg();
+  setTimeout(() => ta.focus(), 60);
+}
+$("#target").onclick = () => go("s");
+$("#bSearch").onclick = () => go("s");
+ta.value = store.get("rqm-draft") || "";
+let draftTimer;
+function saveDraft(){ clearTimeout(draftTimer); draftTimer = setTimeout(() => store.set("rqm-draft", ta.value), 250); }
+function taDir(){ const m = ta.value.match(/[A-Za-z؀-ۿ]/); ta.classList.toggle("ltr", !!m && /[A-Za-z]/.test(m[0])); }
+ta.addEventListener("focus", () => { ED = {ta, sugg:$("#sugg")}; });
+ta.addEventListener("input", e => { saveDraft(); taDir(); edInput(e, true); });
 ta.addEventListener("blur", () => setTimeout(updateSugg, 150));
 
-/* ---- الإرسال ---- */
 function showErr(msg){ const e = $("#err"); e.hidden = !msg; if (msg) e.firstElementChild.textContent = msg; }
 $("#errX").onclick = () => showErr("");
 function headerText(g){
@@ -703,137 +1104,166 @@ function headerText(g){
 let sending = false;
 async function send(){
   if (sending) return;
-  const g = G(), t = CTX || TARGET;
+  const g = G(), t = TARGET, btn = $("#keys .send");
   let blocks = parseOutline(ta.value);
   if (!blocks.length){ toast("لا يوجد نص للإرسال"); return; }
   if (!g || !g.token){ toast("أضف رمز الغراف من الإعدادات"); go("set"); return; }
-  if (g.header && t.kind !== "block") blocks = [{string:headerText(g), children:blocks}];
-  sending = true; $("#send").disabled = true; $("#send").textContent = "…"; showErr("");
+  if (g.header) blocks = [{string:headerText(g), children:blocks}];
+  sending = true; btn.disabled = true; btn.textContent = "…"; showErr("");
   try {
-    let parent, order = "last", title = null;
-    if (t.kind === "block"){ parent = t.uid; order = t.order; title = t.page; }
-    else if (t.kind === "today"){ parent = dailyUid(); title = dailyTitle(); await roam("write", {action:"create-page", page:{title, uid:parent}}, {soft:true}); }
+    let parent, title;
+    if (t.kind === "today"){ parent = dailyUid(); title = dailyTitle(); await roam("write", {action:"create-page", page:{title, uid:parent}}, {soft:true}); }
     else { title = t.title; parent = await pageUid(title, true); if (!parent) throw new Error("تعذّر تحديد الصفحة"); }
-    const acts = toActions(blocks, parent, order, []);
-    await writeBlocks(acts);
+    let base = 0; if (LOC){ try { await openLocal(); base = (await lMaxOrder(parent)) + 1; } catch(e){} }
+    const pl = plan(blocks, null, parent, parent, base, false);
+    await writeBlocks(pl.acts);
+    if (LOC){ try { await lPutPage(parent, title); await lPutRecs(pl.recs); } catch(e){} }
+    addPageTitle(title);
     ta.value = ""; store.set("rqm-draft", ""); taDir();
     if (t.kind === "page") addRecent(t.title);
-    const pc = pageCache.get(cacheKey(title)); if (pc){ pc.stale = true; if (t.kind === "block" && t.order === "last") pc.openUid = t.uid; }
-    toast("أُرسل ✓ " + AR(acts.length) + (acts.length === 1 ? " كتلة" : " كتل") + " ← " + (t.kind === "today" ? "اليوم" : title), 2000);
-    if (CTX){ CTX = null; back(); }
+    const pc = pageCache.get(cacheKey(title)); if (pc) pc.stale = true;
+    toast("أُرسل ✓ " + AR(pl.acts.length) + (pl.acts.length === 1 ? " كتلة" : " كتل") + " ← " + (t.kind === "today" ? "اليوم" : title), 2000);
   } catch(e){ showErr("لم يُرسل، ونصّك باقٍ: " + e.message); }
-  finally { sending = false; $("#send").disabled = false; $("#send").textContent = "إرسال"; updateSugg(); }
+  finally { sending = false; btn.disabled = false; btn.textContent = "إرسال"; updateSugg(); }
 }
-$("#send").addEventListener("mousedown", e => e.preventDefault());
-$("#send").onclick = send;
 
 /* ============================================================
-   شاشة البحث (فتح صفحة، أو اختيار وجهة)
+   شاشة البحث الموحّد: صفحات (عرض، أو قلم للكتابة فيها) وكتل (عرض مع الأب)
    ============================================================ */
 const sq = $("#sq");
+const IC_PAGE = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M6 3h9l4 4v14H6zM14 3v5h5"/></svg>';
+const IC_PEN = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16v4zM13.5 6.5l4 4"/></svg>';
+let LASTQ = "", sSeq = 0, sTimer = null;
 function enterSearch(){
-  sq.value = ""; sq.placeholder = ROUTE.mode === "target" ? "إلى أي صفحة تكتب؟" : "ابحث عن صفحة…";
-  drawSearch(); setTimeout(() => sq.focus(), 50);
-  if (!PAGES.length && G() && G().token && !refreshing) refreshPages(true);
+  fillGraphs(); sq.value = LASTQ; drawSearch();
+  setTimeout(() => { sq.focus(); sq.select(); }, 50);
+  if (!PAGES.length && G() && G().token && !refreshing && !LOC) refreshPages(true);
 }
 function pagesInfo(){
   const g = G(); if (!g) return "";
-  if (!PAGES.length) return "لا قائمة صفحات بعد — اضغط زر التحديث لجلبها من Roam";
-  const at = +store.get("rqm-pagesAt:"+g.name) || 0;
-  let when = "";
-  if (at){ const d = Math.floor((Date.now()-at)/86400000); when = " · حُدِّثت " + (d <= 0 ? "اليوم" : d === 1 ? "أمس" : "قبل "+AR(d)+" يوماً"); }
-  return AR(PAGES.length) + " صفحة" + when;
+  if (SYNC.running) return SYNC.msg;
+  if (!PAGES.length) return "لا قائمة صفحات بعد — حمّل الغراف أو حدّث القائمة من الإعدادات";
+  return AR(PAGES.length) + " صفحة" + (LOC ? " · البحث يشمل نصوص الكتل" : " · لتبحث داخل النصوص حمّل الغراف من الإعدادات");
+}
+function pageRow(title, sub, data, special){
+  const d = el("div", "it" + (special ? " sp" : "")); d.dataset.t = data == null ? title : data;
+  d.appendChild(el("span", "pi", IC_PAGE));
+  const a = el("span", "t"); a.textContent = title; d.appendChild(a);
+  if (sub){ const b = el("span", "s"); b.textContent = sub; d.appendChild(b); }
+  const p = el("button", "pen", IC_PEN); p.setAttribute("aria-label", "اكتب فيها"); d.appendChild(p);
+  return d;
 }
 function drawSearch(){
-  const q = sq.value.trim(), list = $("#sList"), tgt = ROUTE.mode === "target";
+  const q = sq.value.trim(), box = $("#sPages"), bb = $("#sBlocks"); LASTQ = sq.value;
   $("#sInfo").textContent = pagesInfo();
-  list.innerHTML = "";
-  const row = (title, sub, cls, data) => { const d = el("div", "it"+(cls ? " "+cls : "")); d.dataset.t = data == null ? title : data;
-    const a = el("span", "t"); a.textContent = title; d.appendChild(a); if (sub){ const b = el("span", "s"); b.textContent = sub; d.appendChild(b); } list.appendChild(d); };
+  box.innerHTML = ""; clearTimeout(sTimer); const seq = ++sSeq;
   if (!q){
-    row("اليوم", dailyTitle(), "sp", "@today");
+    bb.innerHTML = "";
+    box.appendChild(pageRow("اليوم", dailyTitle(), "@today", true));
     const r = recents();
-    if (r.length){ list.appendChild(el("div", "sec", "الأخيرة")); r.forEach(t => row(t)); }
+    if (r.length){ box.appendChild(el("div", "sec", "الأخيرة")); r.forEach(t => box.appendChild(pageRow(t))); }
     return;
   }
-  const res = findPages(q, 70);
-  if ("اليوم".includes(q) || "today".includes(q.toLowerCase())) row("اليوم", dailyTitle(), "sp", "@today");
-  res.forEach(t => row(t));
-  if (!res.some(t => norm(t) === norm(q))) row(q, tgt ? "صفحة جديدة" : "افتحها بهذا الاسم", "sp");
-}
-function pickSearch(t){
-  if (ROUTE.mode === "target"){
-    setTarget(t === "@today" ? {kind:"today"} : {kind:"page", title:t});
-    back(); setTimeout(() => ta.focus(), 80);
-  } else {
-    const title = t === "@today" ? dailyTitle() : t;
-    goReplace(pageHash(title));
-  }
+  const res = findPages(q, 40);
+  if ("اليوم".includes(q) || "today".includes(q.toLowerCase())) box.appendChild(pageRow("اليوم", dailyTitle(), "@today", true));
+  res.forEach(t => box.appendChild(pageRow(t)));
+  if (!res.some(t => norm(t) === norm(q))) box.appendChild(pageRow(q, "صفحة جديدة", null, true));
+  if (!LOC || foldStr(q).length < 2){ bb.innerHTML = ""; return; }
+  sTimer = setTimeout(async () => {
+    try {
+      await openLocal(); const r = await W("search", {q, limit:60}); if (seq !== sSeq) return;
+      bb.innerHTML = "";
+      const head = el("div", "sec"); head.textContent = "في النصوص: " + AR(r.total) + (r.total > r.hits.length ? " (المعروض " + AR(r.hits.length) + ")" : "") + " · " + AR(r.ms) + " مث"; bb.appendChild(head);
+      const f = document.createDocumentFragment();
+      for (const h of r.hits){
+        const d = el("div", "it bk"); d.dataset.u = h.u; d.appendChild(el("span", "dot"));
+        const t = el("span", "t"), sn = el("span", "sn"); t.dir = "auto";
+        sn.append(h.pre, Object.assign(el("b"), {textContent:h.hit}), h.post); t.appendChild(sn);
+        const pg = el("span", "pg"); pg.textContent = PT.get(h.g) || ""; t.appendChild(pg);
+        d.appendChild(t); f.appendChild(d);
+      }
+      bb.appendChild(f);
+    } catch(e){ if (seq === sSeq){ bb.innerHTML = ""; const m = el("div", "pmsg"); m.textContent = "بحث النصوص: " + e.message; bb.appendChild(m); } }
+  }, 140);
 }
 sq.addEventListener("input", drawSearch);
-sq.addEventListener("keydown", e => { if (e.key === "Enter"){ e.preventDefault(); const f = $("#sList .it"); if (f) pickSearch(f.dataset.t); } });
-$("#sList").addEventListener("click", e => { const it = e.target.closest(".it"); if (it) pickSearch(it.dataset.t); });
+sq.addEventListener("keydown", e => { if (e.key === "Enter"){ e.preventDefault(); const f = $("#sPages .it") || $("#sBlocks .it"); if (f) f.click(); } });
+$("#sList").addEventListener("click", e => {
+  const it = e.target.closest(".it"); if (!it) return;
+  if (it.dataset.u){ go("b=" + it.dataset.u + "&q=" + encodeURIComponent(sq.value.trim())); return; }
+  const t = it.dataset.t;
+  if (e.target.closest(".pen")){                      // القلم: اكتب في هذه الصفحة
+    setTarget(t === "@today" ? {kind:"today"} : {kind:"page", title:t});
+    if (PREV === "home" && depth() > 0) history.back(); else goReplace("c");
+  } else go(pageHash(t === "@today" ? dailyTitle() : t));
+});
+$("#sWrite").onclick = () => { if (PREV === "home" && depth() > 0) history.back(); else go("c"); };
 let refreshing = false;
 async function refreshPages(quiet){
-  if (refreshing) return; refreshing = true; $("#sInfo").textContent = "يجلب أسماء الصفحات من Roam…";
-  try { const n = await fetchPages(); toast("قائمة الصفحات: " + AR(n)); }
+  if (refreshing) return; refreshing = true;
+  try { const n = await fetchPages(); if (!quiet) toast("قائمة الصفحات: " + AR(n)); }
   catch(e){ if (!quiet) toast("تعذّر الجلب: " + e.message, 4000); }
   finally { refreshing = false; if (ROUTE.name === "search") drawSearch(); if (ROUTE.name === "settings") renderSettings(); }
 }
-$("#sRefresh").onclick = () => refreshPages(false);
 
 /* ============================================================
-   شاشة الصفحة
+   شاشة العرض: صفحة بمراجعها، أو كتلة مع أبيها
    ============================================================ */
-const pageCache = new Map();                         // غراف|عنوان ← {data, refs, scroll, stale, openUid}
+const pageCache = new Map();
 const cacheKey = t => (G() ? G().name : "") + "|" + t;
-let CUR = null, pageSeq = 0, SEL = null, renderBudget = 0;
+let CUR = null, viewSeq = 0, SEL = null, budget = 0;
 const pBody = $("#pBody"), pTree = $("#pTree"), pRefs = $("#pRefs");
 
-function leavePage(){ if (ROUTE.name === "page" && CUR){ CUR.scroll = pBody.scrollTop; } clearSel(); }
-function initOpen(nodes, depth){                     // حالة الطي الأولى من Roam، مع سقف لما يُرسم
+function leavePage(){ if (ROUTE.name === "page" && CUR){ CUR.scroll = pBody.scrollTop; } closeComp(true); clearSel(); $("#hitNav").hidden = true; }
+function initOpen(nodes, opens){                     // حالة الطي الأولى من Roam، مع سقف لما يُرسم
   for (const n of nodes){
-    if (n._open === undefined) n._open = n.kids.length > 0 && n.open && renderBudget > 0;
-    renderBudget--;
-    if (n._open) initOpen(n.kids, depth+1);
+    if (n._open === undefined) n._open = opens && opens.has(n.uid) ? opens.get(n.uid) && n.kids.length > 0 : n.kids.length > 0 && n.open && budget > 0;
+    budget--; if (n._open) initOpen(n.kids, opens);
   }
 }
+async function autoOpen(nodes, depthN, opens){       // النسخة المحلية: حمّل أولاد المفتوح فقط
+  for (const n of nodes){
+    const want = opens && opens.has(n.uid) ? opens.get(n.uid) : (n.open && budget > 0 && depthN < 4);
+    if (n.lazy && want){ await lLoadKids(n); budget -= n.kids.length; n._open = true; await autoOpen(n.kids, depthN + 1, opens); }
+    else if (n._open === undefined) n._open = false;
+  }
+}
+function setBul(b){ const n = b._n, bul = b.querySelector(":scope > .row > .bul"), hk = hasKids(n); bul.classList.toggle("has", hk); bul.classList.toggle("closed", hk && !n._open); }
 function blkEl(n){
-  const b = el("div", "blk"); b._n = n;
-  const row = el("div", "row"), hasKids = n.kids.length > 0 || (n.lazy && !n.loaded);
-  const bul = el("span", "bul" + (hasKids ? " has" : "") + (hasKids && !n._open ? " closed" : ""));
+  const b = el("div", "blk"); b._n = n; b.dataset.u = n.uid;
+  const row = el("div", "row" + (PEND.has(n.uid) ? " unsent" : "")), bul = el("span", "bul");
   const txt = el("div", "txt" + (n.h ? " h"+Math.min(3, n.h) : "")); txt.dir = "auto"; txt.innerHTML = inl(n.s) || "&#8203;";
-  row.append(bul, txt); b.appendChild(row);
-  if (hasKids){ const k = el("div", "kids"); b.appendChild(k); if (n._open) fillKids(k, n); else k.hidden = true; }
+  row.append(bul, txt); const k = el("div", "kids"); b.append(row, k); setBul(b);
+  if (n._open && hasKids(n)) fillKids(k, n); else k.hidden = true;
   return b;
 }
-function fillKids(k, n){ if (k._done) return; k._done = true; const f = document.createDocumentFragment(); for (const c of n.kids) f.appendChild(blkEl(c)); k.appendChild(f); }
-async function toggleBlk(b){
-  const n = b._n, k = b.querySelector(":scope > .kids"), bul = b.querySelector(":scope > .row > .bul"); if (!k) return;
-  if (n.lazy && !n.loaded){
-    bul.classList.add("wait");
-    try { await pullSubtrees([n]); } catch(e){ toast(e.message, 3500); bul.classList.remove("wait"); return; }
-    bul.classList.remove("wait");
-    if (!n.kids.length){ bul.classList.remove("has","closed"); k.remove(); return; }
-  }
-  n._open = !n._open;
-  if (n._open) fillKids(k, n);
-  k.hidden = !n._open; bul.classList.toggle("closed", !n._open);
-  if (n._open) resolveRefs(k);
+function fillKids(k, n){                              // يرسم ما لم يُرسم من الأولاد، وزر «المزيد» إن بقي
+  const old = k.querySelector(":scope > .more"); if (old) old.remove();
+  const f = document.createDocumentFragment();
+  for (let i = k._r || 0; i < n.kids.length; i++) f.appendChild(blkEl(n.kids[i]));
+  k._r = n.kids.length; k.appendChild(f);
+  if (n.more){ const m = el("button", "more"); m.textContent = "المزيد…"; m.onclick = async () => { m.disabled = true; try { await loadKids(n); fillKids(k, n); resolveRefs(k); } catch(e){ toast(e.message, 3500); m.disabled = false; } }; k.appendChild(m); }
 }
-function setAll(nodes, open, depth){ for (const n of nodes){ if (n.kids.length) n._open = open && depth < 6; setAll(n.kids, open, depth+1); } }
-
-function drawPage(){
-  const d = CUR.data; pTree.innerHTML = "";
-  if (!d){ return; }
-  if (d.missing) pTree.appendChild(el("div", "pmsg", "هذه الصفحة غير موجودة بعد في الغراف.<br>اضغط ＋ لتكتب فيها فتُنشأ."));
-  else if (!d.kids.length) pTree.appendChild(el("div", "pmsg", "الصفحة فارغة."));
-  else { const f = document.createDocumentFragment(); for (const n of d.kids) f.appendChild(blkEl(n)); pTree.appendChild(f); }
-  resolveRefs(pTree);
+async function openBlk(b){                            // افتح أولاد كتلة (وحمّلهم إن لزم)
+  const n = b._n, k = b.querySelector(":scope > .kids"), bul = b.querySelector(":scope > .row > .bul");
+  if (n.lazy){ bul.classList.add("wait"); try { await loadKids(n); } finally { bul.classList.remove("wait"); } }
+  n._open = true; fillKids(k, n); k.hidden = false; setBul(b); resolveRefs(k);
+}
+async function toggleBlk(b){
+  const n = b._n; if (!hasKids(n)) return;
+  if (n._open){ n._open = false; b.querySelector(":scope > .kids").hidden = true; setBul(b); }
+  else { try { await openBlk(b); } catch(e){ toast(e.message, 3500); } }
+}
+function drawTree(){
+  const c = CUR; pTree.innerHTML = ""; pTree._r = 0;
+  if (!c.root) return;
+  if (c.missing) pTree.appendChild(el("div", "pmsg", "هذه الصفحة غير موجودة بعد في الغراف.<br>اضغط ＋ لتكتب فيها فتُنشأ."));
+  else if (!c.root.kids.length) pTree.appendChild(el("div", "pmsg", "الصفحة فارغة."));
+  fillKids(pTree, c.root); resolveRefs(pTree);
 }
 function drawRefs(){
   pRefs.innerHTML = ""; const r = CUR.refs; if (!r) return;
-  const total = r.groups.reduce((a,g) => a + g.blocks.length, 0);
+  const total = r.total != null ? r.total : r.groups.reduce((a,g) => a + g.blocks.length, 0);
   const box = el("div", "refs"), head = el("div", "rh");
   head.innerHTML = '<span class="bul has'+(r.open ? "" : " closed")+'" style="width:18px;height:22px"></span>المراجع المرتبطة <span class="n">'+AR(total)+'</span>';
   box.appendChild(head);
@@ -845,62 +1275,133 @@ function drawRefs(){
 }
 function fillRefs(body, r){
   if (body._done) return; body._done = true;
-  let shown = 0;
   for (const g of r.groups){
-    if (shown > 300){ body.appendChild(el("div", "pmsg", "… والباقي كثير؛ افتح الصفحات المعنية لتراه.")); break; }
     const box = el("div", "rg"), t = el("a", "pl rgt"); t.dataset.p = g.page; t.textContent = g.page; box.appendChild(t);
-    for (const n of g.blocks){ box.appendChild(blkEl(n)); shown++; }
+    for (const n of g.blocks) box.appendChild(blkEl(n));
     body.appendChild(box);
   }
   resolveRefs(body);
 }
-
+function enterView(){
+  $("#pAdd").hidden = ROUTE.kind !== "page"; $("#pFold").hidden = ROUTE.kind !== "page";
+  if (ROUTE.kind === "block") return enterBlock(ROUTE.uid, ROUTE.q);
+  return enterPage(ROUTE.title);
+}
 async function enterPage(title){
   const key = cacheKey(title); let c = pageCache.get(key);
-  $("#pTitle").textContent = title;
-  if (!c){ c = {title, data:null, refs:null, scroll:0, stale:false}; pageCache.set(key, c); }
+  $("#pTitle").textContent = title; $("#pTitle").onclick = null;
+  if (!c){ c = {kind:"page", title, root:null, refs:null, scroll:0, stale:false, missing:false}; pageCache.set(key, c); }
   CUR = c; addRecent(title);
-  if (c.data && !c.stale){ drawPage(); drawRefs(); pBody.scrollTop = c.scroll || 0; return; }
-  await loadPage(c, !c.data);
+  if (c.root && !c.stale){ drawTree(); drawRefs(); pBody.scrollTop = c.scroll || 0; return; }
+  await loadPage(c, !c.root);
 }
 async function loadPage(c, fresh){
-  const seq = ++pageSeq, keepScroll = fresh ? 0 : pBody.scrollTop;
+  const seq = ++viewSeq, keepScroll = fresh ? 0 : pBody.scrollTop;
   if (fresh){ pTree.innerHTML = '<div class="pmsg">يجلب الصفحة…</div>'; pRefs.innerHTML = ""; }
-  const opens = new Map(); (function walk(ns){ for (const n of ns){ if (n._open !== undefined) opens.set(n.uid, n._open); walk(n.kids); } })(c.data ? c.data.kids : []);
+  const opens = new Map(); (function walk(ns){ for (const n of ns){ if (n._open !== undefined) opens.set(n.uid, n._open); walk(n.kids); } })(c.root ? c.root.kids : []);
   try {
-    const d = await pullPage(c.title);
-    if (seq !== pageSeq || CUR !== c) { c.data = c.data || d; return; }
-    (function walk(ns){ for (const n of ns){ if (opens.has(n.uid)) n._open = opens.get(n.uid); if (n.uid === c.openUid && n.kids.length) n._open = true; walk(n.kids); } })(d.kids);
-    renderBudget = 700; initOpen(d.kids, 0);
-    c.data = d; c.stale = false; c.openUid = null;
-    drawPage(); pBody.scrollTop = keepScroll;
+    let root, missing = false;
+    if (LOC){
+      await openLocal();
+      const pr = await rq(DB.transaction("pages").objectStore("pages").index("t").get(c.title));
+      if (!pr){ missing = true; root = mkNode({isPage:true, loc:true}); }
+      else { root = mkNode({uid:pr.u, g:pr.u, isPage:true, loc:true, lazy:true, loaded:false}); await lLoadKids(root); budget = 150; await autoOpen(root.kids, 0, opens); }
+    } else {
+      root = await pullPage(c.title);
+      if (!root){ missing = true; root = mkNode({isPage:true}); }
+      else { budget = 700; initOpen(root.kids, opens); }
+    }
+    if (seq !== viewSeq || CUR !== c){ if (!c.root){ c.root = root; c.missing = missing; } return; }
+    c.root = root; c.missing = missing; c.stale = false;
+    drawTree(); pBody.scrollTop = keepScroll;
   } catch(e){
-    if (seq !== pageSeq || CUR !== c) return;
-    if (!c.data){ pTree.innerHTML = ""; const m = el("div", "pmsg"); m.textContent = e.message; const b = el("button"); b.textContent = "إعادة المحاولة"; b.onclick = () => loadPage(c, true); m.appendChild(el("br")); m.appendChild(b); pTree.appendChild(m); }
+    if (seq !== viewSeq || CUR !== c) return;
+    if (!c.root){ pTree.innerHTML = ""; const m = el("div", "pmsg"); m.textContent = e.message; const b = el("button"); b.textContent = "إعادة المحاولة"; b.onclick = () => loadPage(c, true); m.append(el("br"), b); pTree.appendChild(m); }
     else toast(e.message, 3500);
     return;
   }
-  if (PREFS.autoRefs) loadRefs(c, seq);
-  else { c.refs = c.refs || null; pRefs.innerHTML = ""; const b = el("div", "refs"); const h = el("div", "rh"); h.textContent = "عرض المراجع المرتبطة"; h.onclick = () => loadRefs(c, pageSeq); b.appendChild(h); pRefs.appendChild(b); }
+  if (PREFS.autoRefs || LOC) loadRefs(c, seq);
+  else { pRefs.innerHTML = ""; const b = el("div", "refs"), h = el("div", "rh"); h.textContent = "عرض المراجع المرتبطة"; h.onclick = () => loadRefs(c, viewSeq); b.appendChild(h); pRefs.appendChild(b); }
 }
 async function loadRefs(c, seq){
   try {
-    const wasOpen = c.refs ? c.refs.open : null;
-    const groups = await pullRefs(c.title);
-    if (seq !== pageSeq || CUR !== c) return;
+    const wasOpen = c.refs ? c.refs.open : null; let groups, total = null;
+    if (LOC){
+      const r = await W("refs", {title:c.title, limit:300}); total = r.total;
+      const nodes = (await lNodes(r.list.map(x => x.u), null)).filter(n => n.g !== c.root.uid);
+      const by = new Map(); for (const n of nodes){ const pg = PT.get(n.g) || "؟"; if (!by.has(pg)) by.set(pg, []); by.get(pg).push(n); }
+      groups = [...by.entries()].map(([page, blocks]) => ({page, blocks})).sort((a,b) => norm(a.page) < norm(b.page) ? -1 : 1);
+      if (total <= 300) total = nodes.length;
+    } else groups = await pullRefs(c.title);
+    if (seq !== viewSeq || CUR !== c) return;
     const all = groups.flatMap(g => g.blocks), few = all.length <= 6;
-    const emptyPage = !c.data || !c.data.kids.length;
-    c.refs = {groups, open: wasOpen != null ? wasOpen : (all.length > 0 && (emptyPage || few))};
+    const emptyPage = !c.root || !c.root.kids.length;
+    c.refs = {groups, total, open: wasOpen != null ? wasOpen : (all.length > 0 && (emptyPage || few))};
     drawRefs();
-    const first = all.filter(n => n.lazy).slice(0, 30);            // حمّل مسبقاً ما تحت أوائل المراجع
+    const first = all.filter(n => n.lazy).slice(0, LOC ? (few ? 6 : 0) : 30);    // حمّل مسبقاً ما تحت أوائل المراجع
     if (first.length){
-      await pullSubtrees(first);
-      if (seq !== pageSeq || CUR !== c) return;
+      if (LOC) for (const n of first) await lLoadKids(n); else await pullSubtrees(first);
+      if (seq !== viewSeq || CUR !== c) return;
       if (few){ for (const n of first) n._open = n.kids.length > 0; }
       const sc = pBody.scrollTop; drawRefs(); pBody.scrollTop = sc;
     }
-  } catch(e){ if (seq === pageSeq && CUR === c){ pRefs.innerHTML = ""; const m = el("div", "pmsg"); m.textContent = "المراجع: " + e.message; pRefs.appendChild(m); } }
+  } catch(e){ if (seq === viewSeq && CUR === c){ pRefs.innerHTML = ""; const m = el("div", "pmsg"); m.textContent = "المراجع: " + e.message; pRefs.appendChild(m); } }
 }
+
+/* ---- كتلة مع أبيها (نتيجة بحث نصي، أو مرجع كتلة) ---- */
+let HITS = [], hitI = 0;
+async function enterBlock(uid, q){
+  const seq = ++viewSeq; CUR = {kind:"block", uid, title:"", root:null, refs:null};
+  $("#pTitle").textContent = ""; pTree.innerHTML = '<div class="pmsg">…</div>'; pRefs.innerHTML = "";
+  try {
+    if (!LOC) throw new Error("عرض الكتلة يحتاج النسخة المحلية للغراف");
+    await openLocal();
+    const [n] = await lNodes([uid], null); if (!n) throw new Error("الكتلة غير موجودة في النسخة المحلية — جرّب المزامنة");
+    if (seq !== viewSeq) return;
+    const title = PT.get(n.g) || "", root = mkNode({uid:n.g, g:n.g, isPage:true, loc:true, partial:true});
+    n._open = false;
+    if (n.parent && n.parent !== n.g){
+      const [p] = await lNodes([n.parent], root);
+      if (p){ p.kids = [n]; p.lazy = false; p.loaded = true; p.partial = true; p._open = true; n.pn = p; root.kids = [p]; }
+    }
+    if (!root.kids.length){ n.pn = root; root.kids = [n]; }
+    if (seq !== viewSeq) return;
+    CUR.root = root; CUR.title = title;
+    const tt = $("#pTitle"); tt.textContent = title; tt.onclick = () => { if (title) go(pageHash(title)); };
+    drawTree();
+    const be = pTree.querySelector('.blk[data-u="'+uid+'"]'); if (!be) return;
+    be.querySelector(":scope > .row").classList.add("tgt");
+    HITS = q ? markMatches(be.querySelector(":scope > .row > .txt"), q) : []; hitI = 0;
+    showHit(true); if (!HITS.length) be.scrollIntoView({block:"center"});
+  } catch(e){ if (seq === viewSeq){ pTree.innerHTML = ""; const m = el("div", "pmsg"); m.textContent = e.message; pTree.appendChild(m); } }
+}
+function markMatches(root, q){                        // ظلّل مواضع العبارة داخل نص الكتلة (بتجاهل التشكيل)
+  const qb = foldStr(q.trim()), n = qb.length; if (!n) return [];
+  const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT), nodes = [], offs = [], bytes = []; let t;
+  while ((t = w.nextNode())){ const s = t.nodeValue; for (let i=0;i<s.length;i++){ const b = foldCode(s.charCodeAt(i)); if (b >= 0){ bytes.push(b); nodes.push(t); offs.push(i); } } }
+  const found = [];
+  for (let i=0; i + n <= bytes.length; i++){ let k = 0; while (k < n && bytes[i+k] === qb[k]) k++; if (k === n){ found.push(i); i += n - 1; } }
+  for (let f = found.length - 1; f >= 0; f--){
+    let z = found[f] + n - 1;
+    while (z >= found[f]){
+      let a = z; while (a > found[f] && nodes[a-1] === nodes[z]) a--;
+      const r = document.createRange(); r.setStart(nodes[z], offs[a]); r.setEnd(nodes[z], offs[z] + 1);
+      const m = document.createElement("mark"); m.className = "hit"; if (a === found[f]) m.dataset.first = "1";
+      try { r.surroundContents(m); } catch(e){}
+      z = a - 1;
+    }
+  }
+  return [...root.querySelectorAll('mark.hit[data-first]')];
+}
+function showHit(first){
+  const nav = $("#hitNav"); nav.hidden = HITS.length < 2;
+  if (!HITS.length) return;
+  HITS.forEach((m, i) => m.classList.toggle("cur", i === hitI));
+  nav.querySelector("span").textContent = AR(hitI + 1) + " / " + AR(HITS.length);
+  HITS[hitI].scrollIntoView({block:"center", behavior:first ? "auto" : "smooth"});
+}
+$("#hitNav").addEventListener("click", e => { const b = e.target.closest("button"); if (!b || !HITS.length) return; hitI = (hitI + (+b.dataset.h) + HITS.length) % HITS.length; showHit(); });
+
 /* ---- مراجع الكتل ((…)) ---- */
 const refText = new Map();
 async function resolveRefs(root){
@@ -908,51 +1409,156 @@ async function resolveRefs(root){
   const need = [...new Set(els.map(e => e.dataset.uid).filter(u => !refText.has(u)))];
   if (need.length){
     try {
-      const res = await roam("q", {query:"[:find ?u ?s :in $ [?u ...] :where [?b :block/uid ?u] [?b :block/string ?s]]", args:[need.slice(0, 200)]});
-      for (const row of (res.result || [])) refText.set(row[0], row[1]);
+      if (LOC){ const t = DB.transaction("blocks"), B = t.objectStore("blocks"); (await Promise.all(need.slice(0, 200).map(u => rq(B.get(u))))).forEach(b => { if (b) refText.set(b.u, b.s); }); }
+      else { const res = await roam("q", {query:"[:find ?u ?s :in $ [?u ...] :where [?b :block/uid ?u] [?b :block/string ?s]]", args:[need.slice(0, 200)]});
+        for (const row of (res.result || [])) refText.set(row[0], row[1]); }
     } catch(e){ return; }
   }
-  for (const e of els){ const s = refText.get(e.dataset.uid); if (s != null){ e.innerHTML = inl(s); e.classList.add("ok"); } }
+  for (const e of els){ const s = refText.get(e.dataset.uid); if (s != null){ e.innerHTML = inl(s.length > 600 ? s.slice(0, 600) + "…" : s); e.classList.add("ok"); } }
 }
 
 /* ---- اللمس: رابط، نقطة الطي، تحديد كتلة ---- */
 pBody.addEventListener("click", e => {
+  if (e.target.closest(".comp") || e.target.closest(".more")) return;
   const a = e.target.closest("a.pl");
   if (a){ e.preventDefault(); go(pageHash(a.dataset.p)); return; }
   if (e.target.closest("a.ext")) return;
+  const br = e.target.closest(".bref"); if (br && LOC){ go("b=" + br.dataset.uid); return; }
   const bul = e.target.closest(".blk > .row > .bul");
   if (bul){ toggleBlk(bul.closest(".blk")); return; }
   const row = e.target.closest(".blk > .row");
-  if (!row){ clearSel(); return; }
+  if (!row || COMP){ clearSel(); return; }
   const sel = window.getSelection(); if (sel && !sel.isCollapsed) return;        // تظليل نص: دعه للنسخ
   const b = row.parentElement;
   if (SEL && SEL.el === b){ clearSel(); return; }
   clearSel(); SEL = {el:b, n:b._n}; row.classList.add("sel");
-  $("#pSel").hidden = false; $("#pAdd").hidden = true;
-  $('#pSel [data-a="after"]').disabled = !(SEL.n.parent || (CUR.data && CUR.data.kids.includes(SEL.n)));
+  $("#pSel").hidden = false; $("#pAdd").hidden = true; $("#hitNav").hidden = true;
+  $('#pSel [data-a="after"]').disabled = !SEL.n.parent;
 });
-function clearSel(){ if (SEL){ const r = SEL.el.querySelector(":scope > .row"); if (r) r.classList.remove("sel"); } SEL = null; $("#pSel").hidden = true; $("#pAdd").hidden = false; }
-const snippet = s => { const t = s.replace(/\s+/g," ").trim(); return t.length > 46 ? t.slice(0, 46) + "…" : (t || "(كتلة فارغة)"); };
+function clearSel(){
+  if (SEL){ const r = SEL.el.querySelector(":scope > .row"); if (r) r.classList.remove("sel"); }
+  SEL = null; $("#pSel").hidden = true;
+  if (!COMP){ $("#pAdd").hidden = !(CUR && CUR.kind === "page" && ROUTE.name === "page"); if (ROUTE.name === "page" && HITS.length > 1 && CUR && CUR.kind === "block") $("#hitNav").hidden = false; }
+}
 $("#pSel").addEventListener("click", async e => {
   const b = e.target.closest("button"); if (!b || !SEL) return;
-  const n = SEL.n, a = b.dataset.a;
+  const n = SEL.n, be = SEL.el, a = b.dataset.a;
   if (a === "x"){ clearSel(); return; }
-  if (a === "copy"){ try { await navigator.clipboard.writeText(n.s); toast("نُسخ"); } catch(err){ toast("تعذّر النسخ"); } clearSel(); return; }
-  if (a === "under") CTX = {kind:"block", page:CUR.title, uid:n.uid, order:"last", label:snippet(n.s)};
-  else {
-    const parent = n.parent || (CUR.data && CUR.data.uid); if (!parent) return;
-    CTX = {kind:"block", page:CUR.title, uid:parent, order:n.order + 1, label:snippet(n.s)};
-  }
-  clearSel(); go("w");
+  if (a === "ref"){ try { await navigator.clipboard.writeText("((" + n.uid + "))"); toast("نُسخ مرجع الكتلة — الصقه حيث تكتب"); } catch(err){ toast("تعذّر النسخ"); } clearSel(); return; }
+  clearSel();
+  try {
+    if (a === "under"){ await openBlk(be); openComp({mode:"add", pn:n, at:"last", host:be.querySelector(":scope > .kids"), ref:null}); }
+    else if (a === "after"){ const pn = n.pn || mkNode({uid:n.parent, g:n.g, pseudo:true, kids:[n]}); openComp({mode:"add", pn, at:n.order + 1, host:be.parentElement, ref:be.nextSibling, anchor:n}); }
+    else if (a === "edit") await openEdit(be);
+  } catch(err){ toast(err.message, 3500); }
 });
-$("#pAdd").onclick = () => { CTX = {kind:"page", title:CUR.title}; go("w"); };
-$("#pReload").onclick = () => { if (CUR) loadPage(CUR, false); };
-let foldState = 0;
-$("#pFold").onclick = () => {                         // طيّ الكل ← نشر الكل ← طيّ…
-  if (!CUR || !CUR.data) return;
-  foldState = foldState ? 0 : 1; setAll(CUR.data.kids, !!foldState, 0); drawPage(); pBody.scrollTop = 0;
-  toast(foldState ? "نُشر الكل" : "طُوي الكل", 1200);
+$("#pAdd").onclick = () => { if (!CUR || !CUR.root) return; openComp({mode:"add", pn:CUR.root, at:"last", host:pTree, ref:null}); };
+$("#pReload").onclick = async () => {
+  if (!CUR) return;
+  if (LOC && navigator.onLine && !SYNC.running){ toast("يزامن…", 1500); await syncGraph(false); }
+  if (CUR.kind === "page"){ CUR.stale = true; pageCache.set(cacheKey(CUR.title), CUR); loadPage(CUR, false); } else route();
 };
+let foldState = 0;
+$("#pFold").onclick = () => {                         // طيّ الكل ← نشر المحمَّل ← طيّ…
+  if (!CUR || !CUR.root) return;
+  foldState = foldState ? 0 : 1;
+  (function setAll(nodes, d){ for (const n of nodes){ n._open = !!foldState && d < 6 && n.kids.length > 0; setAll(n.kids, d + 1); } })(CUR.root.kids, 0);
+  drawTree(); pBody.scrollTop = 0; toast(foldState ? "نُشر الكل" : "طُوي الكل", 1200);
+};
+
+/* ============================================================
+   الكتابة في الموضع: إضافة كتل، أو تعديل كتلة
+   ============================================================ */
+let COMP = null;
+function openComp(cfg){
+  closeComp(true);
+  const box = el("div", "comp"), t = el("textarea"); t.rows = 1; t.dir = "auto"; t.spellcheck = false; t.autocapitalize = "sentences";
+  t.placeholder = cfg.mode === "edit" ? "" : "اكتب… كل سطر كتلة";
+  box.appendChild(t); COMP = Object.assign({box, ta:t}, cfg);
+  if (cfg.mode === "edit"){ cfg.blk.querySelector(":scope > .row").hidden = true; cfg.blk.insertBefore(box, cfg.blk.firstChild); t.value = cfg.n.s; }
+  else { cfg.host.hidden = false; cfg.host.insertBefore(box, cfg.ref); const pm = pTree.querySelector(":scope > .pmsg"); if (pm && cfg.host === pTree) pm.remove(); }
+  const grow = () => { t.style.height = "auto"; t.style.height = Math.min(t.scrollHeight + 2, innerHeight * 0.46) + "px"; };
+  t.addEventListener("input", e => { grow(); edInput(e, cfg.mode !== "edit"); });
+  t.addEventListener("blur", () => setTimeout(updateSugg, 150));
+  ED = {ta:t, sugg:$("#psugg")};
+  $("#pEdit").hidden = false; $("#pAdd").hidden = true; $("#hitNav").hidden = true;
+  $("#pkeys .send").textContent = cfg.mode === "edit" ? "احفظ" : "أضف";
+  grow(); t.focus(); if (cfg.mode === "edit") t.setSelectionRange(t.value.length, t.value.length);
+  setTimeout(() => box.scrollIntoView({block:"center"}), 250);
+}
+function closeComp(silent){
+  if (!COMP) return; const c = COMP; COMP = null;
+  if (c.mode === "edit") c.blk.querySelector(":scope > .row").hidden = false;
+  c.box.remove(); $("#pEdit").hidden = true; $("#psugg").hidden = true; ED = {ta, sugg:$("#sugg")};
+  if (c.mode === "add" && c.host !== pTree && !c.host.querySelector(":scope > .blk")){ const b = c.host.parentElement; if (b && b._n && !hasKids(b._n)){ c.host.hidden = true; b._n._open = false; setBul(b); } }
+  if (!silent) clearSel();
+}
+async function ensureRoot(){                          // صفحة لم توجد بعد: أنشئها عند أول كتابة
+  const c = CUR, root = c.root; if (root.uid) return;
+  let uid = null; try { uid = await pageUid(c.title, false); } catch(e){}
+  if (!uid){ uid = dailyUidFromTitle(c.title) || newUid(); enqueue({action:"create-page", page:{title:c.title, uid}}, []); }
+  root.uid = uid; root.g = uid; root.loaded = true; c.missing = false; addPageTitle(c.title);
+  if (LOC){ try { await lPutPage(uid, c.title); } catch(e){} }
+}
+let compBusy = false;
+async function compSend(){
+  const c = COMP; if (!c || compBusy) return; const text = c.ta.value;
+  if (!G().token){ toast("أضف رمز الغراف من الإعدادات"); return; }
+  compBusy = true;
+  try {
+    if (c.mode === "edit"){
+      const s = text.replace(/\s+$/,""); if (!s){ toast("النص فارغ"); return; }
+      const n = c.n; closeComp();
+      if (s === n.s) return;
+      n.s = s; const txt = c.blk.querySelector(":scope > .row > .txt"); txt.innerHTML = inl(s) || "&#8203;"; resolveRefs(txt);
+      c.blk.querySelector(":scope > .row").classList.add("unsent"); refText.delete(n.uid);
+      if (LOC){ try {
+        const t = DB.transaction(["blocks","kv"], "readwrite"), B = t.objectStore("blocks"), kv = t.objectStore("kv"), g = B.get(n.uid);
+        g.onsuccess = () => { const b = g.result || {u:n.uid, g:n.g}; b.s = s; B.put(b); };
+        const tg = kv.get("tail"); tg.onsuccess = () => kv.put((tg.result || []).concat([{u:n.uid, s, p:n.parent, g:n.g, o:n.order}]), "tail");
+        await txDone(t); await W("upd", {u:n.uid, s});
+      } catch(e){} }
+      enqueue({action:"update-block", block:{uid:n.uid, string:s}}, [n.uid]);
+      return;
+    }
+    const blocks = parseOutline(text); if (!blocks.length){ toast("لا يوجد نص"); return; }
+    const pn = c.pn; if (pn.isPage) await ensureRoot();
+    const numeric = typeof c.at === "number"; let base;
+    if (numeric) base = c.at;
+    else if (LOC && !pn.pseudo){ await openLocal(); base = (await lMaxOrder(pn.uid)) + 1; }
+    else base = pn.kids.length ? pn.kids[pn.kids.length-1].order + 1 : 0;
+    const pageUid_ = pn.isPage ? pn.uid : pn.g;
+    const pl = plan(blocks, pn, pn.uid, pageUid_, base, numeric), len = pl.tops.length;
+    if (LOC){ await openLocal(); if (numeric) await lShift(pn.uid, base, len); await lPutRecs(pl.recs); }
+    if (numeric){
+      pn.kids.forEach(k => { if (k.order >= base) k.order += len; });
+      let i = pn.kids.findIndex(k => k.order >= base + len); if (i < 0) i = pn.kids.length;
+      pn.kids.splice(i, 0, ...pl.tops); c.at = base + len; if (c.host._r != null) c.host._r += len;
+    } else if (pn.more){ pn.added = pn.added || new Set(); pl.tops.forEach(t => pn.added.add(t.uid)); }   // لم تُحمَّل كل الأولاد بعد
+    else { pn.kids.push(...pl.tops); if (c.host._r != null) c.host._r = pn.kids.length; }
+    for (const u of pl.recs) PEND.add(u.u);
+    const f = document.createDocumentFragment(); for (const n of pl.tops) f.appendChild(blkEl(n));
+    c.host.insertBefore(f, c.box);
+    const hb = c.host.parentElement; if (hb && hb._n === pn){ pn._open = true; setBul(hb); }
+    for (let i = 0; i < pl.acts.length; i += 50){ const part = pl.acts.slice(i, i + 50); enqueue({action:"batch-actions", actions:part}, part.map(a => a.block.uid)); }
+    c.ta.value = ""; c.ta.style.height = "auto"; c.ta.focus(); updateSugg();
+    c.box.scrollIntoView({block:"center"});
+  } catch(e){ toast("تعذّرت الإضافة: " + e.message, 4000); }
+  finally { compBusy = false; }
+}
+async function openEdit(be){
+  const n = be._n;
+  if (!PEND.has(n.uid) && navigator.onLine){        // خذ أحدث نص من Roam قبل التعديل، لئلا يُمحى تعديل جرى من جهاز آخر
+    try {
+      const r = await roam("q", {query:"[:find ?s . :in $ ?u :where [?b :block/uid ?u] [?b :block/string ?s]]", args:[n.uid]}, {timeout:9000});
+      if (typeof r.result === "string" && r.result !== n.s){
+        n.s = r.result; be.querySelector(":scope > .row > .txt").innerHTML = inl(n.s) || "&#8203;"; toast("حُدّث النص من Roam قبل التعديل", 2500);
+        if (LOC){ try { const t = DB.transaction("blocks", "readwrite"), B = t.objectStore("blocks"), g = B.get(n.uid); g.onsuccess = () => { if (g.result){ g.result.s = n.s; B.put(g.result); } }; await txDone(t); await W("upd", {u:n.uid, s:n.s}); } catch(e){} }
+      }
+    } catch(e){ toast("تعذّر التحقق من أحدث نص؛ تعدّل النسخة التي عندك", 3000); }
+  }
+  openComp({mode:"edit", n, blk:be});
+}
 
 /* ============================================================
    حجم الخط والتباعد
@@ -980,28 +1586,53 @@ function renderSettings(){
   h3("الغرافات");
   for (const g of graphs()){
     if (editing === g.name){ box.appendChild(graphForm(g)); continue; }
-    const c = el("div", "card"), n = store.get("rq-pages:"+g.name);
+    const c = el("div", "card"), n = store.get("rq-pages:"+g.name), cur = G() === g;
     c.innerHTML = '<div class="gn"></div><div class="gs"></div>';
-    c.firstElementChild.textContent = g.name + (G() === g && graphs().length > 1 ? "  ●" : "");
-    c.children[1].textContent = (g.token ? "الرمز موجود" : "بلا رمز") + " · " + (n ? AR(n.split("\n").length)+" صفحة" : "لم تُجلب صفحاته") + " · " + (g.header ? "ترويسة" : "بلا ترويسة");
+    c.firstElementChild.textContent = g.name + (cur && graphs().length > 1 ? "  ●" : "");
+    c.children[1].textContent = (g.token ? "الرمز موجود" : "بلا رمز") + " · " + (n ? AR(n.split("\n").length)+" صفحة" : "لم تُجلب صفحاته") + " · " + (g.header ? "ترويسة" : "بلا ترويسة") + (isLocal(g.name) ? " · نسخة محلية" : "");
     const bt = el("div", "btns"), e1 = el("button", "btn"); e1.textContent = "تعديل"; e1.onclick = () => { editing = g.name; renderSettings(); };
     bt.appendChild(e1);
-    if (G() !== g){ const u = el("button", "btn"); u.textContent = "استعمله"; u.onclick = () => { RAW.roam.current = g.name; saveCfg(); loadPages(); initTarget(); pageCache.clear(); renderSettings(); }; bt.appendChild(u); }
-    else { const r = el("button", "btn"); r.textContent = refreshing ? "يجلب…" : "تحديث قائمة الصفحات"; r.onclick = () => { refreshPages(false); renderSettings(); }; bt.appendChild(r); }
-    c.appendChild(bt); box.appendChild(c);
+    if (!cur){ const u = el("button", "btn"); u.textContent = "استعمله"; u.onclick = () => { useGraph(g.name, true); renderSettings(); }; bt.appendChild(u); }
+    c.appendChild(bt);
+    if (cur) c.appendChild(localBox(g));
+    box.appendChild(c);
   }
   if (editing === "") box.appendChild(graphForm(null));
   else { const add = el("button", "btn"); add.textContent = "＋ إضافة غراف"; add.onclick = () => { editing = ""; renderSettings(); }; box.appendChild(add); }
 
+  h3("عند فتح التطبيق");
+  const sel = (label, opts, val, on) => { const l = el("label", "f"), s = el("select"); opts.forEach(o => { const x = el("option"); x.value = o[0]; x.textContent = o[1]; s.appendChild(x); }); s.value = val; s.onchange = () => on(s.value); l.append(label, s); box.appendChild(l); };
+  sel("الشاشة الأولى ومكان المؤشر", [["search","البحث (المؤشر في خانة البحث)"],["write","الكتابة (المؤشر في صندوق الكتابة)"]], PREFS.start === "write" ? "write" : "search", v => { PREFS.start = v; savePrefs(); });
+  sel("الغراف الافتراضي", [["","بلا افتراضي — آخر غراف استعملته"]].concat(graphs().map(g => [g.name, g.name])), graphs().some(g => g.name === PREFS.defGraph) ? PREFS.defGraph : "", v => { PREFS.defGraph = v; savePrefs(); });
+
   h3("القراءة");
   const ck = el("label", "ck"), cb = el("input"); cb.type = "checkbox"; cb.checked = !!PREFS.autoRefs;
   cb.onchange = () => { PREFS.autoRefs = cb.checked; savePrefs(); };
-  ck.append(cb, "جلب المراجع المرتبطة تلقائياً عند فتح الصفحة");
+  ck.append(cb, "جلب المراجع المرتبطة تلقائياً (للغراف غير المحمَّل)");
   box.appendChild(ck);
-  box.appendChild(el("div", "note", "حجم الخط والتباعد من زر <b>Aa</b> في أعلى الشاشة."));
+  box.appendChild(el("div", "note", "حجم الخط والتباعد من زر <b>Aa</b> في شاشتي الكتابة والعرض."));
 
   h3("عن التطبيق");
-  box.appendChild(el("div", "note", "الرمز يُحفظ في متصفح هذا الهاتف وحده، نصاً غير مشفّر، ولا يُرسل إلا إلى خادم Roam. ما تكتبه يُحفظ مسودةً تلقائياً حتى يُرسل."));
+  box.appendChild(el("div", "note", "الرمز والنسخة المحلية يُحفظان في متصفح هذا الجهاز وحده، بلا تشفير، ولا يُرسل شيء إلا إلى خادم Roam. ما تكتبه يظهر فوراً ويُرسل في الخلفية؛ وما لم يصل بعدُ يبقى معلَّماً ويُعاد إرساله تلقائياً."));
+}
+function localBox(g){
+  const b = el("div", "syncbox"), msg = el("div", "note"); msg.id = "syncMsg"; const bt = el("div", "btns");
+  const btn = (t, cls, fn) => { const x = el("button", "btn" + (cls ? " "+cls : "")); x.textContent = t; x.onclick = fn; bt.appendChild(x); return x; };
+  const loc = isLocal(g.name), at = +store.get("rqm-syncAt:"+g.name) || 0;
+  if (SYNC.running){ msg.textContent = SYNC.msg; btn("إيقاف", "d", () => { SYNC.stop = true; }); }
+  else {
+    msg.textContent = SYNC.msg || (loc ? "نسخة محلية كاملة على هذا الجهاز" + (at ? " · آخر مزامنة " + new Date(at).toLocaleString("ar-EG", {dateStyle:"short", timeStyle:"short"}) : "") : "لا نسخة محلية. تحميل الغراف يتيح البحث الحي داخل النصوص، وفتح الصفحات فوراً وبلا شبكة.");
+    if (!loc) btn("تحميل الغراف إلى الجهاز", "p", () => { syncGraph(true); renderSettings(); });
+    else {
+      btn("مزامنة", "p", () => { syncGraph(false); renderSettings(); });
+      btn("مزامنة كاملة", "", () => { syncGraph(true); renderSettings(); });
+      const d = btn("حذف النسخة", "d", async () => { if (d.dataset.arm !== "1"){ d.dataset.arm = "1"; d.textContent = "اضغط ثانية للتأكيد"; setTimeout(() => { d.dataset.arm = ""; d.textContent = "حذف النسخة"; }, 2500); return; } await dropLocal(); SYNC.msg = ""; renderSettings(); });
+      W("stats").then(s => { if (!SYNC.running && !SYNC.msg && msg.isConnected && s.n) msg.textContent += " · " + AR(s.n) + " كتلة · فهرس البحث " + AR(Math.round(s.bytes / 1048576)) + " م.ب"; }).catch(() => {});
+    }
+    if (QUEUE.length){ const q = el("div", "note"); q.textContent = "في انتظار الإرسال: " + AR(QUEUE.length); b.appendChild(q); btn("أرسل الآن", "", () => flush()); }
+    if (!loc) btn(refreshing ? "يجلب…" : "تحديث أسماء الصفحات فقط", "", () => { refreshPages(false); renderSettings(); });
+  }
+  b.prepend(msg); b.appendChild(bt); return b;
 }
 function graphForm(g){
   const c = el("div", "card"), isNew = !g;
@@ -1009,11 +1640,11 @@ function graphForm(g){
   const name = f("اسم الغراف (كما في عنوان Roam)", Object.assign(el("input"), {type:"text", value:g ? g.name : "", autocapitalize:"off", autocomplete:"off", spellcheck:false}));
   const tok = f("الرمز (API token)", Object.assign(el("input"), {type:"password", value:g ? (g.token || "") : "", autocomplete:"off"}));
   const show = el("label", "ck"), sh = el("input"); sh.type = "checkbox"; sh.onchange = () => tok.type = sh.checked ? "text" : "password"; show.append(sh, "إظهار الرمز"); c.appendChild(show);
-  const sv = el("label", "ck"), svc = el("input"); svc.type = "checkbox"; svc.checked = g ? !!g.saveToken : true; sv.append(svc, "حفظ الرمز على هذا الهاتف"); c.appendChild(sv);
-  const hd = el("label", "ck"), hdc = el("input"); hdc.type = "checkbox"; hdc.checked = g ? !!g.header : true; hd.append(hdc, "ترويسة فوق كل إدخال"); c.appendChild(hd);
+  const sv = el("label", "ck"), svc = el("input"); svc.type = "checkbox"; svc.checked = g ? !!g.saveToken : true; sv.append(svc, "حفظ الرمز على هذا الجهاز"); c.appendChild(sv);
+  const hd = el("label", "ck"), hdc = el("input"); hdc.type = "checkbox"; hdc.checked = g ? !!g.header : true; hd.append(hdc, "ترويسة فوق كل إدخال من شاشة الكتابة"); c.appendChild(hd);
   const tpl = f("نص الترويسة ({date} التاريخ، {time} الوقت)", Object.assign(el("input"), {type:"text", value:g ? (g.tpl || HEADER_TPL) : HEADER_TPL}));
   const md = el("select"); md.innerHTML = '<option value="today">صفحة اليوم دائماً</option><option value="last">آخر صفحة كتبت فيها</option>'; md.value = g ? (g.pageMode || "today") : "today";
-  f("الوجهة عند الفتح", md);
+  f("وجهة شاشة الكتابة عند الفتح", md);
   const bt = el("div", "btns");
   const save = el("button", "btn p"); save.textContent = "حفظ";
   const test = el("button", "btn"); test.textContent = "اختبار الاتصال";
@@ -1022,7 +1653,7 @@ function graphForm(g){
   if (!isNew){ const del = el("button", "btn d"); del.textContent = "حذف";
     del.onclick = () => { if (del.dataset.arm !== "1"){ del.dataset.arm = "1"; del.textContent = "اضغط ثانية للتأكيد"; setTimeout(() => { del.dataset.arm = ""; del.textContent = "حذف"; }, 2500); return; }
       RAW.roam.graphs = graphs().filter(x => x !== g); if (RAW.roam.current === g.name) RAW.roam.current = graphs()[0] ? graphs()[0].name : "";
-      saveCfg(); loadPages(); initTarget(); pageCache.clear(); editing = null; renderSettings(); };
+      saveCfg(); editing = null; if (G()) useGraph(G().name, true); renderSettings(); };
     bt.appendChild(del); }
   c.appendChild(bt);
   const out = el("div", "note"); c.appendChild(out);
@@ -1033,7 +1664,7 @@ function graphForm(g){
     if (graphs().some(x => x !== g && x.name === v.name)){ out.textContent = "يوجد غراف بهذا الاسم."; return; }
     if (g){ const was = g.name; Object.assign(g, v); if (RAW.roam.current === was) RAW.roam.current = v.name; }
     else { graphs().push(Object.assign({lastPage:{kind:"today", title:""}}, v)); if (!RAW.roam.current || graphs().length === 1) RAW.roam.current = v.name; }
-    saveCfg(); loadPages(); initTarget(); editing = null; renderSettings(); toast("حُفظ");
+    saveCfg(); editing = null; useGraph(G().name, true); renderSettings(); toast("حُفظ");
     if (v.token && !store.get("rq-pages:"+v.name) && G() && G().name === v.name) refreshPages(true);
   };
   test.onclick = async () => {
@@ -1060,14 +1691,16 @@ function takeShared(){
   else { out = text || title; if (url && !out.includes(url)) out += "\n" + url; }
   const cur = ta.value.replace(/\s+$/,"");
   ta.value = (cur ? cur + "\n" : "") + out; store.set("rqm-draft", ta.value);
-  history.replaceState(history.state, "", location.pathname + location.hash);
-  setTimeout(() => { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }, 120);
+  history.replaceState(history.state, "", location.pathname + "#c");
 }
 
 /* ============================================================
    البدء
    ============================================================ */
-loadCfg(); loadPrefs(); loadPages(); initTarget(); takeShared(); route();
+loadCfg(); loadPrefs();
+if (PREFS.defGraph && graphs().some(g => g.name === PREFS.defGraph) && RAW.roam.current !== PREFS.defGraph){ RAW.roam.current = PREFS.defGraph; saveCfg(); }
+loadPages(); initTarget(); loadQueue(); setGraphLocal(); takeShared(); route();
+flush(); setTimeout(autoSync, 1500);
 </script>
 <script>if("serviceWorker" in navigator && location.protocol.indexOf("http")===0){ navigator.serviceWorker.register("sw.js").catch(function(){}); }</script>
 </body>
