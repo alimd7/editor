@@ -215,6 +215,10 @@ textarea.live{flex:1;min-width:0;display:block;border:0;outline:0;resize:none;ov
 .it{touch-action:pan-y}
 .it.swp{transition:none;background:var(--sel)}
 .it.back{transition:transform .18s ease-out}
+#pq{flex:1;min-width:0;height:40px;border:1px solid var(--line);border-radius:20px;padding:0 14px;background:var(--card);outline:0;font-size:var(--fs)}
+#page .pbar{gap:0;padding-inline-start:14px;min-height:44px}
+#page .pbar .ic{width:34px}
+#page .pbar .ttl{margin-inline-end:6px}
 </style>
 
 <body>
@@ -248,7 +252,10 @@ textarea.live{flex:1;min-width:0;display:block;border:0;outline:0;resize:none;ov
 <!-- ============ العرض (صفحة أو كتلة مع أبيها) ============ -->
 <div id="page" class="scr" hidden>
   <header class="bar">
-    <button class="ic back" aria-label="رجوع"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
+    <input id="pq" dir="rtl" type="search" readonly placeholder="بحث" aria-label="بحث">
+    <button class="ic bSet" aria-label="الإعدادات"><svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg></button>
+  </header>
+  <header class="bar pbar">
     <div id="pTitle" class="ttl"></div>
     <button id="pFold" class="ic" aria-label="طيّ الكل ونشره"><svg viewBox="0 0 24 24"><path d="M7 9l5-5 5 5M7 15l5 5 5-5"/></svg></button>
     <button class="ic bFont" aria-label="حجم الخط">Aa</button>
@@ -1559,6 +1566,7 @@ function drawSearch(){
   }, 140);
 }
 sq.addEventListener("input", () => { NOBLK = false; drawSearch(); });
+$("#pq").addEventListener("click", e => { e.preventDefault(); go("s"); sq.focus(); sq.select(); });   // شريط البحث فوق الصفحة: لمسة تنقلك إلى البحث والمؤشر فيه
 swipeable($("#sPages"), r => { if (r.dataset.t) draftAdjacent(r.dataset.t); });
 sq.addEventListener("keydown", e => { if (e.key === "Enter"){ e.preventDefault(); const f = $("#sPages .it") || $("#sBlocks .it"); if (f) f.click(); } });
 $("#sList").addEventListener("click", e => {
