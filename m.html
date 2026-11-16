@@ -848,7 +848,7 @@ async function syncGraph(full){
     const total = need.length, queue = [];
     { let cur = [], size = 0;
       for (const [u, n] of need){ const len = n == null ? 800 : n;
-        if (cur.length && (cur.length >= 2000 || size + len > 1500000)){ queue.push(cur); cur = []; size = 0; }
+        if (cur.length && (cur.length >= 800 || size + len > 1200000)){ queue.push(cur); cur = []; size = 0; }
         cur.push(u); size += len; }
       if (cur.length) queue.push(cur); }
     let skipped = 0, nb = 0;
@@ -866,7 +866,10 @@ async function syncGraph(full){
         const rec = {u, s:K(o,"block/string") || "", p:row[0], g:row[1], o:K(o,"block/order") || 0};
         const h = K(o,"block/heading"); if (h) rec.h = h; if (K(o,"block/open") === false) rec.c = 1; recs.push(rec); }
       if (recs.length) await lPutRecs(recs, true);
-      fetched += batch.length;
+      const got = new Set(recs.map(x => x.u)), miss = batch.filter(u => !got.has(u));      // الخادم قد يقتطع الردّ: أعد طلب ما لم يرجع
+      if (miss.length && recs.length && miss.length < batch.length){ const h = Math.ceil(miss.length / 2); queue.unshift(miss.slice(0, h)); if (miss.length > h) queue.unshift(miss.slice(h)); }
+      else if (miss.length) skipped += miss.length;
+      fetched += batch.length - (miss.length && recs.length && miss.length < batch.length ? miss.length : 0);
       if (++nb % 25 === 0) await W("persist");
     }
     syncMsg("يحفظ الفهرس…");
@@ -875,7 +878,7 @@ async function syncGraph(full){
     store.set("rqm-local:"+g.name, "1"); store.set("rqm-syncAt:"+g.name, String(Date.now()));
     if (G() === g) LOC = true;
     const st = await W("stats");
-    syncMsg("تمّت ✓ " + AR(st.n) + " كتلة · " + AR(Math.round((Date.now() - t0) / 1000)) + " ث" + (total ? " · جُلب " + AR(total) : "") + (skipped ? " · تعذّر " + AR(skipped) : ""));
+    syncMsg("تمّت ✓ " + AR(st.n) + " كتلة · " + AR(Math.round((Date.now() - t0) / 1000)) + " ث" + (total ? " · جُلب " + AR(total) : "") + (skipped ? " · لم يرجع من الخادم " + AR(skipped) : ""));
     pageCache.clear();
     return true;
   } catch(e){ syncMsg("توقف: " + e.message); return false; }
