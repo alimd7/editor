@@ -18,7 +18,7 @@ body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans Arabic",sa
 button,select,input,textarea{font:inherit;color:inherit}
 button{background:none;border:0;padding:0;margin:0;cursor:pointer}
 [hidden]{display:none!important}
-.scr{position:fixed;inset:0;height:100dvh;display:flex;flex-direction:column;background:var(--bg);padding-top:env(safe-area-inset-top)}
+.scr{position:fixed;left:0;right:0;top:var(--vvt,0px);height:var(--vvh,100dvh);display:flex;flex-direction:column;background:var(--bg);padding-top:env(safe-area-inset-top)}
 .bar{flex:none;display:flex;align-items:center;gap:6px;padding:6px 8px;border-bottom:1px solid var(--line);min-height:50px;user-select:none;-webkit-user-select:none}
 .ic{flex:none;width:42px;height:42px;display:grid;place-items:center;border-radius:10px;color:var(--mut);font-size:17px;font-weight:600}
 .ic:active,.chip:active,.k:active{background:var(--card)}
@@ -186,6 +186,12 @@ mark.hit.cur{outline:2px solid var(--acc)}
 @font-face{font-family:"Noto Naskh Arabic";src:local("Noto Naskh Arabic"),url("fonts/NotoNaskhArabic.woff2") format("woff2"),url("fonts/NotoNaskhArabic.ttf") format("truetype");font-weight:400 700;font-display:swap}
 #ta,.body,.comp textarea,#sList{font-family:var(--ff,inherit)}
 ::highlight(root-matches){color:#DC2626}
+.tgl{flex:none;width:16px;align-self:stretch;position:relative}
+.tgl.has::before{content:"";position:absolute;top:calc(var(--fs)*var(--lh)/2 - 5px);inset-inline-start:4px;width:7px;height:7px;border:solid var(--mut);border-width:0 2px 2px 0;transform:rotate(135deg)}
+.tgl.open::before{transform:rotate(45deg);top:calc(var(--fs)*var(--lh)/2 - 7px)}
+textarea.live{flex:1;min-width:0;display:block;border:0;outline:0;resize:none;overflow:hidden;background:transparent;color:inherit;padding:1px 2px;margin:0;font:inherit;line-height:var(--lh);unicode-bidi:plaintext;text-align:right;font-family:var(--ff,inherit)}
+.row.editing{background:var(--sel)}
+.k.dl{color:var(--danger)}
 </style>
 
 <body>
@@ -849,13 +855,29 @@ const ROOTHL = (function(){
     let r = ""; for (const ch of title.slice(PREFIX.length).trim()){ const f = fold(ch.charCodeAt(0)); if (f && isWord(f)) r += String.fromCharCode(f); }
     if (r.length === 3 && r[1] === r[2]) r = r.slice(0, 2);          // المضعّف: بالحرفين الأولين
     if (r.length < 2) return;
-    const list = [r]; if (r.length >= 3 && "ويا".includes(r[0])) list.push(r.slice(1));   // المعتلّ الأول: وصف ← صفة
+    const list = [r], weak = "وياى";
+    if (r.length >= 3 && weak.includes(r[0])) list.push(r.slice(1));                    // weak first radical
+    if (r.length >= 3 && weak.includes(r[r.length-1])) list.push(r.slice(0, -1));        // weak last radical
     vars = list.map(x => Array.from(x, ch => ch.charCodeAt(0)));
     collect(host); kick();
     obs = new MutationObserver(recs => { for (const m of recs){ if (m.type === "characterData") pending.add(m.target); else for (const a of m.addedNodes) collect(a); } kick(); });
     obs.observe(host, {childList:true, subtree:true, characterData:true});
   }};
 })();
+
+/* جذر الكتلة: هي نفسها أو أحد آبائها عنوانُ جذرٍ «[[ج/…]]» في صفحة كتاب */
+const ROOT_RE = /^\s*(?:#{1,6}\s+)?\[\[(ج\/[^\[\]]+)\]\]\s*$/;
+async function rootOfBlock(uid){
+  try {
+    let u = uid;
+    for (let k = 0; k < 8 && u; k++){
+      const t = DB.transaction(["blocks","tree"]), r = await Promise.all([rq(t.objectStore("blocks").get(u)), rq(t.objectStore("tree").get(u))]);
+      if (!r[0]) return ""; const m = (r[0].s || "").match(ROOT_RE); if (m) return m[1];
+      u = r[1] ? r[1].p : null;
+    }
+  } catch(e){}
+  return "";
+}
 
 /* ---- التنزيل والمزامنة ---- */
 const SYNC = {running:false, stop:false, msg:""};
@@ -1072,7 +1094,7 @@ function back(){ if (depth() > 0) history.back(); else goReplace(startHash()); }
 const pageHash = t => "p="+encodeURIComponent(t);
 function route(){
   leavePage();
-  PREV = ROUTE.name; ROUTE = parseHash();
+  PREV = ROUTE.name; ROUTE = parseHash(); if (ROUTE.name !== "search") PICK = false;
   $("#fontPop").hidden = true;
   if (!G() && ROUTE.name !== "settings"){ goReplace("set"); return; }
   if (!ROUTE.name){ goReplace(startHash()); return; }
@@ -1114,7 +1136,7 @@ const KEYS_HTML = '<div class="ks">' +
   '<button class="k" data-k="undo" aria-label="تراجع">' + SV('<path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/>') + '</button>' +
   '<button class="k" data-k="redo" aria-label="إعادة">' + SV('<path d="M15 14l5-5-5-5"/><path d="M20 9H10a6 6 0 0 0 0 12h3"/>') + '</button></div>';
 $("#keys").innerHTML = KEYS_HTML + '<button class="send">إرسال</button>';
-$("#pkeys").innerHTML = '<button class="k w" data-k="close" style="flex:none">✕</button>' + KEYS_HTML + '<button class="send">أضف</button>';
+$("#pkeys").innerHTML = KEYS_HTML.replace('</div>', '<button class="k dl" data-k="del" aria-label="احذف الكتلة">' + SV('<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/>') + '</button></div>') + '<button class="send">تم</button>';
 let ED = {ta:$("#ta"), sugg:$("#sugg")};             // مربع الكتابة النشط وشريط اقتراحه
 function ins(text, selStart, selEnd){
   const ta = ED.ta; ta.focus();
@@ -1150,17 +1172,18 @@ const KEYS = {
   todo(){ const ta = ED.ta, v = ta.value, s = ta.selectionStart, ls = v.lastIndexOf("\n", s-1) + 1, ind = v.slice(ls).match(/^[ \t]*/)[0].length;
           if (!v.slice(ls+ind).startsWith("{{[[TODO]]}} ")){ ins("{{[[TODO]]}} ", ls+ind); const p = s + 13; ta.setSelectionRange(p, p); }
           showDates(); },
-  in(){ shiftLines(1); },
-  out(){ shiftLines(-1); },
+  in(){ if (LIVE) liveShift(1); else shiftLines(1); },
+  out(){ if (LIVE) liveShift(-1); else shiftLines(-1); },
+  del(){ liveDelete(); },
   undo(){ ED.ta.focus(); document.execCommand("undo"); },
   redo(){ ED.ta.focus(); document.execCommand("redo"); },
-  close(){ closeComp(); }
+  close(){ liveClose(); closeComp(); }
 };
 document.querySelectorAll(".keys, .sugg").forEach(k => k.addEventListener("mousedown", e => e.preventDefault()));   // لا تسحب التركيز من مربع الكتابة
 document.querySelectorAll(".keys").forEach(k => k.addEventListener("click", e => {
   const b = e.target.closest("[data-k]");
-  if (b && KEYS[b.dataset.k]){ if (b.dataset.k !== "todo") DATEMODE = false; KEYS[b.dataset.k](); if (b.dataset.k !== "close") updateSugg(); return; }
-  if (e.target.closest(".send")){ if (k.id === "keys") send(); else compSend(); }
+  if (b && KEYS[b.dataset.k]){ if (b.dataset.k !== "todo") DATEMODE = false; KEYS[b.dataset.k](); if (!/^(close|del|in|out)$/.test(b.dataset.k) || !LIVE) updateSugg(); return; }
+  if (e.target.closest(".send")){ if (k.id === "keys") send(); else if (LIVE) liveClose(); else compSend(); }
 }));
 function caretCtx(){
   const ta = ED.ta, c = ta.selectionStart; if (c !== ta.selectionEnd) return null;
@@ -1212,6 +1235,7 @@ function showDates(){
 }
 function putDate(dt){
   const ta = ED.ta, link = "[[" + dailyTitle(dt) + "]]"; DATEMODE = false;
+  if (LIVE){ liveDate(link); return; }
   if (COMP && COMP.mode === "edit"){                  // تعديل كتلة واحدة: التاريخ في السطر نفسه
     const c = ta.selectionStart, prev = ta.value[c-1], next = ta.value[c];
     ins((c > 0 && !/\s/.test(prev) ? " " : "") + link + (next === undefined || next === "\n" || !/\s/.test(next) ? " " : "")); updateSugg(); return;
@@ -1282,8 +1306,9 @@ function enterHome(){
   taDir(); updateSugg();
   setTimeout(() => ta.focus(), 60);
 }
-$("#target").onclick = () => go("s");
-$("#bSearch").onclick = () => go("s");
+let PICK = false;
+$("#target").onclick = () => { PICK = true; go("s"); };
+$("#bSearch").onclick = () => { PICK = false; go("s"); };
 ta.value = store.get("rqm-draft") || "";
 let draftTimer;
 function saveDraft(){ clearTimeout(draftTimer); draftTimer = setTimeout(() => store.set("rqm-draft", ta.value), 250); }
@@ -1344,6 +1369,7 @@ function stem(w){                                    // تجريد خفيف: ي�
 const stems = q => [...new Set(q.split(/\s+/).map(stem).filter(t => t.length >= 2))];
 $("#sMode").onclick = () => { SMODE = SMODE === 2 ? 1 : 2; drawSearch(); sq.focus(); };
 function enterSearch(){
+  sq.placeholder = PICK ? "إلى أي صفحة تكتب؟" : "ابحث…";
   fillGraphs(); sq.value = LASTQ; drawSearch();
   setTimeout(() => { sq.focus(); sq.select(); }, 50);
   if (!PAGES.length && G() && G().token && !refreshing && !LOC) refreshPages(true);
@@ -1359,7 +1385,6 @@ function pageRow(title, sub, data, special){
   d.appendChild(el("span", "pi", IC_PAGE));
   const a = el("span", "t"); a.textContent = title; d.appendChild(a);
   if (sub){ const b = el("span", "s"); b.textContent = sub; d.appendChild(b); }
-  const p = el("button", "pen", IC_PEN); p.setAttribute("aria-label", "اكتب فيها"); d.appendChild(p);
   return d;
 }
 function drawSearch(){
@@ -1402,7 +1427,7 @@ $("#sList").addEventListener("click", e => {
   const it = e.target.closest(".it"); if (!it) return;
   if (it.dataset.u){ go("b=" + it.dataset.u + (SMODE === 2 ? "&m=2" : "") + "&q=" + encodeURIComponent($("#sBlocks")._q || sq.value.trim())); return; }
   const t = it.dataset.t;
-  if (e.target.closest(".pen")){                      // القلم: اكتب في هذه الصفحة
+  if (PICK){                                          // جئنا من زر الوجهة: اختر الصفحة التي تكتب فيها
     setTarget(t === "@today" ? {kind:"today"} : {kind:"page", title:t});
     if (PREV === "home" && depth() > 0) history.back(); else goReplace("c");
   } else go(pageHash(t === "@today" ? dailyTitle() : t));
@@ -1424,7 +1449,7 @@ const cacheKey = t => (G() ? G().name : "") + "|" + t;
 let CUR = null, viewSeq = 0, SEL = null, budget = 0;
 const pBody = $("#pBody"), pTree = $("#pTree"), pRefs = $("#pRefs");
 
-function leavePage(){ if (ROUTE.name === "page" && CUR){ CUR.scroll = pBody.scrollTop; } closeComp(true); clearSel(); $("#hitNav").hidden = true; }
+function leavePage(){ if (ROUTE.name === "page" && CUR){ CUR.scroll = pBody.scrollTop; } liveClose(); closeComp(true); clearSel(); $("#hitNav").hidden = true; }
 function initOpen(nodes, opens){                     // حالة الطي الأولى من Roam، مع سقف لما يُرسم
   for (const n of nodes){
     if (n._open === undefined) n._open = opens && opens.has(n.uid) ? opens.get(n.uid) && n.kids.length > 0 : n.kids.length > 0 && n.open && budget > 0;
@@ -1438,12 +1463,16 @@ async function autoOpen(nodes, depthN, opens){       // النسخة المحل�
     else if (n._open === undefined) n._open = false;
   }
 }
-function setBul(b){ const n = b._n, bul = b.querySelector(":scope > .row > .bul"), hk = hasKids(n); bul.classList.toggle("has", hk); bul.classList.toggle("closed", hk && !n._open); }
+function setBul(b){
+  const n = b._n, bul = b.querySelector(":scope > .row > .bul"), tg = b.querySelector(":scope > .row > .tgl"), hk = hasKids(n);
+  bul.classList.toggle("has", hk); bul.classList.toggle("closed", hk && !n._open);
+  if (tg){ tg.classList.toggle("has", hk); tg.classList.toggle("open", hk && !!n._open); }
+}
 function blkEl(n){
   const b = el("div", "blk"); b._n = n; b.dataset.u = n.uid;
   const row = el("div", "row" + (PEND.has(n.uid) ? " unsent" : "")), bul = el("span", "bul");
   const txt = el("div", "txt" + (n.h ? " h"+Math.min(3, n.h) : "")); txt.dir = "auto"; txt.innerHTML = inl(n.s) || "&#8203;";
-  row.append(bul, txt); const k = el("div", "kids"); b.append(row, k); setBul(b);
+  row.append(el("span", "tgl"), bul, txt); const k = el("div", "kids"); b.append(row, k); setBul(b);
   if (n._open && hasKids(n)) fillKids(k, n); else k.hidden = true;
   return b;
 }
@@ -1577,6 +1606,7 @@ async function enterBlock(uid, q){
     if (!root.kids.length){ n.pn = root; root.kids = [n]; }
     if (seq !== viewSeq) return;
     CUR.root = root; CUR.title = title;
+    if (PREFS.roots) rootOfBlock(uid).then(rt => { if (seq === viewSeq) ROOTHL.set(rt, pBody, true); });
     const tt = $("#pTitle"); tt.textContent = title; tt.onclick = () => { if (title) go(pageHash(title)); };
     drawTree();
     const be = pTree.querySelector('.blk[data-u="'+uid+'"]'); if (!be) return;
@@ -1632,21 +1662,20 @@ async function resolveRefs(root){
 
 /* ---- اللمس: رابط، نقطة الطي، تحديد كتلة ---- */
 pBody.addEventListener("click", e => {
-  if (e.target.closest(".comp") || e.target.closest(".more")) return;
+  if (e.target.closest("textarea") || e.target.closest(".more")) return;
   const a = e.target.closest("a.pl");
-  if (a){ e.preventDefault(); go(pageHash(a.dataset.p)); return; }
+  if (a){ e.preventDefault(); liveClose().then(() => go(pageHash(a.dataset.p))); return; }
   if (e.target.closest("a.ext")) return;
-  const br = e.target.closest(".bref"); if (br && LOC){ go("b=" + br.dataset.uid); return; }
+  const br = e.target.closest(".bref"); if (br && LOC){ liveClose().then(() => go("b=" + br.dataset.uid)); return; }
+  const tg = e.target.closest(".blk > .row > .tgl"); if (tg){ toggleBlk(tg.closest(".blk")); return; }
   const bul = e.target.closest(".blk > .row > .bul");
-  if (bul){ toggleBlk(bul.closest(".blk")); return; }
+  if (bul){ const n = bul.closest(".blk")._n; if (LOC && n.uid && !n.draft) liveClose().then(() => go("b=" + n.uid)); else toggleBlk(bul.closest(".blk")); return; }   // النقطة: ادخل إلى الكتلة
   const row = e.target.closest(".blk > .row");
-  if (!row || COMP){ clearSel(); return; }
+  if (!row){ if (e.target.closest(".pmsg") && CUR && CUR.kind === "page") liveNew(); else liveClose(); return; }
   const sel = window.getSelection(); if (sel && !sel.isCollapsed) return;        // تظليل نص: دعه للنسخ
-  const b = row.parentElement;
-  if (SEL && SEL.el === b){ clearSel(); return; }
-  clearSel(); SEL = {el:b, n:b._n}; row.classList.add("sel");
-  $("#pSel").hidden = false; $("#pAdd").hidden = true; $("#hitNav").hidden = true;
-  const noP = !SEL.n.parent; $('#pSel [data-a="sis"]').disabled = noP; $('#pSel [data-a="mom"]').disabled = noP; disarm();
+  const b = row.parentElement, n = b._n;
+  if (b.closest("#pRefs")){ if (LOC) liveClose().then(() => go("b=" + n.uid)); return; }   // المراجع للقراءة: لمسها يدخل إليها
+  liveOpen(n, null);
 });
 function clearSel(){
   if (SEL){ const r = SEL.el.querySelector(":scope > .row"); if (r) r.classList.remove("sel"); }
@@ -1690,7 +1719,7 @@ async function deleteBlk(be){
   enqueue({action:"delete-block", block:{uid:n.uid}}, []);
   toast("حُذفت", 1500);
 }
-$("#pAdd").onclick = () => { if (!CUR || !CUR.root) return; openComp({mode:"add", pn:CUR.root, at:"last", host:pTree, ref:null}); };
+$("#pAdd").onclick = () => liveNew();
 $("#pReload").onclick = async () => {
   if (!CUR) return;
   if (LOC && navigator.onLine && !SYNC.running){ toast("يزامن الصفحة…", 1500); const ok = await syncGraph(false, CUR.root && CUR.root.uid || null); if (!ok) toast(SYNC.msg, 4000); }
@@ -1810,6 +1839,173 @@ async function openEdit(be){
     } catch(e){ toast("تعذّر التحقق من أحدث نص؛ تعدّل النسخة التي عندك", 3000); }
   }
   openComp({mode:"edit", n, blk:be});
+}
+
+/* ============================================================
+   التحرير الحر داخل الصفحة: كتلة واحدة تُحرَّر في مكانها، وتُحفظ عند مغادرتها
+   ============================================================ */
+let LIVE = null;
+const HEAD_RE = /^(#{1,3})[ \t]+([\s\S]*)$/;
+function redraw(){ const sc = pBody.scrollTop; drawTree(); pBody.scrollTop = sc; }
+function draftAt(pn, order, text){                   // كتلة جديدة لم تُرسل بعد (تُنشأ في Roam حين يصير فيها نص)
+  const m = mkNode({uid:newUid(), s:text || "", order, parent:pn.uid, pn, g:pn.isPage ? pn.uid : pn.g, loc:LOC, draft:true, _open:false});
+  pn.kids.forEach(k => { if (k.order >= order) k.order++; });
+  let i = pn.kids.findIndex(k => k.order > order); if (i < 0) i = pn.kids.length; pn.kids.splice(i, 0, m);
+  return m;
+}
+function dropDraft(n){ const pn = n.pn; if (!pn) return; const i = pn.kids.indexOf(n); if (i >= 0) pn.kids.splice(i, 1); pn.kids.forEach(k => { if (k.order > n.order) k.order--; }); }
+async function createNode(n){
+  const pn = n.pn; if (pn.isPage && !pn.uid) await ensureRoot();
+  n.parent = pn.uid; n.g = pn.isPage ? pn.uid : pn.g; n.draft = false;
+  const hm = n.s.match(HEAD_RE), str = hm ? hm[2] : n.s, h = hm ? hm[1].length : 0; n.s = str; n.h = h;
+  if (LOC){ try { await openLocal(); await lShift(pn.uid, n.order, 1); const r = {u:n.uid, s:str, p:pn.uid, g:n.g, o:n.order}; if (h) r.h = h; await lPutRecs([r]); } catch(e){} }
+  const blk = {uid:n.uid, string:str}; if (h) blk.heading = h;
+  enqueue({action:"batch-actions", actions:[{action:"create-block", location:{"parent-uid":pn.uid, order:n.order}, block:blk}]}, [n.uid]);
+}
+async function updateNode(n){
+  refText.delete(n.uid);
+  if (LOC){ try {
+    await openLocal();
+    const t = DB.transaction(["blocks","kv"], "readwrite"), B = t.objectStore("blocks"), kv = t.objectStore("kv"), g = B.get(n.uid);
+    g.onsuccess = () => { const b = g.result || {u:n.uid, g:n.g}; b.s = n.s; B.put(b); };
+    const tg = kv.get("tail"); tg.onsuccess = () => kv.put((tg.result || []).concat([{u:n.uid, s:n.s, p:n.parent, g:n.g, o:n.order}]), "tail");
+    await txDone(t); await W("upd", {u:n.uid, s:n.s});
+  } catch(e){} }
+  enqueue({action:"update-block", block:{uid:n.uid, string:n.s}}, [n.uid]);
+}
+async function moveNode(n, np, order){                // انقل كتلة موجودة تحت أب آخر
+  const op = n.pn, oldO = n.order;
+  if (LOC){ try { await openLocal(); await lShift(op.uid, oldO + 1, -1); await lShift(np.uid, order, 1);
+    const t = DB.transaction("tree", "readwrite"); t.objectStore("tree").put({u:n.uid, p:np.uid, o:order}); await txDone(t); await W("move", {rows:[[n.uid, np.uid, order]]}); } catch(e){} }
+  memMove(n, np, order);
+  enqueue({action:"move-block", block:{uid:n.uid}, location:{"parent-uid":np.uid, order}}, []);
+}
+function memMove(n, np, order){
+  const op = n.pn, i = op.kids.indexOf(n); if (i >= 0) op.kids.splice(i, 1); op.kids.forEach(k => { if (k.order > n.order) k.order--; });
+  np.kids.forEach(k => { if (k.order >= order) k.order++; });
+  let j = np.kids.findIndex(k => k.order > order); if (j < 0) j = np.kids.length; np.kids.splice(j, 0, n);
+  n.pn = np; n.parent = np.uid; n.order = order; n.g = np.isPage ? np.uid : np.g;
+}
+async function liveOpen(n, caret, keepText){
+  if (LIVE && LIVE.n === n) return;
+  await liveClose();
+  const be = pTree.querySelector('.blk[data-u="' + n.uid + '"]'); if (!be) return;
+  const row = be.querySelector(":scope > .row"), txt = row.querySelector(":scope > .txt");
+  const t = el("textarea", "live"); t.rows = 1; t.dir = "rtl"; t.spellcheck = false; t.autocapitalize = "sentences";
+  t.value = keepText != null ? keepText : (n.h ? "#".repeat(n.h) + " " : "") + n.s;
+  txt.hidden = true; row.appendChild(t); row.classList.add("editing");
+  const L = LIVE = {n, be, ta:t, busy:false};
+  const grow = () => { t.style.height = "auto"; t.style.height = t.scrollHeight + "px"; };
+  t.addEventListener("input", e => { grow(); edInput(e, false); });
+  t.addEventListener("beforeinput", e => {
+    if (e.inputType === "insertLineBreak" || e.inputType === "insertParagraph"){ e.preventDefault(); liveEnter(); }
+    else if (e.inputType === "deleteContentBackward" && t.selectionStart === 0 && t.selectionEnd === 0 && t.value === ""){ e.preventDefault(); liveBack(); }
+  });
+  t.addEventListener("keydown", e => {                // بعض اللوحات ترسل الضغطة نفسها حين لا نص يُحذف
+    if (e.key === "Backspace" && t.value === ""){ e.preventDefault(); liveBack(); }
+    else if (e.key === "Enter" && !e.shiftKey && !e.isComposing){ e.preventDefault(); liveEnter(); }
+  });
+  t.addEventListener("blur", () => setTimeout(() => { if (LIVE === L && document.activeElement !== t && !L.busy) liveClose(); }, 250));
+  ED = {ta:t, sugg:$("#psugg")}; $("#pEdit").hidden = false; $("#pAdd").hidden = true; $("#hitNav").hidden = true;
+  t.focus(); const p = caret == null ? t.value.length : Math.min(caret, t.value.length); t.setSelectionRange(p, p); grow();
+}
+async function liveCommit(){                          // احفظ نص الكتلة الجارية إن تغيّر
+  const L = LIVE; if (!L) return; const n = L.n, raw = L.ta.value.replace(/\s+$/, "");
+  if (n.draft){ if (!raw) return "empty"; n.s = raw; await createNode(n); return; }
+  const hm = raw.match(HEAD_RE), str = hm ? hm[2] : raw, h = hm ? hm[1].length : 0;
+  if (str !== n.s || h !== (n.h || 0)){
+    const hchg = h !== (n.h || 0); n.s = str; n.h = h; await updateNode(n);
+    if (hchg) enqueue({action:"update-block", block:{uid:n.uid, string:str, heading:h}}, [n.uid]);
+  }
+}
+function liveClose(){
+  const L = LIVE; if (!L) return Promise.resolve();
+  if (L.closing) return L.closing;
+  return L.closing = (async () => {
+    L.busy = true; let r; try { r = L.drop ? null : await liveCommit(); } catch(e){ toast("تعذّر الحفظ: " + e.message, 3500); }
+    if (LIVE === L) LIVE = null;
+    const n = L.n, row = L.be.querySelector(":scope > .row");
+    if (r === "empty"){ dropDraft(n); if (L.be.isConnected) redraw(); }
+    else if (row && L.be.isConnected){ const txt = row.querySelector(":scope > .txt");
+      txt.className = "txt" + (n.h ? " h" + Math.min(3, n.h) : ""); txt.innerHTML = inl(n.s) || "&#8203;"; txt.hidden = false; row.classList.remove("editing"); row.classList.toggle("unsent", PEND.has(n.uid)); resolveRefs(txt); }
+    L.ta.remove();
+    if (!LIVE){ $("#pEdit").hidden = true; $("#psugg").hidden = true; DATEMODE = false; ED = {ta, sugg:$("#sugg")}; $("#pAdd").hidden = !(CUR && CUR.kind === "page" && ROUTE.name === "page"); }
+  })();
+}
+async function liveNew(){                             // كتلة جديدة في آخر الصفحة
+  if (!CUR || !CUR.root) return; await liveClose(); const root = CUR.root;
+  let o = root.kids.length ? root.kids[root.kids.length-1].order + 1 : 0;
+  if (LOC && root.uid && root.more){ try { o = (await lMaxOrder(root.uid)) + 1; } catch(e){} }
+  const m = draftAt(root, o, ""); redraw(); await liveOpen(m, 0);
+  const be = pTree.querySelector('.blk[data-u="' + m.uid + '"]'); if (be) be.scrollIntoView({block:"center"});
+}
+async function liveEnter(){                           // Enter: كتلة جديدة بعدها (أو قبلها إن كان المؤشر في أول النص)
+  const L = LIVE; if (!L || L.busy) return; const t = L.ta, n = L.n, c = t.selectionStart, before = t.value.slice(0, c), after = t.value.slice(t.selectionEnd);
+  if (!t.value.trim()) return;
+  L.busy = true;
+  try {
+    let m;
+    if (c === 0 && after.trim()){ await liveCommit(); m = draftAt(n.pn, n.order, ""); }
+    else { t.value = before; await liveCommit();
+      m = (n._open && n.kids.length) ? draftAt(n, n.kids[0].order, after) : draftAt(n.pn, n.order + 1, after); }
+    L.drop = true; LIVE = null; L.ta.remove(); redraw(); await liveOpen(m, 0);
+  } catch(e){ toast("تعذّر: " + e.message, 3500); } finally { L.busy = false; }
+}
+function prevBlock(be){ const all = [...pTree.querySelectorAll(".blk")].filter(x => x.offsetParent !== null), i = all.indexOf(be); return i > 0 ? all[i-1]._n : null; }
+async function liveBack(){                            // حذف للخلف في كتلة فارغة: احذفها وارجع إلى التي قبلها
+  const L = LIVE; if (!L || L.busy) return; const n = L.n, prev = prevBlock(L.be);
+  if (!n.draft && hasKids(n)) return;
+  L.busy = true;
+  try {
+    if (n.draft){ L.drop = true; LIVE = null; L.ta.remove(); dropDraft(n); redraw(); }
+    else { L.drop = true; LIVE = null; L.ta.remove(); await deleteBlk(L.be); redraw(); }
+    finishIdle(); if (prev) await liveOpen(prev, null);
+  } catch(e){ toast("تعذّر الحذف: " + e.message, 3500); } finally { L.busy = false; }
+}
+function finishIdle(){ if (!LIVE){ $("#pEdit").hidden = true; $("#psugg").hidden = true; ED = {ta, sugg:$("#sugg")}; $("#pAdd").hidden = !(CUR && CUR.kind === "page" && ROUTE.name === "page"); } }
+let delArm = 0;
+async function liveDelete(){                          // زر السلة: احذف الكتلة الجارية (وأولادها بعد تأكيد)
+  const L = LIVE; if (!L || L.busy) return; const n = L.n;
+  if (!n.draft && hasKids(n) && Date.now() - delArm > 3000){ delArm = Date.now(); toast("لها أولاد — اضغط السلة ثانية لحذفها معهم", 3000); return; }
+  delArm = 0; const prev = prevBlock(L.be); L.busy = true;
+  try {
+    L.drop = true; LIVE = null; L.ta.remove();
+    if (n.draft) dropDraft(n); else await deleteBlk(L.be);
+    redraw(); finishIdle(); if (prev) await liveOpen(prev, null);
+  } catch(e){ toast("تعذّر الحذف: " + e.message, 3500); } finally { L.busy = false; }
+}
+async function liveShift(dir){                        // أدخِل الكتلة تحت أختها السابقة، أو أخرِجها بعد أبيها
+  const L = LIVE; if (!L || L.busy) return; const n = L.n, pn = n.pn, t = L.ta, caret = t.selectionStart, val = t.value;
+  if (!pn) return;
+  L.busy = true;
+  try {
+    let np, order;
+    if (dir > 0){ const i = pn.kids.indexOf(n); if (i <= 0) return; np = pn.kids[i-1]; if (np.draft) return;
+      if (np.lazy) await loadKids(np);
+      order = np.kids.length ? np.kids[np.kids.length-1].order + 1 : 0;
+      if (LOC){ try { order = Math.max(order, (await lMaxOrder(np.uid)) + 1); } catch(e){} }
+      np._open = true; }
+    else { if (pn.isPage || !pn.pn) return; np = pn.pn; order = pn.order + 1; }
+    if (n.draft) memMove(n, np, order);
+    else { await liveCommit(); await moveNode(n, np, order); }
+    L.drop = true; LIVE = null; t.remove(); redraw(); await liveOpen(n, caret, n.draft ? val : null);
+  } catch(e){ toast("تعذّر: " + e.message, 3500); } finally { L.busy = false; }
+}
+async function liveDate(link){                        // المهمة تنزل تحت كتلة تاريخها
+  const L = LIVE; if (!L || L.busy) return; const n = L.n, pn = n.pn, t = L.ta, caret = t.selectionStart;
+  if (!pn || !t.value.trim()){ return; }
+  if (pn.s && pn.s.trim() === link){ updateSugg(); return; }
+  L.busy = true;
+  try {
+    await liveCommit();
+    let d = pn.kids.find(k => k !== n && !k.draft && k.s.trim() === link);
+    if (!d){ d = draftAt(pn, n.order, link); await createNode(d); }
+    if (d.lazy) await loadKids(d);
+    let o = d.kids.length ? d.kids[d.kids.length-1].order + 1 : 0;
+    if (LOC){ try { o = Math.max(o, (await lMaxOrder(d.uid)) + 1); } catch(e){} }
+    d._open = true; await moveNode(n, d, o);
+    L.drop = true; LIVE = null; t.remove(); redraw(); await liveOpen(n, caret);
+  } catch(e){ toast("تعذّر: " + e.message, 3500); } finally { L.busy = false; }
 }
 
 /* ============================================================
@@ -1948,6 +2144,12 @@ function takeShared(){
   const cur = ta.value.replace(/\s+$/,"");
   ta.value = (cur ? cur + "\n" : "") + out; store.set("rqm-draft", ta.value);
   history.replaceState(history.state, "", location.pathname + "#c");
+}
+
+/* لوحة المفاتيح لا تغطي شريط الأزرار: اضبط ارتفاع الشاشة على المساحة الظاهرة */
+if (window.visualViewport){
+  const vv = window.visualViewport, fit = () => { const st = document.documentElement.style; st.setProperty("--vvh", Math.round(vv.height) + "px"); st.setProperty("--vvt", Math.round(vv.offsetTop) + "px"); };
+  vv.addEventListener("resize", fit); vv.addEventListener("scroll", fit); fit();
 }
 
 /* ============================================================

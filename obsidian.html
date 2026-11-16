@@ -205,6 +205,9 @@ mark.hit{background:#ffd54a;color:#000;border-radius:3px}
 body.docview #btnHdr{display:none}
 .vrow{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
 .vrow select{font:inherit;padding:2px 6px}
+#rpDot{flex:none;width:10px;height:10px;border-radius:50%;background:#2ea44f;margin:0 8px;cursor:default}
+#rpDot.warn{background:#e8912d}
+#rpDot[hidden]{display:none}
 </style>
 </head>
 <body>
@@ -213,9 +216,8 @@ body.docview #btnHdr{display:none}
   <div id="rpBar">
     <input id="rpQ" dir="auto" autocomplete="off" spellcheck="false" placeholder="ابحث في الصفحات والنصوص…" title="Ctrl+Shift+F">
     <button id="rpMode" class="ghost" title="تجريد الكلمات من الزوائد، ووجودها كلها في الكتلة ولو متفرقة">مجرّد</button>
-    <button id="rpSync" class="ghost" title="تحميل الغراف والمزامنة">⇅</button>
+    <span id="rpDot" class="ok"></span>
   </div>
-  <div id="rpSyncBox" hidden><div id="syncMsg" class="hint"></div><div id="rpSyncBtns"></div></div>
   <div id="rpRes" hidden></div>
 
   <div id="roamBox" class="box">
@@ -254,7 +256,7 @@ body.docview #btnHdr{display:none}
 
   <div id="outline"></div>
   <div id="docSlot"><div id="rpDoc" hidden>
-    <div id="rpHead"><button id="rpDraft" class="ghost" title="ارجع إلى المسودة">↩ المسودة</button><span id="rpTitle"></span><span id="rpState"></span><button id="rpSyncDoc" class="ghost" title="زامن هذه الصفحة من Roam (Alt+R)">↻</button><button id="rpSplit" class="ghost" title="اعرض الوثيقة بجانب المسودة، أو مكانها">◫</button></div>
+    <div id="rpHead"><button id="rpDraft" class="ghost" title="ارجع إلى المسودة">↩ المسودة</button><span id="rpTitle"></span><button id="rpSyncDoc" class="ghost" title="زامن هذه الصفحة من Roam (Alt+R)">↻</button><button id="rpSplit" class="ghost" title="اعرض الوثيقة بجانب المسودة، أو مكانها">◫</button></div>
     <div id="rpCtx" hidden></div>
     <div id="outline2"></div>
     <div id="rpMore" class="hint" hidden></div>
@@ -1639,6 +1641,7 @@ function renderSettings(){
   box.appendChild(h("label", {}, auto, "اتجاه الكتل تلقائي بحسب لغتها (الافتراضي: يمين←يسار دائماً)"));
 
   viewSettings(box);
+  if (CFG.dest==="roam") syncSettings(box);
 
   title("الاختصارات");
   const KEYS = [["Ctrl+Enter / Ctrl+S","إرسال"],["Ctrl+Z","تراجع"],["Ctrl+Shift+Z / Ctrl+Y","إعادة"],
@@ -2563,13 +2566,29 @@ const ROOTHL = (function(){
     let r = ""; for (const ch of title.slice(PREFIX.length).trim()){ const f = fold(ch.charCodeAt(0)); if (f && isWord(f)) r += String.fromCharCode(f); }
     if (r.length === 3 && r[1] === r[2]) r = r.slice(0, 2);          // المضعّف: بالحرفين الأولين
     if (r.length < 2) return;
-    const list = [r]; if (r.length >= 3 && "ويا".includes(r[0])) list.push(r.slice(1));   // المعتلّ الأول: وصف ← صفة
+    const list = [r], weak = "وياى";
+    if (r.length >= 3 && weak.includes(r[0])) list.push(r.slice(1));                    // weak first radical
+    if (r.length >= 3 && weak.includes(r[r.length-1])) list.push(r.slice(0, -1));        // weak last radical
     vars = list.map(x => Array.from(x, ch => ch.charCodeAt(0)));
     collect(host); kick();
     obs = new MutationObserver(recs => { for (const m of recs){ if (m.type === "characterData") pending.add(m.target); else for (const a of m.addedNodes) collect(a); } kick(); });
     obs.observe(host, {childList:true, subtree:true, characterData:true});
   }};
 })();
+
+/* جذر الكتلة: هي نفسها أو أحد آبائها عنوانُ جذرٍ «[[ج/…]]» في صفحة كتاب */
+const ROOT_RE = /^\s*(?:#{1,6}\s+)?\[\[(ج\/[^\[\]]+)\]\]\s*$/;
+async function rootOfBlock(uid){
+  try {
+    let u = uid;
+    for (let k = 0; k < 8 && u; k++){
+      const t = DB.transaction(["blocks","tree"]), r = await Promise.all([rq(t.objectStore("blocks").get(u)), rq(t.objectStore("tree").get(u))]);
+      if (!r[0]) return ""; const m = (r[0].s || "").match(ROOT_RE); if (m) return m[1];
+      u = r[1] ? r[1].p : null;
+    }
+  } catch(e){}
+  return "";
+}
 
 /* ---- التنزيل والمزامنة ---- */
 const SYNC = {running:false, stop:false, msg:""};
@@ -2790,7 +2809,7 @@ function markMatches(root, q){                        // ظلّل مواضع ا�
   return {W, rq, kidRange, foldStr, stems, markMatches, isLocal, SYNC, hooks, openLocal, setGraphLocal, loadQueue, flush, enqueue, autoSync, dropLocal,
     lPutRecs, lShift, lPutPage, lDelete, lMove,
     db:() => DB, loc:() => LOC, pending:() => QUEUE.length, pageTitle:g => PT.get(g) || "",
-    ROOTHL, diagnose,
+    ROOTHL, diagnose, rootOfBlock,
     async sync(full, scope){ if (QUEUE.length){ await flush(); if (QUEUE.length){ toast("في الطابور تعديلات لم تُرسل بعد — تُزامَن بعد إرسالها"); return false; } } const r = await syncGraph(full, scope); hooks.onSync(); return r; },
     async search(q, opt){ await openLocal(); return Array.isArray(q) ? W("searchAll", Object.assign({terms:q}, opt)) : W("search", Object.assign({q}, opt)); }};
 })({store, toast:(...a) => toast(...a), newUid:() => newUid(), norm:x => norm(x), graph:() => curGraph()});
@@ -2813,23 +2832,35 @@ function layout(){                                   // وثيقة Roam: مكا�
 }
 function rpToggle(){ if (isOb()) return; $("#rpQ").focus(); $("#rpQ").select(); }
 function toDraft(){ saveDoc().then(() => { if (history.state && history.state.doc) history.pushState({base:1}, ""); closeDoc(); focusLastBlock(); }); }
-function rpState(t, cls){ const e = $("#rpState"); e.textContent = t || ""; e.className = cls || ""; }
+function rpDot(){                                    // نقطة واحدة: خضراء = محفوظ ومُرسل · برتقالية = غير ذلك
+  const d = $("#rpDot"); if (!d) return; d.hidden = isOb();
+  const run = RQ.SYNC.running, pend = RQ.pending();
+  d.className = (RP.dirty || pend || run) ? "warn" : "ok";
+  d.title = run ? (RQ.SYNC.msg || "يزامن…") : RP.dirty ? "تعديلات لم تُحفظ بعد" : pend ? "تعديلات في طريقها إلى Roam (" + AR(pend) + ")" : "كل شيء محفوظ ومُرسل";
+}
+function rpState(t, cls){ RP.dirty = cls === "dirty"; rpDot(); }
 
-/* ---- التحميل والمزامنة ---- */
+/* ---- التحميل والمزامنة (في الإعدادات) ---- */
 function rpSyncUI(){
-  const g = curGraph(), box = $("#rpSyncBtns"), msg = $("#syncMsg"); if (!g) return; box.innerHTML = "";
+  rpDot();
+  const g = curGraph(), box = $("#rpSyncBtns"), msg = $("#syncMsg"); if (!g || !box || !msg) return; box.innerHTML = "";
   const btn = (t, fn, cls) => { const b = el("button", "ghost" + (cls ? " " + cls : "")); b.textContent = t; b.onclick = fn; box.appendChild(b); return b; };
-  const loc = RQ.isLocal(g.name), run = RQ.SYNC.running;
-  $("#rpSync").classList.toggle("on", loc);
-  if (run){ msg.textContent = RQ.SYNC.msg; btn("إيقاف", () => { RQ.SYNC.stop = true; }, "danger"); return; }
-  if (!RQ.SYNC.msg) msg.textContent = loc ? "نسخة محلية كاملة لهذا الغراف على هذا الجهاز." : "لا نسخة محلية بعد. تحميل الغراف يتيح البحث في النصوص، والعرض والتعديل هنا.";
-  const go = full => { if (!getToken()){ toast("أضف رمز الغراف في ⚙ الإعدادات أولاً"); return; } saveDoc().then(() => { RQ.sync(full).then(rpSyncUI); setTimeout(rpSyncUI, 50); }); };
+  const loc = RQ.isLocal(g.name);
+  if (RQ.SYNC.running){ msg.textContent = RQ.SYNC.msg; btn("إيقاف", () => { RQ.SYNC.stop = true; }, "danger"); return; }
+  msg.textContent = RQ.SYNC.msg || (loc ? "نسخة محلية كاملة لهذا الغراف على هذا الجهاز. تُزامَن تلقائياً عند فتح المحرر." : "لا نسخة محلية بعد. تحميل الغراف يتيح البحث في النصوص، والعرض والتعديل.");
+  const go = full => { if (!getToken()){ toast("أضف رمز الغراف أولاً"); return; } saveDoc().then(() => { RQ.sync(full).then(rpSyncUI); setTimeout(rpSyncUI, 50); }); };
   if (!loc) btn("تحميل الغراف إلى الجهاز", () => go(true));
-  else { btn("مزامنة", () => go(false)); btn("مزامنة كاملة", () => go(true));
+  else {
+    btn("مزامنة الغراف الآن", () => go(false)); btn("مزامنة كاملة", () => go(true));
     btn("تشخيص", async () => { msg.textContent = "يشخّص…"; const t = await RQ.diagnose(); const a = el("textarea"); a.readOnly = true; a.value = t; a.style.cssText = "width:100%;height:150px;direction:ltr;font-size:11px"; box.appendChild(a); msg.textContent = "انسخ النص التالي وأرسله:"; a.select(); });
     const d = btn("حذف النسخة", async () => { if (d.dataset.arm !== "1"){ d.dataset.arm = "1"; d.textContent = "اضغط ثانية للتأكيد"; setTimeout(() => { d.dataset.arm = ""; d.textContent = "حذف النسخة"; }, 2500); return; }
-      closeDoc(); await RQ.dropLocal(); RQ.SYNC.msg = ""; rpSyncUI(); }, "danger"); }
-  $("#rpSyncBox").hidden = loc && !RQ.SYNC.msg && !$("#rpSyncBox").dataset.show;
+      closeDoc(); await RQ.dropLocal(); RQ.SYNC.msg = ""; rpSyncUI(); }, "danger");
+  }
+}
+function syncSettings(box){                          // يُستدعى من لوحة الإعدادات
+  box.appendChild(h("h4", {}, "النسخة المحلية والمزامنة"));
+  box.appendChild(h("div", {id:"rpSyncBox"}, h("div", {id:"syncMsg", class:"hint"}), h("div", {id:"rpSyncBtns"})));
+  rpSyncUI();
 }
 
 /* ---- البحث ---- */
@@ -2866,7 +2897,7 @@ function rpDraw(){
     if (!RP.items.length){ const h = el("div", "rphd"); h.textContent = "لا نتائج"; box.appendChild(h); }
     const s = box.querySelector(".sel"); if (s) s.scrollIntoView({block:"nearest"});
   };
-  paint([], RQ.loc() ? null : "للبحث في النصوص حمّل الغراف (زر ⇅)");
+  paint([], RQ.loc() ? null : "للبحث في النصوص حمّل الغراف من ⚙ الإعدادات");
   if (!RQ.loc() || RQ.foldStr(q).length < 2) return;
   RP.timer = setTimeout(async () => {
     try {
@@ -2916,7 +2947,7 @@ async function loadLazy(n){                          // حمّل أولاد كت
   n.children = kids; n.lazy = false; const s = DOC.snap.get(n.uid); if (s) s.lazy = false;
 }
 async function openDoc(spec, fromHistory){
-  if (!RQ.loc()){ toast("حمّل الغراف أولاً (زر ⇅ بجانب خانة البحث)"); $("#rpSyncBox").dataset.show = "1"; rpSyncUI(); return; }
+  if (!RQ.loc()){ toast("حمّل الغراف أولاً من ⚙ الإعدادات"); return; }
   await saveDoc();
   try {
     await RQ.openLocal();
@@ -2933,7 +2964,7 @@ async function openDoc(spec, fromHistory){
       if (!tr || !b) throw new Error("الكتلة غير موجودة في النسخة المحلية — جرّب المزامنة");
       const n = mk((b.h ? "#".repeat(Math.min(3, b.h)) + " " : "") + (b.s || "")); n.uid = b.u; snap.set(b.u, {t:n.text, p:tr.p, i:0, lazy:false});
       n.children = await docKids(b.u, 0, bud, snap, true); nodes = [n];
-      if (tr.p !== b.g){ const pb = await RQ.rq(db.transaction("blocks").objectStore("blocks").get(tr.p)); if (pb) ctx = {uid:tr.p, s:pb.s || ""}; }
+      if (tr.p !== b.g){ const pb = await RQ.rq(db.transaction("blocks").objectStore("blocks").get(tr.p)); if (pb) ctx = {uid:tr.p, s:(pb.s || "").replace(/^#{1,6}[ \t]+/, "")}; }
       d = {kind:"block", title:RQ.pageTitle(b.g), pageUid:b.g, rootUid:tr.p, base:tr.o, snap, uid:b.u, q:spec.q};
     }
     if (!fromHistory){ const st = {doc:spec.kind === "page" ? {kind:"page", title:spec.title} : {kind:"block", uid:spec.uid}}; if (history.state && history.state.doc) history.pushState(st, ""); else { history.replaceState({base:1}, ""); history.pushState(st, ""); } }
@@ -2947,7 +2978,7 @@ async function openDoc(spec, fromHistory){
       const v = $('#outline2 .block[data-id="' + nodes[0].id + '"] > .row .view');
       if (v){ const hits = RQ.markMatches(v, d.q); if (hits.length) hits[0].scrollIntoView({block:"center"}); }
     }
-    RQ.ROOTHL.set(d.kind === "page" ? d.title : "", $("#rpDoc"), VIEW.roots);
+    RQ.ROOTHL.set(d.kind === "page" ? d.title : (VIEW.roots ? await RQ.rootOfBlock(d.uid) : ""), $("#rpDoc"), VIEW.roots);
     if (d.kind === "page") drawRefs(d);
   } catch(e){ toast("تعذّر الفتح: " + e.message); }
 }
@@ -3150,7 +3181,8 @@ function todoKey(n, t){                              // لا شيء ← TODO ←
 function rpInit(){
   $("#rpSplit").onclick = () => { store.set("rq-split", isSplit() ? "" : "1"); layout(); if (DOC){ activate("page"); render(); } };
   $("#rpDraft").onclick = toDraft;
-  $("#rpSync").onclick = () => { const b = $("#rpSyncBox"); if (b.dataset.show){ delete b.dataset.show; b.hidden = true; } else { b.dataset.show = "1"; b.hidden = false; } rpSyncUI(); };
+  document.addEventListener("mousedown", e => { if (!e.target.closest("#rpRes") && e.target.id !== "rpQ") $("#rpRes").hidden = true; });
+  setInterval(rpDot, 2000);
   $("#rpMode").onclick = () => { RP.mode = RP.mode === 2 ? 1 : 2; rpDraw(); $("#rpQ").focus(); };
   const q = $("#rpQ");
   q.oninput = () => { RP.sel = 0; rpDraw(); };
@@ -3175,7 +3207,7 @@ function rpInit(){
   window.addEventListener("online", () => RQ.flush());
   window.addEventListener("beforeunload", () => { saveDoc(); });
   RQ.hooks.onSync = () => { loadPages(); pagesInfo(); rpSyncUI(); };
-  RQ.hooks.onQueue = () => { if (DOC && !DOC.saving && $("#rpState").className !== "dirty") rpState(RQ.pending() ? "يُرسل…" : "محفوظ ✓"); };
+  RQ.hooks.onQueue = rpDot;
   layout();
 }
 /* ---- ما يُنقر في Roam يُنقر هنا: روابط الصفحات، الوسوم، مراجع الكتل، الروابط الخارجية ---- */
@@ -3200,7 +3232,7 @@ let rpGraphKey = "";
 function rpGraph(){                                  // عند تغيّر الغراف أو الوجهة
   if (DOC) closeDoc();
   $("#rpBar").hidden = isOb(); $("#rpRes").hidden = true;
-  if (isOb()){ $("#rpSyncBox").hidden = true; rpGraphKey = ""; return; }
+  rpDot(); if (isOb()){ rpGraphKey = ""; return; }
   if (rpGraphKey === S.graph) return; rpGraphKey = S.graph; brefCache.clear();
   RQ.SYNC.msg = ""; RQ.loadQueue(); RQ.setGraphLocal(); RQ.flush(); rpSyncUI();
   setTimeout(() => RQ.autoSync().then(rpSyncUI), 1500);
@@ -3243,7 +3275,7 @@ function viewSettings(box){
   lsel.value = String(VIEW.lh);
   row.append("الخط ", fsel, " الحجم ", h("button", {class:"ghost", onclick:step(-1)}, "−"), val, h("button", {class:"ghost", onclick:step(1)}, "+"), " الأسطر ", lsel);
   box.appendChild(row);
-  const rc = h("input", {type:"checkbox", checked:!!VIEW.roots, onchange:e => { VIEW.roots = e.target.checked; applyView(); RQ.ROOTHL.set(DOC && DOC.kind === "page" ? DOC.title : "", $("#rpDoc"), VIEW.roots); }});
+  const rc = h("input", {type:"checkbox", checked:!!VIEW.roots, onchange:e => { VIEW.roots = e.target.checked; applyView(); if (DOC) openDoc(DOC.kind === "page" ? {kind:"page", title:DOC.title} : {kind:"block", uid:DOC.uid}, true); }});
   box.appendChild(h("label", {}, rc, "تلوين كلمات الجذر في صفحات الجذور (ج/…) وما تحتها من مراجع"));
 }
 
