@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <!-- أمان: لا اتصال إلا بخادم Roam -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: 'self'; manifest-src 'self'; worker-src 'self' blob:; media-src blob:; font-src 'self'; connect-src https://api.roamresearch.com https://*.api.roamresearch.com:*;">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: 'self'; manifest-src 'self'; worker-src 'self' blob:; media-src blob:; font-src 'self'; connect-src https://api.roamresearch.com https://*.api.roamresearch.com:* https://api.elevenlabs.io;">
 <title>المحرر (جوال)</title>
 <link rel="manifest" href="manifest-mobile.webmanifest">
 <meta name="theme-color" content="#0f8f7e">
@@ -256,6 +256,8 @@ textarea.live{flex:1;min-width:0;display:block;border:0;outline:0;resize:none;ov
 #vDiag{margin-top:8px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;font-size:12px;line-height:1.5;white-space:pre-wrap;direction:ltr;text-align:left;max-height:46vh;overflow:auto;user-select:text;-webkit-user-select:text}
 #vDiag:empty{display:none}
 #vDiagNow{margin-top:8px;font-weight:700;color:var(--danger);font-size:16px}#vDiagNow:empty{display:none}
+.krow{display:flex;gap:6px}
+.krow input{flex:1;min-width:0}
 </style>
 
 <body>
@@ -1653,7 +1655,24 @@ async function vAll(){ const db = await vdb(); return (await vreq(db.transaction
 const vClock = ms => { const x = Math.floor(ms / 1000); return AR(Math.floor(x / 60)) + ":" + AR(x % 60).padStart(2, "٠"); };
 
 /* محرّك كروم المدمج: يعيد {stop(): Promise<string>} ويبلّغ بالنص أولاً بأول */
+async function vTranscribeEleven(blob){
+  const key = (PREFS.vKey || "").trim(); if (!key) throw new Error("لا مفتاح ElevenLabs في الإعدادات");
+  const fd = new FormData(); fd.append("model_id", "scribe_v2");
+  const lang = (PREFS.vLang || "").split("-")[0]; if (lang) fd.append("language_code", lang);
+  const ext = blob.type.includes("ogg") ? "ogg" : blob.type.includes("mp4") || blob.type.includes("aac") ? "m4a" : "webm";
+  fd.append("file", blob, "audio." + ext);
+  const ctrl = new AbortController(), t = setTimeout(() => ctrl.abort(), 90000);
+  let r;
+  try { r = await fetch("https://api.elevenlabs.io/v1/speech-to-text", {method:"POST", headers:{"xi-api-key":key}, body:fd, signal:ctrl.signal}); }
+  catch(e){ throw new Error(e.name === "AbortError" ? "انتهت مهلة التحويل" : "تعذّر الاتصال بـ ElevenLabs"); }
+  finally { clearTimeout(t); }
+  const txt = await r.text();
+  if (!r.ok){ let m = "خطأ ElevenLabs (" + r.status + ")"; try { const j = JSON.parse(txt); if (j.detail) m += ": " + (typeof j.detail === "string" ? j.detail : (j.detail.message || JSON.stringify(j.detail))); } catch(e){} throw new Error(m); }
+  let j; try { j = JSON.parse(txt); } catch(e){ throw new Error("ردّ غير مفهوم من ElevenLabs"); }
+  return ((j.text != null ? j.text : (j.transcripts && j.transcripts[0] && j.transcripts[0].text)) || "").trim();
+}
 const VENG = {
+  eleven(v, onText, onNote){ onNote("يُسجَّل بلا نص مباشر؛ يظهر النص بعد الإنهاء عبر ElevenLabs"); return {stop:async () => ""}; },
   chrome(v, onText, onNote){
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SR){ onNote("هذا المتصفح لا يحوّل الصوت إلى نص؛ سيُحفظ الصوت وحده"); return {stop:async () => ""}; }
@@ -1692,15 +1711,17 @@ const VENG = {
 async function vStart(tpl){
   if (V) return;
   const g = vGraph(tpl); if (!g || !g.token){ toast("أضف رمز الغراف من الإعدادات"); return; }
-  const v = V = {tpl, g, t:Date.now(), t0:Date.now(), acc:0, paused:false, text:"", chunks:[], stream:null, mr:null, lock:null, dropAudio(){ try { if (v.mr && v.mr.state !== "inactive") v.mr.stop(); } catch(e){} if (v.stream) v.stream.getTracks().forEach(x => x.stop()); v.stream = null; v.mr = null; v.chunks = []; }};
+  const engine = PREFS.vEngine === "eleven" ? "eleven" : "chrome";
+  const v = V = {tpl, g, engine, t:Date.now(), t0:Date.now(), acc:0, paused:false, text:"", chunks:[], stream:null, mr:null, lock:null, dropAudio(){ try { if (v.mr && v.mr.state !== "inactive") v.mr.stop(); } catch(e){} if (v.stream) v.stream.getTracks().forEach(x => x.stop()); v.stream = null; v.mr = null; v.chunks = []; }};
   $("#vTpls").hidden = true; $("#vHist").hidden = true; $("#vLive").hidden = false; $("#vName").textContent = "— " + tpl.name; $("#vNote").textContent = ""; $("#vText").textContent = ""; $("#vClock").textContent = vClock(0); vPauseMark();
-  if (PREFS.vAudio !== false && navigator.mediaDevices && window.MediaRecorder){
+  if ((engine === "eleven" || PREFS.vAudio === true) && navigator.mediaDevices && window.MediaRecorder){
     try { v.stream = await navigator.mediaDevices.getUserMedia({audio:true}); if (V !== v){ v.dropAudio(); return; }
       v.mr = new MediaRecorder(v.stream); v.mr.ondataavailable = e => { if (e.data && e.data.size) v.chunks.push(e.data); }; v.mr.start(1000); }
     catch(e){ $("#vNote").textContent = "تعذّر الوصول إلى الميكروفون لحفظ الصوت"; v.stream = null; }
   }
   try { if (navigator.wakeLock) v.lock = await navigator.wakeLock.request("screen"); } catch(e){}
   v.tick = setInterval(() => { $("#vClock").textContent = vClock(vDur(v)); }, 500);
+  if (engine === "eleven") $("#vText").innerHTML = '<em>سيظهر النص هنا بعد الإنهاء</em>';
   v.eng = (VENG[PREFS.vEngine] || VENG.chrome)(v, (fin, interim) => { v.text = fin; const b = $("#vText"); b.textContent = fin + (fin && interim ? " " : ""); if (interim){ const e = el("em"); e.textContent = interim; b.appendChild(e); } b.scrollTop = b.scrollHeight; },
     m => { $("#vNote").textContent = m; });
 }
@@ -1737,11 +1758,15 @@ async function vFinish(cancel){
   if (v.mr){ await new Promise(ok => { v.mr.onstop = ok; try { if (v.mr.state === "paused") v.mr.resume(); v.mr.stop(); } catch(e){ ok(); } setTimeout(ok, 1500); }); if (v.chunks.length) blob = new Blob(v.chunks, {type:v.mr.mimeType || "audio/webm"}); }
   if (v.stream) v.stream.getTracks().forEach(x => x.stop());
   try { if (v.lock) await v.lock.release(); } catch(e){}
-  V = null; $("#vStop").disabled = false; $("#vStop").textContent = "إنهاء وإرسال"; $("#vLive").hidden = true; $("#vTpls").hidden = false; $("#vHist").hidden = false;
+  const engine = v.engine; V = null; $("#vStop").disabled = false; $("#vStop").textContent = "إنهاء وإرسال"; $("#vLive").hidden = true; $("#vTpls").hidden = false; $("#vHist").hidden = false;
   if (cancel === true){ toast("أُلغي التسجيل"); return; }
+  if (engine === "eleven" && blob){
+    toast("يُحوَّل النص عبر ElevenLabs…", 60000);
+    try { text = await vTranscribeEleven(blob); } catch(e){ toast("تعذّر التحويل: " + e.message + " — الصوت محفوظ، وتستطيع إعادة المحاولة من قائمة التسجيلات", 5000); text = ""; }
+  }
   text = (text || "").replace(/\s+/g, " ").trim();
   if (!text && !blob){ toast("لم يُلتقط شيء"); return; }
-  const rec = {id:"v" + v.t.toString(36), t:v.t, dur:v.dur, name:v.tpl.name, graph:v.g.name, page:v.tpl.page || "", tag:v.tpl.tag || "", text, blob, sent:false};
+  const rec = {id:"v" + v.t.toString(36), t:v.t, dur:v.dur, name:v.tpl.name, graph:v.g.name, page:v.tpl.page || "", tag:v.tpl.tag || "", engine:v.engine, text, blob, sent:false};
   try { await vPut(rec); } catch(e){ toast("تعذّر حفظ التسجيل في الجهاز: " + e.message, 4000); }
   try { await vExport(rec); } catch(e){ toast("تعذّر حفظ الملف الصوتي: " + e.message, 4000); }
   if (text) await vSend(rec); else toast("لم يُلتقط نص؛ الصوت محفوظ هنا لتسمعه وتكتبه", 4000);
@@ -1776,11 +1801,12 @@ async function vDrawList(){
   box.appendChild(el("div", "sec", "التسجيلات: " + AR(recs.length) + (size ? " · الصوت " + AR(Math.round(size / 104857.6) / 10) + " م.ب" : "")));
   for (const r of recs.slice(0, 60)){
     const d = el("div", "vr"), m = el("div", "vm"), x = el("div", "vx"), a = el("div", "va"), dt = new Date(r.t);
-    m.innerHTML = "<b></b><span></span><span></span>"; m.children[0].textContent = r.name; m.children[1].textContent = dt.toLocaleDateString("ar-EG", {day:"numeric", month:"short"}) + " " + p2(dt.getHours()) + ":" + p2(dt.getMinutes()) + " · " + vClock(r.dur || 0);
+    m.innerHTML = "<b></b><span></span><span></span>"; m.children[0].textContent = r.name + (r.engine === "eleven" ? " · Scribe" : ""); m.children[1].textContent = dt.toLocaleDateString("ar-EG", {day:"numeric", month:"short"}) + " " + p2(dt.getHours()) + ":" + p2(dt.getMinutes()) + " · " + vClock(r.dur || 0);
     m.children[2].textContent = r.sent ? "أُرسل ✓" : (r.err ? "لم يُرسل" : "غير مرسل"); m.children[2].className = r.sent ? "ok" : "no";
     x.textContent = r.text; x.contentEditable = r.sent ? "false" : "true"; x.onblur = async () => { const t = x.textContent.trim(); if (t !== r.text){ r.text = t; await vPut(r); } };
     if (r.blob){ const b = el("button"); b.textContent = "▶ استمع"; b.onclick = () => { if (d.querySelector("audio")) return; const au = el("audio"); au.controls = true; au.src = URL.createObjectURL(r.blob); d.appendChild(au); au.play().catch(() => {}); }; a.appendChild(b); }
     if (!r.sent){ const b = el("button", "go"); b.textContent = "إرسال"; b.onclick = async () => { r.text = x.textContent.trim(); b.disabled = true; await vSend(r); vDrawList(); }; a.appendChild(b); }
+    if (r.blob && !r.text.trim()){ const tb = el("button", "go"); tb.textContent = "حوّل عبر ElevenLabs"; tb.onclick = async () => { if (!(PREFS.vKey || "").trim()){ toast("أضف مفتاح ElevenLabs من الإعدادات"); return; } tb.disabled = true; tb.textContent = "…"; try { r.text = await vTranscribeEleven(r.blob); await vPut(r); toast("حُوّل ✓"); } catch(e){ toast("فشل التحويل: " + e.message, 4500); } vDrawList(); }; a.appendChild(tb); }
     if (r.blob){ const b = el("button"); b.textContent = r.file ? "احفظ الملف ثانية" : "احفظ الملف"; b.onclick = async () => { await vExport(r, true); vDrawList(); }; a.appendChild(b); }
     const del = el("button", "d"); del.textContent = "حذف"; del.onclick = async () => { if (!del._arm){ del._arm = true; del.textContent = "تأكيد الحذف"; setTimeout(() => { del._arm = false; del.textContent = "حذف"; }, 2500); return; } await vDel(r.id); vDrawList(); }; a.appendChild(del);
     d.append(m, x, a); if (r.file){ const f = el("div", "vf"); f.textContent = "الملف: " + r.file; d.appendChild(f); } box.appendChild(d);
@@ -1806,6 +1832,7 @@ async function vDiagRun(out, now){
   log("SpeechRecognition: " + (window.SpeechRecognition ? "yes" : "no") + " · webkit: " + (window.webkitSpeechRecognition ? "yes" : "no") + " · MediaRecorder: " + (window.MediaRecorder ? "yes" : "no"));
   try { if (navigator.permissions){ const p = await navigator.permissions.query({name:"microphone"}); log("mic permission: " + p.state); } } catch(e){ log("mic permission: ? " + e.message); }
   if (!SR){ log("لا محرّك تحويل في هذا المتصفح"); return; }
+  const R = [];
   const stage = (name, withRec, withTrack, secs) => new Promise(async done => {
     log("—— " + name + " ——"); let stream = null, mr = null, bytes = 0, got = "", ended = false, r;
     if (withRec){ try { stream = await navigator.mediaDevices.getUserMedia({audio:true}); mr = new MediaRecorder(stream); mr.ondataavailable = e => { bytes += e.data.size; }; mr.start(500); log("recorder: started " + mr.mimeType); } catch(e){ log("recorder: FAILED " + e.name + " " + e.message); } }
@@ -1821,20 +1848,35 @@ async function vDiagRun(out, now){
     now.textContent = "تكلّم الآن بجملة عربية… (" + name + ")";
     setTimeout(() => { try { r.stop(); } catch(e){} setTimeout(() => {
       if (mr){ try { mr.stop(); } catch(e){} } if (stream) stream.getTracks().forEach(x => x.stop());
-      log("→ " + name + ": " + (got ? "نص ✓" : "بلا نص ✗") + (withRec ? " · صوت مسجّل " + bytes + " بايت" : "") + (ended ? "" : " · لم ينتهِ")); now.textContent = ""; setTimeout(done, 700); }, 1500); }, secs * 1000);
+      R.push(!!got); log("→ " + name + ": " + (got ? "نص ✓" : "بلا نص ✗") + (withRec ? " · صوت مسجّل " + bytes + " بايت" : "") + (ended ? "" : " · لم ينتهِ")); now.textContent = ""; setTimeout(done, 700); }, 1500); }, secs * 1000);
   });
   await stage("A: التحويل وحده", false, false, 7);
   await stage("B: مع التسجيل + مسار", true, true, 7);
   await stage("C: مع التسجيل بلا مسار", true, false, 7);
   log("انتهى الاختبار"); now.textContent = "";
+  if (R[0] && !R[1] && !R[2]){ PREFS.vAudio = false; savePrefs(); log("النتيجة: التحويل يعمل وحده ويتوقف مع تسجيل الصوت (تعارض على الميكروفون). أُطفئ حفظ الصوت."); }
+  else if (R[0] && (R[1] || R[2])) log("النتيجة: التحويل يعمل مع تسجيل الصوت.");
+  else if (!R[0]) log("النتيجة: التحويل لا يعمل حتى وحده (الخدمة أو الإذن).");
 }
 function voiceSettings(box, h3){
   h3("التدوين الصوتي");
   const fld = (label, node) => { const l = el("label", "f"); l.append(label, node); box.appendChild(l); return node; };
   const ls = el("select"); [["ar-SA","العربية (السعودية)"],["ar-IQ","العربية (العراق)"],["ar-LB","العربية (لبنان)"],["ar-EG","العربية (مصر)"],["fa-IR","الفارسية"],["en-US","الإنجليزية"]].forEach(o => { const x = el("option"); x.value = o[0]; x.textContent = o[1]; ls.appendChild(x); });
   ls.value = PREFS.vLang || "ar-SA"; ls.onchange = () => { PREFS.vLang = ls.value; savePrefs(); }; fld("لغة الكلام", ls);
+  { const es = el("select"); [["chrome","المدمج في كروم (مجاني، فوري، بلا صوت محفوظ)"],["eleven","ElevenLabs Scribe (أدق، يحتاج مفتاحاً، ويُرسل الصوت إلى خوادمهم)"]].forEach(o => { const x = el("option"); x.value = o[0]; x.textContent = o[1]; es.appendChild(x); });
+    es.value = PREFS.vEngine === "eleven" ? "eleven" : "chrome"; es.onchange = () => { PREFS.vEngine = es.value; savePrefs(); kbox.hidden = es.value !== "eleven"; }; fld("محرّك التحويل", es);
+    const kbox = el("div"); kbox.hidden = es.value !== "eleven";
+    const kl = el("label", "f"), krow = el("div", "krow"), ki = el("input"), eye = el("button", "btn");
+    ki.type = "password"; ki.autocomplete = "off"; ki.spellcheck = false; ki.dir = "ltr"; ki.style.textAlign = "left"; ki.placeholder = "xi-api-key"; ki.value = PREFS.vKey || "";
+    ki.oninput = () => { PREFS.vKey = ki.value.trim(); savePrefs(); };
+    eye.type = "button"; eye.textContent = "عرض"; eye.onclick = () => { ki.type = ki.type === "password" ? "text" : "password"; eye.textContent = ki.type === "password" ? "عرض" : "إخفاء"; };
+    krow.append(ki, eye); kl.append("مفتاح ElevenLabs", krow); kbox.appendChild(kl);
+    const khint = el("div", "hint"); khint.textContent = "يُحفظ في متصفح هذا الجهاز فقط، ولا يدخل في أي ملف يُرفع إلى موقعك العلني."; kbox.appendChild(khint);
+    const test = el("button", "btn"); test.textContent = "تحقّق من المفتاح"; test.style.marginTop = "6px";
+    test.onclick = async () => { test.disabled = true; test.textContent = "…"; try { const r = await fetch("https://api.elevenlabs.io/v1/user", {headers:{"xi-api-key":(PREFS.vKey || "").trim()}}); toast(r.ok ? "المفتاح صالح ✓" : "رفض الخادم المفتاح (" + r.status + ")"); } catch(e){ toast("تعذّر الاتصال: " + e.message); } test.disabled = false; test.textContent = "تحقّق من المفتاح"; };
+    kbox.appendChild(test); box.appendChild(kbox); }
   const tg = el("input"); tg.type = "text"; tg.dir = "rtl"; tg.value = PREFS.vTag === undefined ? "صوتي" : PREFS.vTag; tg.placeholder = "بلا وسم"; tg.oninput = () => { PREFS.vTag = tg.value.trim().replace(/^#/, ""); savePrefs(); }; fld("وسم كل تدوينة صوتية", tg);
-  { const ck = el("label", "ck"), cb = el("input"); cb.type = "checkbox"; cb.checked = PREFS.vAudio !== false; cb.onchange = () => { PREFS.vAudio = cb.checked; savePrefs(); }; ck.append(cb, "حفظ الصوت الأصلي في الجهاز مع كل تدوينة"); box.appendChild(ck); }
+  { const ck = el("label", "ck"), cb = el("input"); cb.type = "checkbox"; cb.checked = PREFS.vAudio === true; cb.onchange = () => { PREFS.vAudio = cb.checked; savePrefs(); }; ck.append(cb, "حفظ الصوت الأصلي مع كل تدوينة (في بعض الهواتف يمنع التحويل إلى نص: جرّب زر الاختبار)"); box.appendChild(ck); }
   { const opts = [["dl","مجلد التنزيلات في الهاتف"]]; if (window.showDirectoryPicker) opts.push(["dir","مجلد أختاره"]); opts.push(["app","داخل التطبيق فقط"]);
     const ss = el("select"); opts.forEach(o => { const x = el("option"); x.value = o[0]; x.textContent = o[1]; ss.appendChild(x); }); ss.value = opts.some(o => o[0] === PREFS.vSave) ? PREFS.vSave : "dl";
     const info = el("div", "hint"); info.style.marginTop = "4px"; const say = async () => { const h = ss.value === "dir" ? await vDirGet() : null; info.textContent = ss.value === "dir" ? (h ? "المجلد: " + h.name : "لم يُختر مجلد بعد") : ss.value === "dl" ? "يُنزَّل ملف صوتي عند انتهاء كل تسجيل" : "الصوت في المتصفح فقط، ويزول بمسح بياناته"; };
