@@ -219,6 +219,8 @@ textarea.live{flex:1;min-width:0;display:block;border:0;outline:0;resize:none;ov
 #page .pbar{gap:0;padding-inline-start:14px;min-height:44px}
 #page .pbar .ic{width:34px}
 #page .pbar .ttl{margin-inline-end:6px}
+#pPin.on{color:#e0a100}#pPin.on svg{fill:currentColor}
+#pPin[hidden]{display:none}
 </style>
 
 <body>
@@ -257,6 +259,7 @@ textarea.live{flex:1;min-width:0;display:block;border:0;outline:0;resize:none;ov
   </header>
   <header class="bar pbar">
     <div id="pTitle" class="ttl"></div>
+    <button id="pPin" class="ic" aria-label="ثبّت الصفحة أو ألغِ تثبيتها"><svg viewBox="0 0 24 24"><path d="M12 3.5l2.6 5.4 5.9.8-4.3 4.1 1 5.8-5.2-2.8-5.2 2.8 1-5.8-4.3-4.1 5.9-.8z"/></svg></button>
     <button id="pFold" class="ic" aria-label="طيّ الكل ونشره"><svg viewBox="0 0 24 24"><path d="M7 9l5-5 5 5M7 15l5 5 5-5"/></svg></button>
     <button class="ic bFont" aria-label="حجم الخط">Aa</button>
     <button id="pReload" class="ic" aria-label="تحديث"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.6-5.9M20 4v5h-5"/></svg></button>
@@ -368,6 +371,10 @@ function loadPages(){
   PAGES = raw ? raw.split("\n").filter(Boolean) : [];
   PAGESN = PAGES.map(norm);
 }
+const pinsAll = () => { try { return JSON.parse(store.get("rq-pins") || "{}") || {}; } catch(e){ return {}; } };
+const pins = g => { const a = pinsAll()[g]; return Array.isArray(a) ? a : []; };
+function pinToggle(g, t){ const all = pinsAll(), a = pins(g), k = a.indexOf(t); if (k >= 0) a.splice(k, 1); else a.push(t); all[g] = a; store.set("rq-pins", JSON.stringify(all)); return k < 0; }
+function pinMark(){ const b = $("#pPin"), pg = ROUTE.name === "page" && ROUTE.kind === "page"; b.hidden = !pg; b.classList.toggle("on", pg && pins(RAW.roam.current).includes(ROUTE.title)); }
 function recents(){ const g = G(); if (!g) return []; try { return JSON.parse(store.get("rqm-recent:"+g.name) || "[]"); } catch(e){ return []; } }
 function addRecent(title){
   const g = G(); if (!g || !title) return;
@@ -573,7 +580,7 @@ function fmt(s){
   h = h.replace(/!\[([^\[\]\n]*)\]\((https?:[^)\s]+)\)/g, (m,a,u) => '<a class="ext" href="'+u+'" target="_blank" rel="noopener">🖼 '+(a || "صورة")+'</a>');
   h = h.replace(/\[([^\[\]\n]+)\]\((https?:[^)\s]+)\)/g, '<a class="ext" href="$2" target="_blank" rel="noopener">$1</a>');
   h = h.replace(/#\[\[([^\[\]\n]+)\]\]/g, (m,t) => pl(t, "#"+t));
-  h = h.replace(/\[\[([^\[\]\n]+)\]\]/g, (m,t) => pl(t, t, true));
+  h = h.replace(/\[\[([^\[\]\n]+)\]\]/g, (m,t) => { const k = PREFS.ns ? t.lastIndexOf("/") : -1; return pl(t, k >= 0 && k < t.length - 1 ? t.slice(k + 1) : t, true); });
   h = h.replace(/\(\(([\w-]{6,})\)\)/g, '<span class="bref" data-uid="$1">((…))</span>');
   h = h.replace(/(^|[\s(،؛,;⁦])#([^\s#\[\](){}<>&.,،؛!?:"]+)/g, (m,a,t) => a+pl(t, "#"+t));
   h = h.replace(/(^|\s)(https?:\/\/[^\s<>"]+)/g, '$1<a class="ext" href="$2" target="_blank" rel="noopener">$2</a>');
@@ -1536,7 +1543,9 @@ function drawSearch(){
   if (!q){
     bb.innerHTML = "";
     box.appendChild(pageRow("اليوم", dailyTitle(), "@today", true));
-    const r = recents();
+    const pn = pins(RAW.roam.current);
+    if (pn.length){ box.appendChild(el("div", "sec", "المثبتة")); pn.forEach(t => box.appendChild(pageRow(t))); }
+    const r = recents().filter(t => !pn.includes(t));
     if (r.length){ box.appendChild(el("div", "sec", "الأخيرة")); r.forEach(t => box.appendChild(pageRow(t))); }
     return;
   }
@@ -1566,6 +1575,7 @@ function drawSearch(){
   }, 140);
 }
 sq.addEventListener("input", () => { NOBLK = false; drawSearch(); });
+$("#pPin").onclick = () => { if (ROUTE.kind !== "page") return; const on = pinToggle(RAW.roam.current, ROUTE.title); pinMark(); toast(on ? "ثُبّتت: تجدها في البحث وهو فارغ" : "أُلغي التثبيت"); };
 $("#pq").addEventListener("click", e => { e.preventDefault(); go("s"); sq.focus(); sq.select(); });   // شريط البحث فوق الصفحة: لمسة تنقلك إلى البحث والمؤشر فيه
 swipeable($("#sPages"), r => { if (r.dataset.t) draftAdjacent(r.dataset.t); });
 sq.addEventListener("keydown", e => { if (e.key === "Enter"){ e.preventDefault(); const f = $("#sPages .it") || $("#sBlocks .it"); if (f) f.click(); } });
@@ -1664,7 +1674,7 @@ function fillRefs(body, r){
   resolveRefs(body);
 }
 function enterView(){
-  $("#pAdd").hidden = ROUTE.kind !== "page"; $("#pFold").hidden = ROUTE.kind !== "page";
+  $("#pAdd").hidden = ROUTE.kind !== "page"; $("#pFold").hidden = ROUTE.kind !== "page"; pinMark();
   if (ROUTE.kind === "block") return enterBlock(ROUTE.uid, ROUTE.q);
   return enterPage(ROUTE.title);
 }
@@ -2212,6 +2222,7 @@ function renderSettings(){
   h3("العرض");
   sel("الخط", [["","خط النظام"],["vazir","Vazirmatn"],["naskh","Noto Naskh Arabic"]], FONTS[PREFS.font] ? PREFS.font : "", v => { PREFS.font = v; savePrefs(); applyFont(); });
   { const ckm = el("label", "ck"), cbm = el("input"); cbm.type = "checkbox"; cbm.checked = SMODE === 2; cbm.onchange = () => { SMODE = cbm.checked ? 2 : 1; PREFS.smode = SMODE; savePrefs(); }; ckm.append(cbm, "البحث المجرّد: تجريد الكلمات من الزوائد، ووجودها كلها في الكتلة ولو متفرقة"); box.appendChild(ckm); }
+  { const ckn = el("label", "ck"), cbn = el("input"); cbn.type = "checkbox"; cbn.checked = !!PREFS.ns; cbn.onchange = () => { PREFS.ns = cbn.checked; savePrefs(); pageCache.clear(); }; ckn.append(cbn, "اختصار أسماء الصفحات ذات / إلى جزئها الأخير، داخل النصوص فقط (كما في Roam)"); box.appendChild(ckn); }
   h3("الكتابة من المسودة");
   { const ckh = el("label", "ck"), cbh = el("input"); cbh.type = "checkbox"; cbh.checked = graphs().length > 0 && graphs().every(g => g.header !== false);
     cbh.onchange = () => { graphs().forEach(g => { g.header = cbh.checked; }); saveCfg(); }; ckh.append(cbh, "ترويسة التاريخ والوقت فوق كل ما يُرسل من المسودة"); box.appendChild(ckh); }

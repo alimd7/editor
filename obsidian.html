@@ -141,8 +141,8 @@ button{font:inherit;cursor:pointer}
 /* ---- لوحة Roam الجانبية ---- */
 #rp[hidden],#rpBar[hidden],#rpSyncBox[hidden],#rpRes[hidden],#rpDoc[hidden],#rpDoc [hidden]{display:none!important}
 body.docview #outline,body.docview #pagefield,body.docview #btnSend,body.docview #btnClear{display:none}
-body.rpopen{padding-left:46vw}
-#rp{position:fixed;top:0;bottom:0;left:0;width:46vw;overflow:auto;padding:14px 16px 60px;background:var(--bg);border-right:1px solid var(--line);z-index:20}
+body.rpopen{padding-left:var(--spw,46vw)}
+#rp{position:fixed;top:0;bottom:0;left:0;width:var(--spw,46vw);overflow:hidden;display:flex;flex-direction:column;padding:10px 16px 10px;background:var(--bg);border-right:1px solid var(--line);z-index:20}
 #rpBar{display:flex;gap:6px;align-items:center}
 #rpQ{flex:1;min-width:0;height:34px;border:1px solid var(--line);border-radius:17px;padding:0 14px;background:var(--bg);color:var(--text);font:inherit;outline:0}
 #rpQ:focus{border-color:var(--accent)}
@@ -197,7 +197,7 @@ mark.hit{background:#ffd54a;color:#000;border-radius:3px}
 .calg .dy.td{outline:1px solid var(--accent)}
 .calg .dy.sel{background:var(--accent);color:var(--accent-ink)}
 .calf{color:var(--muted);font-size:11px;text-align:center;margin-top:6px}
-@media (max-width:900px){body.rpopen{padding-left:0}#rp{width:100vw}}
+@media (max-width:900px){body.rpopen{padding-left:0}#rp{width:100vw}#rpSep{display:none!important}}
 @font-face{font-family:"Vazirmatn";src:local("Vazirmatn"),url("fonts/Vazirmatn.woff2") format("woff2"),url("fonts/Vazirmatn.ttf") format("truetype");font-weight:100 900;font-display:swap}
 @font-face{font-family:"Noto Naskh Arabic";src:local("Noto Naskh Arabic"),url("fonts/NotoNaskhArabic.woff2") format("woff2"),url("fonts/NotoNaskhArabic.ttf") format("truetype");font-weight:400 700;font-display:swap}
 #outline,#docSlot,#rp,#rpRes{font-size:var(--fs,16px);font-family:var(--ff,inherit)}
@@ -239,6 +239,24 @@ details.keysbox summary{cursor:pointer;font-weight:700;padding:4px 0;color:var(-
 #rpEmpty{padding:26px 4px;text-align:center}#rpEmpty[hidden],#rpHead[hidden]{display:none}
 .rpi small.gl{display:inline;margin-inline-start:8px;font-size:11px;border:1px solid var(--line);border-radius:8px;padding:0 6px}
 .vrow input[type=text]{flex:1;min-width:120px;font:inherit;padding:3px 8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--text)}
+body.docview #rp #outline{display:block;flex:1;overflow:auto;padding-top:4px}
+body.docview #rp #btnSend,body.docview #rp #btnClear{display:inline-block}
+#sdBody{flex:1;min-height:0;display:flex;flex-direction:column}
+#sdHead{flex:none;display:flex;align-items:baseline;gap:8px;min-height:38px;padding:4px 2px 6px;border-bottom:1px solid var(--line)}
+#sdTitle{flex:1;min-width:0;font-weight:700;font-size:1.15em;direction:rtl;text-align:right;unicode-bidi:isolate;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#sdTitle:hover{color:var(--accent)}#sdTitle.tgt{color:var(--accent)}
+#sdG{flex:none;color:var(--muted);font-size:11px;border:1px solid var(--line);border-radius:8px;padding:0 6px}#sdG:empty{display:none}
+#sdQ{flex:1;min-width:0;font:inherit;padding:4px 12px;border:1px solid var(--accent);border-radius:16px;background:var(--bg);color:var(--text);outline:0}
+#sdQ[hidden],#sdTitle[hidden],#sdG[hidden],#sdRes[hidden]{display:none}
+#sdQ::-webkit-search-cancel-button{display:none}
+#sdRes{flex:none;max-height:46vh;overflow:auto;border:1px solid var(--line);border-radius:8px;padding:4px 6px;margin-top:4px;box-shadow:0 6px 18px rgba(0,0,0,.12);background:var(--bg)}
+#sdActs{flex:none;margin-top:6px}
+#rpSep{display:none;position:fixed;top:0;bottom:0;left:calc(var(--spw,46vw) - 4px);width:8px;cursor:col-resize;z-index:21}
+body.rpopen #rpSep{display:block}
+#rpSep:hover,body.resz #rpSep{background:color-mix(in srgb,var(--accent) 35%,transparent)}
+body.resz{user-select:none;cursor:col-resize}
+#rpPin.on{color:#e0a100}#rpPin[hidden]{display:none}
+.rpi .pinm{flex:none;color:#e0a100;font-size:.85em}
 </style>
 </head>
 <body>
@@ -301,7 +319,14 @@ details.keysbox summary{cursor:pointer;font-weight:700;padding:4px 0;color:var(-
   <div id="settings"></div>
 </div>
 
-<aside id="rp" hidden></aside>
+<aside id="rp" hidden>
+  <div id="sdHead"><span id="sdTitle" title="وجهة الكتابة — اضغط لتغييرها"></span><small id="sdG"></small>
+    <input id="sdQ" type="search" name="rq-dest" dir="rtl" autocomplete="off" autocorrect="off" spellcheck="false" data-lpignore="true" data-1p-ignore placeholder="وجهة الكتابة: ابحث عن صفحة" hidden></div>
+  <div id="sdRes" hidden></div>
+  <div id="sdBody"></div>
+  <div id="sdActs" class="actions"></div>
+</aside>
+<div id="rpSep" title="اسحب لتغيير العرض · نقرتان للعودة إلى النصف"></div>
 <div id="toast"></div>
 <div id="out">
   <div id="outbox">
@@ -530,7 +555,8 @@ function renderInline(text){
   h = h.replace(/`([^`\n]+)`/g, "<code>$1</code>");
   h = h.replace(/\{\{(?:\[\[)?TODO(?:\]\])?\}\}/g, "☐").replace(/\{\{(?:\[\[)?DONE(?:\]\])?\}\}/g, "☑");
   h = h.replace(/\[([^\[\]\n]+)\]\((https?:[^)\s]+)\)/g, '<span class="ext" data-h="$2">$1</span>');
-  h = h.replace(/\[\[([^\[\]\n]+)\]\]/g, '<span class="link" dir="auto" data-t="$1"><span class="br">[[</span>$1<span class="br">]]</span></span>');
+  h = h.replace(/\[\[([^\[\]\n]+)\]\]/g, (m, t) => { const k = VIEW.ns ? t.lastIndexOf("/") : -1, sh = k >= 0 && k < t.length - 1;
+    return '<span class="link" dir="auto" data-t="' + t + '"' + (sh ? ' title="' + t + '"' : '') + '><span class="br">[[</span>' + (sh ? t.slice(k + 1) : t) + '<span class="br">]]</span></span>'; });
   h = h.replace(/(^|[\s(،؛,;])#([^\s#\[\](){}<>&.,،؛!?:"]+)/g, '$1<span class="link tag" dir="auto" data-t="$2">#$2</span>');
   h = h.replace(/\(\(([\w-]{6,})\)\)/g, '<span class="bref" data-u="$1">(($1))</span>');
   h = h.replace(/(^|\s)(https?:\/\/[^\s<]+)/g, '$1<span class="ext" data-h="$2">$2</span>');
@@ -1465,9 +1491,11 @@ function hasContent(tree){
 }
 /* ---------- الإرسال الفعلي إلى Roam ---------- */
 let sending = false;
-const getToken = () => (curGraph().token || "").trim();
+let CALLG = null;                                    // غراف وجهة اللوحة الجانبية إن خالف غراف اللسان
+const callGraph = () => (CALLG && CFG.roam.graphs.find(g => g.name === CALLG)) || curGraph();
+const getToken = () => (callGraph().token || "").trim();
 async function roamCall(kind, body){
-  const r = await fetch("https://api.roamresearch.com/api/graph/"+encodeURIComponent(S.graph)+"/"+kind,
+  const r = await fetch("https://api.roamresearch.com/api/graph/"+encodeURIComponent(callGraph().name)+"/"+kind,
     {method:"POST", headers:{"X-Authorization":"Bearer "+getToken(), "Content-Type":"application/json"}, body:JSON.stringify(body)});
   const t = await r.text();
   return {ok:r.ok, status:r.status, text:t};
@@ -1535,7 +1563,7 @@ async function doSend(){
   }
   const tree = prune(model, 3);
   if (!hasContent(tree)){ toast("لا يوجد نص للإرسال"); return; }
-  const payload = {graph:S.graph, page:S.page.kind==="today" ? {kind:"today", daily:dailyTitle(), uid:p2(new Date().getMonth()+1)+"-"+p2(new Date().getDate())+"-"+new Date().getFullYear()} : {kind:"page", title:S.page.title}, blocks:tree};
+  const payload = {graph:callGraph().name, page:S.page.kind==="today" ? {kind:"today", daily:dailyTitle(), uid:p2(new Date().getMonth()+1)+"-"+p2(new Date().getDate())+"-"+new Date().getFullYear()} : {kind:"page", title:S.page.title}, blocks:tree};
   if (getToken()){
     sending = true; const btn = $("#btnSend"), old = btn.textContent; btn.textContent = "جارٍ الإرسال…"; btn.disabled = true;
     try {
@@ -2861,24 +2889,95 @@ const GLAB = jget("rq-glabels", {});
 const glabel = name => GLAB[name] || name;
 const DR = Object.assign({graph:"", set:false, page:{kind:"today", title:""}}, jget("rq-dtarget", {}));   // وجهة إرسال المسودة
 const saveDR = () => store.set("rq-dtarget", JSON.stringify(DR));
-const DOC_HTML = '<div id="rpHead"><span id="rpTitle"></span><button id="rpSyncDoc" class="ic" title="زامن هذه الصفحة من Roam (Alt+R)">↻</button><button id="rpSplit" class="ic" title="اعرض الوثيقة بجانب المسودة، أو مكانها">◫</button></div>' +
+const SD = Object.assign({set:false, graph:"", page:{kind:"today", title:""}}, jget("rq-sdtarget", {}));   // وجهة اللوحة الجانبية
+const pinsAll = () => jget("rq-pins", {});
+const pins = g => { const a = pinsAll()[g]; return Array.isArray(a) ? a : []; };
+function pinToggle(g, t){ const all = pinsAll(), a = pins(g), k = a.indexOf(t); if (k >= 0) a.splice(k, 1); else a.push(t); all[g] = a; store.set("rq-pins", JSON.stringify(all)); return k < 0; }
+const recentsD = g => jget("rq-recent:" + g, []);
+function recentPush(g, t){ const r = recentsD(g).filter(x => x !== t); r.unshift(t); store.set("rq-recent:" + g, JSON.stringify(r.slice(0, 12))); }
+const DOC_HTML = '<div id="rpHead"><span id="rpTitle"></span><button id="rpPin" class="ic" title="ثبّت هذه الصفحة للوصول السريع من شريط البحث، أو ألغِ تثبيتها">☆</button><button id="rpSyncDoc" class="ic" title="زامن هذه الصفحة من Roam (Alt+R)">↻</button><button id="rpSplit" class="ic" title="اعرض الوثيقة بجانب المسودة، أو مكانها">◫</button></div>' +
   '<div id="rpEmpty" class="hint">ابحث في الأعلى لفتح صفحة أو كتلة.</div><div id="rpCtx" hidden></div><div id="outline2"></div><div id="rpMore" class="hint" hidden></div><div id="rpRefs"></div>';
 function newDocEl(){
   const d = el("div"); d.id = "rpDoc"; d.innerHTML = DOC_HTML; const q = x => d.querySelector(x);
   q("#rpSplit").onclick = () => { store.set("rq-split", isSplit() ? "" : "1"); layout(); if (DOC){ activate("page"); render(); } };
   q("#rpSyncDoc").onclick = syncDoc;
+  q("#rpPin").onclick = () => { if (!DOC || DOC.kind !== "page") return; const on = pinToggle(S.graph, DOC.title); layout(); toast(on ? "ثُبّتت: تجدها في شريط البحث وهو فارغ" : "أُلغي التثبيت"); };
   q("#rpTitle").onclick = () => { if (DOC && DOC.kind === "block" && DOC.title) openDoc({kind:"page", title:DOC.title}); };
   q("#outline2").addEventListener("mousedown", () => activate("page"), true);
   q("#rpCtx").addEventListener("click", e => { if (roamClick(e)) e.stopPropagation(); }, true);
   return d;
 }
-function layout(){                                   // لسان غراف: وثيقته مكان المسودة (أو بجانبها) · لسان المسودة: المسودة
+function layout(){                                   // لسان غراف: وثيقته في مكانها، والمسودة لوحة على اليسار إن طُلبت · لسان المسودة: المسودة
   const t = TABS.cur, inG = !!t && t.kind === "graph" && !isOb(), d = $("#rpDoc"), sp = inG && !!DOC && isSplit();
-  document.body.classList.toggle("docview", inG && !sp); document.body.classList.toggle("rpopen", sp);
+  document.body.classList.toggle("docview", inG); document.body.classList.toggle("rpopen", sp);
   $("#rp").hidden = !sp; $("#tabs").hidden = isOb();
-  if (d){ const host = sp ? $("#rp") : $("#docSlot"); if (d.parentElement !== host) host.appendChild(d); d.hidden = !inG;
-    d.querySelector("#rpSplit").classList.toggle("on", isSplit()); d.querySelector("#rpEmpty").hidden = !!DOC; d.querySelector("#rpHead").hidden = !DOC; }
+  const o = $("#outline"), bs = $("#btnSend"), bc = $("#btnClear");
+  if (sp){ if (o.parentElement !== $("#sdBody")){ $("#sdBody").appendChild(o); $("#sdActs").append(bs, bc); } }
+  else if (o.parentElement === $("#sdBody")){ $("#docSlot").before(o); document.querySelector("#app > .actions").prepend(bs, bc); sdClose(); }
+  sideApply(sp);
+  if (d){ if (d.parentElement !== $("#docSlot")) $("#docSlot").appendChild(d); d.hidden = !inG;
+    d.querySelector("#rpSplit").classList.toggle("on", isSplit()); d.querySelector("#rpEmpty").hidden = !!DOC; d.querySelector("#rpHead").hidden = !DOC;
+    const pb = d.querySelector("#rpPin"), pg = !!DOC && DOC.kind === "page", on = pg && pins(S.graph).includes(DOC.title); pb.hidden = !pg; pb.textContent = on ? "★" : "☆"; pb.classList.toggle("on", on); }
 }
+/* ---- اللوحة الجانبية: عنوانها وجهة الكتابة (اليوم في غراف اللسان، أو صفحة تختارها) ---- */
+function sideApply(sp){
+  if (!sp){ CALLG = null; return; }
+  const multi = CFG.roam.graphs.length > 1, ok = SD.set && SD.page.kind === "page" && CFG.roam.graphs.some(g => g.name === SD.graph);
+  S.page = ok ? SD.page : {kind:"today", title:""}; CALLG = ok && SD.graph !== S.graph ? SD.graph : null;
+  const t = $("#sdTitle"); t.textContent = ok ? SD.page.title : dailyTitle(); t.classList.toggle("tgt", ok);
+  $("#sdG").textContent = multi ? glabel(ok ? SD.graph : S.graph) : "";
+}
+let SDI = [], SDS = 0;
+function sdOpen(){ $("#sdTitle").hidden = true; $("#sdG").hidden = true; const q = $("#sdQ"); q.hidden = false; q.value = ""; q.focus(); SDS = 0; sdDraw(); }
+function sdClose(){ const q = $("#sdQ"); if (!q || q.hidden) return; q.hidden = true; $("#sdRes").hidden = true; $("#sdTitle").hidden = false; $("#sdG").hidden = false; }
+function sdDraw(){
+  const box = $("#sdRes"), q = $("#sdQ").value.trim(), multi = CFG.roam.graphs.length > 1, items = [];
+  const order = CFG.roam.graphs.map(g => g.name).sort((a, b) => (b === S.graph) - (a === S.graph));
+  if (!q || "اليوم".includes(q) || "today".includes(q.toLowerCase())) items.push({today:true, title:dailyTitle(), label:"اليوم", g:S.graph});
+  if (!q){ for (const g of order) for (const t of pins(g)) items.push({title:t, g, pin:true}); }
+  else {
+    const qn = norm(q), a = [], b = [];
+    for (const G0 of allPages()) for (let k=0;k<G0.pages.length;k++){ const p = G0.pagesN[k].indexOf(qn); if (p < 0) continue; (p === 0 ? a : b).push({title:G0.pages[k], g:G0.g}); if (a.length > 60) break; }
+    const byLen = (x, y) => x.title.length - y.title.length, res = a.sort(byLen).concat(b.sort(byLen)).slice(0, 14);
+    items.push(...res); if (!res.some(r => norm(r.title) === qn && r.g === S.graph)) items.push({title:q, g:S.graph, fresh:true});
+  }
+  SDI = items; if (SDS >= items.length) SDS = 0; box.innerHTML = ""; box.hidden = false;
+  items.forEach((it, k) => {
+    const d = el("div", "rpi" + (k === SDS ? " sel" : "")); d.innerHTML = '<span class="pic">' + (it.pin ? "★" : it.fresh ? "＋" : "▤") + '</span><span class="tt"></span>';
+    d.children[1].textContent = it.label ? it.label + " — " + it.title : it.fresh ? it.title + " (صفحة جديدة)" : it.title;
+    if (multi){ const sm = el("small", "gl"); sm.textContent = glabel(it.g); d.children[1].appendChild(sm); }
+    d.onmousedown = e => { e.preventDefault(); sdPick(it); }; box.appendChild(d);
+  });
+}
+function sdPick(it){
+  if (!it) return;
+  if (it.today){ SD.set = false; SD.page = {kind:"today", title:""}; } else { SD.set = true; SD.graph = it.g; SD.page = {kind:"page", title:it.title}; }
+  store.set("rq-sdtarget", JSON.stringify(SD)); sdClose(); sideApply(true);
+  toast("وجهة الكتابة: " + (it.today ? "اليوم" : it.title) + (CFG.roam.graphs.length > 1 ? " · " + glabel(it.today ? S.graph : it.g) : ""));
+  activate("main"); focusLastBlock();
+}
+const spw = () => Math.min(74, Math.max(22, +store.get("rq-spw") || 46));
+function spwApply(){ document.documentElement.style.setProperty("--spw", spw() + "vw"); }
+function sideInit(){
+  spwApply();
+  $("#sdTitle").onclick = sdOpen;
+  const q = $("#sdQ"); q.oninput = () => { SDS = 0; sdDraw(); }; q.onblur = () => setTimeout(sdClose, 120);
+  q.onkeydown = e => {
+    const mark = () => { [...$("#sdRes").children].forEach((c, k) => c.classList.toggle("sel", k === SDS)); const x = $("#sdRes .sel"); if (x) x.scrollIntoView({block:"nearest"}); };
+    if (e.key === "ArrowDown"){ e.preventDefault(); SDS = Math.min(SDI.length - 1, SDS + 1); mark(); }
+    else if (e.key === "ArrowUp"){ e.preventDefault(); SDS = Math.max(0, SDS - 1); mark(); }
+    else if (e.key === "Enter"){ e.preventDefault(); sdPick(SDI[SDS]); }
+    else if (e.key === "Escape"){ e.preventDefault(); e.stopPropagation(); sdClose(); }
+  };
+  $("#rp").addEventListener("mousedown", e => { if (!e.target.closest("#sdHead,#sdRes")) activate("main"); }, true);
+  const sep = $("#rpSep");
+  sep.onpointerdown = e => { e.preventDefault(); sep.setPointerCapture(e.pointerId); document.body.classList.add("resz");
+    const mv = ev => { store.set("rq-spw", String(Math.round(ev.clientX / innerWidth * 1000) / 10)); spwApply(); };
+    const up = () => { document.body.classList.remove("resz"); sep.removeEventListener("pointermove", mv); sep.removeEventListener("pointerup", up); sep.removeEventListener("pointercancel", up); };
+    sep.addEventListener("pointermove", mv); sep.addEventListener("pointerup", up); sep.addEventListener("pointercancel", up); };
+  sep.ondblclick = () => { store.set("rq-spw", "46"); spwApply(); };
+}
+
 function rpToggle(){ if (isOb()) return; $("#rpQ").focus(); $("#rpQ").select(); }
 const specOf = d => d ? (d.kind === "page" ? {kind:"page", title:d.title} : {kind:"block", uid:d.uid}) : null;
 function tabsSave(){
@@ -3039,8 +3138,20 @@ function rpPages(q){
 }
 function rpDraw(){
   const box = $("#rpRes"), q = $("#rpQ").value.trim(), seq = ++RP.seq; clearTimeout(RP.timer);
-  if (!q){ box.hidden = true; RP.items = []; return; }
   const draft = !!TABS.cur && TABS.cur.kind === "draft", multi = CFG.roam.graphs.length > 1;
+  if (!q){                                            // فارغ: الصفحات المثبتة (ثم الأخيرة) للوصول السريع
+    RP.items = []; box.innerHTML = "";
+    if (document.activeElement !== $("#rpQ") || isOb()){ box.hidden = true; return; }
+    const sec = (title, arr) => { if (!arr.length) return; const hd = el("div", "rphd"); hd.textContent = title; box.appendChild(hd);
+      for (const it of arr){ const k = RP.items.push(it) - 1, d = el("div", "rpi" + (k === RP.sel ? " sel" : ""));
+        d.innerHTML = '<span class="pic">' + (it.pin ? '<span class="pinm">★</span>' : "▤") + '</span><span class="tt"></span><button class="pen" title="اجعلها وجهة الكتابة في المحرر">✎</button>';
+        d.children[1].textContent = it.title; if (draft && multi){ const sm = el("small", "gl"); sm.textContent = glabel(it.g); d.children[1].appendChild(sm); }
+        d.onmousedown = e => { e.preventDefault(); RP.sel = k; rpPick(k, !!e.target.closest(".pen")); }; box.appendChild(d); } };
+    if (draft){ const a = []; for (const g of CFG.roam.graphs) for (const t of pins(g.name)) a.push({kind:"page", title:t, g:g.name, pin:true}); sec("المثبتة", a); }
+    else { const p = pins(S.graph); sec("المثبتة", p.map(t => ({kind:"page", title:t, g:S.graph, pin:true}))); sec("الأخيرة", recentsD(S.graph).filter(t => !p.includes(t)).slice(0, 8).map(t => ({kind:"page", title:t, g:S.graph}))); }
+    if (RP.sel >= RP.items.length) RP.sel = 0;
+    box.hidden = !RP.items.length; return;
+  }
   let pages;
   if (draft){                                         // صفحات كل الغرافات، وكل واحدة باسم غرافها
     const qn = norm(q), a = [], b = [];
@@ -3133,6 +3244,7 @@ async function openDoc(spec, fromHistory){
       if (missing) uid = dailyUidOf(spec.title) || newUid();
       const total = missing ? 0 : await RQ.rq(db.transaction("tree").objectStore("tree").index("po").count(RQ.kidRange(uid)));
       nodes = missing ? [] : await docKids(uid, DOC_TOP, bud, snap);
+      if (!missing) recentPush(S.graph, spec.title);
       d = {kind:"page", title:spec.title, pageUid:uid, rootUid:uid, base:0, snap, missing, total};
     } else {
       const tr = await RQ.rq(db.transaction("tree").objectStore("tree").get(spec.uid)), b = await RQ.rq(db.transaction("blocks").objectStore("blocks").get(spec.uid));
@@ -3374,7 +3486,8 @@ function rpInit(){
   setInterval(rpDot, 2000);
   const q = $("#rpQ");
   q.oninput = () => { RP.sel = 0; rpDraw(); };
-  q.onfocus = () => { if (q.value.trim()) rpDraw(); };
+  q.onfocus = () => rpDraw();
+  q.onclick = () => { if ($("#rpRes").hidden) rpDraw(); };
   q.onkeydown = e => {
     if (e.key === "ArrowDown"){ e.preventDefault(); RP.sel = Math.min(RP.items.length - 1, RP.sel + 1); rpMark(); }
     else if (e.key === "ArrowUp"){ e.preventDefault(); RP.sel = Math.max(0, RP.sel - 1); rpMark(); }
@@ -3441,7 +3554,7 @@ async function syncDoc(){
 }
 
 /* ---- العرض: الخط وحجمه وتقارب الأسطر، وتلوين الجذور ---- */
-const VIEW = Object.assign({font:"", fs:16, lh:1.62, roots:false}, (() => { try { return JSON.parse(store.get("rq-view") || "{}"); } catch(e){ return {}; } })());
+const VIEW = Object.assign({font:"", fs:16, lh:1.62, roots:false, ns:false}, (() => { try { return JSON.parse(store.get("rq-view") || "{}"); } catch(e){ return {}; } })());
 const VFONTS = {"":"", vazir:'"Vazirmatn","Segoe UI",Tahoma,sans-serif', naskh:'"Noto Naskh Arabic","Segoe UI",Tahoma,serif'};
 function applyView(){
   VIEW.fs = Math.min(30, Math.max(11, +VIEW.fs || 16)); VIEW.lh = +VIEW.lh || 1.62;
@@ -3466,6 +3579,8 @@ function viewSettings(box){
   box.appendChild(row);
   const rc = h("input", {type:"checkbox", checked:!!VIEW.roots, onchange:e => { VIEW.roots = e.target.checked; applyView(); if (DOC) openDoc(DOC.kind === "page" ? {kind:"page", title:DOC.title} : {kind:"block", uid:DOC.uid}, true); }});
   box.appendChild(h("label", {}, rc, "تلوين كلمات الجذر في صفحات الجذور (ج/…) وما تحتها من مراجع"));
+  const nc = h("input", {type:"checkbox", checked:!!VIEW.ns, onchange:e => { VIEW.ns = e.target.checked; applyView(); const a = ACTIVE; activate("main"); render(); if (DOC){ activate("page"); render(); } if (a !== ACTIVE) activate(a); }});
+  box.appendChild(h("label", {}, nc, "اختصار أسماء الصفحات ذات / إلى جزئها الأخير، داخل النصوص فقط (كما في Roam)"));
   const mc = h("input", {type:"checkbox", checked:RP.mode === 2, onchange:e => { RP.mode = e.target.checked ? 2 : 1; store.set("rq-smode", String(RP.mode)); }});
   box.appendChild(h("label", {}, mc, "البحث المجرّد: تجريد الكلمات من الزوائد، ووجودها كلها في الكتلة ولو متفرقة (Alt+M)"));
 }
@@ -3483,7 +3598,7 @@ function modeSwitch(){
 }
 
 applyView();
-init(); rpInit();
+init(); rpInit(); sideInit();
 if (draftLoad()) render();
 tabsInit();
 document.addEventListener("keydown", e => {
