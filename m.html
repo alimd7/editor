@@ -253,6 +253,9 @@ textarea.live{flex:1;min-width:0;display:block;border:0;outline:0;resize:none;ov
 #vPause.on{background:var(--danger);border-color:var(--danger);color:#fff}
 #vState.pz i{animation:none;background:var(--mut)}
 .vr .vf{font-size:12px;color:var(--mut);direction:rtl;unicode-bidi:plaintext;margin-top:4px}
+#vDiag{margin-top:8px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;font-size:12px;line-height:1.5;white-space:pre-wrap;direction:ltr;text-align:left;max-height:46vh;overflow:auto;user-select:text;-webkit-user-select:text}
+#vDiag:empty{display:none}
+#vDiagNow{margin-top:8px;font-weight:700;color:var(--danger);font-size:16px}#vDiagNow:empty{display:none}
 </style>
 
 <body>
@@ -1795,6 +1798,36 @@ $("#vStop").onclick = () => vFinish(false);
 $("#vPause").onclick = vPause;
 if (window.launchQueue) launchQueue.setConsumer(p => { try { const h = p && p.targetURL ? new URL(p.targetURL).hash.slice(1) : ""; if (h && h !== location.hash.slice(1)) go(h); else if (h === "vr") route(); } catch(e){} });
 $("#vCancel").onclick = () => vFinish(true);
+/* اختبار التحويل: (أ) التحويل وحده (ب) مع التسجيل ومشاركة مسار الصوت (ج) مع التسجيل بلا مشاركة — يبيّن أين العطل */
+async function vDiagRun(out, now){
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition, L = [], t0 = Date.now();
+  const log = m => { L.push(((Date.now() - t0) / 1000).toFixed(1) + "s  " + m); out.textContent = L.join("\n"); out.scrollTop = out.scrollHeight; };
+  log("UA: " + navigator.userAgent); log("standalone: " + matchMedia("(display-mode: standalone)").matches + " · online: " + navigator.onLine + " · lang: " + (PREFS.vLang || "ar-SA"));
+  log("SpeechRecognition: " + (window.SpeechRecognition ? "yes" : "no") + " · webkit: " + (window.webkitSpeechRecognition ? "yes" : "no") + " · MediaRecorder: " + (window.MediaRecorder ? "yes" : "no"));
+  try { if (navigator.permissions){ const p = await navigator.permissions.query({name:"microphone"}); log("mic permission: " + p.state); } } catch(e){ log("mic permission: ? " + e.message); }
+  if (!SR){ log("لا محرّك تحويل في هذا المتصفح"); return; }
+  const stage = (name, withRec, withTrack, secs) => new Promise(async done => {
+    log("—— " + name + " ——"); let stream = null, mr = null, bytes = 0, got = "", ended = false, r;
+    if (withRec){ try { stream = await navigator.mediaDevices.getUserMedia({audio:true}); mr = new MediaRecorder(stream); mr.ondataavailable = e => { bytes += e.data.size; }; mr.start(500); log("recorder: started " + mr.mimeType); } catch(e){ log("recorder: FAILED " + e.name + " " + e.message); } }
+    try {
+      r = new SR(); r.lang = PREFS.vLang || "ar-SA"; r.continuous = true; r.interimResults = true;
+      for (const ev of ["start","audiostart","soundstart","speechstart","speechend","soundend","audioend","nomatch"]) r["on" + ev] = () => log("event: " + ev);
+      r.onresult = e => { const x = e.results[e.results.length - 1]; got = x[0].transcript; log("result" + (x.isFinal ? " (final)" : "") + ": " + got); };
+      r.onerror = e => log("ERROR: " + e.error + (e.message ? " — " + e.message : ""));
+      r.onend = () => { ended = true; log("event: end"); };
+      const tr = withTrack && stream ? stream.getAudioTracks()[0] : null;
+      try { if (tr) r.start(tr); else r.start(); log("start() called" + (tr ? " with track" : "")); } catch(e){ log("start() THREW: " + e.name + " " + e.message); }
+    } catch(e){ log("SR setup THREW: " + e.message); }
+    now.textContent = "تكلّم الآن بجملة عربية… (" + name + ")";
+    setTimeout(() => { try { r.stop(); } catch(e){} setTimeout(() => {
+      if (mr){ try { mr.stop(); } catch(e){} } if (stream) stream.getTracks().forEach(x => x.stop());
+      log("→ " + name + ": " + (got ? "نص ✓" : "بلا نص ✗") + (withRec ? " · صوت مسجّل " + bytes + " بايت" : "") + (ended ? "" : " · لم ينتهِ")); now.textContent = ""; setTimeout(done, 700); }, 1500); }, secs * 1000);
+  });
+  await stage("A: التحويل وحده", false, false, 7);
+  await stage("B: مع التسجيل + مسار", true, true, 7);
+  await stage("C: مع التسجيل بلا مسار", true, false, 7);
+  log("انتهى الاختبار"); now.textContent = "";
+}
 function voiceSettings(box, h3){
   h3("التدوين الصوتي");
   const fld = (label, node) => { const l = el("label", "f"); l.append(label, node); box.appendChild(l); return node; };
@@ -1807,6 +1840,10 @@ function voiceSettings(box, h3){
     const info = el("div", "hint"); info.style.marginTop = "4px"; const say = async () => { const h = ss.value === "dir" ? await vDirGet() : null; info.textContent = ss.value === "dir" ? (h ? "المجلد: " + h.name : "لم يُختر مجلد بعد") : ss.value === "dl" ? "يُنزَّل ملف صوتي عند انتهاء كل تسجيل" : "الصوت في المتصفح فقط، ويزول بمسح بياناته"; };
     ss.onchange = async () => { if (ss.value === "dir"){ try { const h = await window.showDirectoryPicker({mode:"readwrite"}); await vDirSet(h); } catch(e){ ss.value = PREFS.vSave || "dl"; } } PREFS.vSave = ss.value; savePrefs(); say(); };
     fld("مكان حفظ الملف الصوتي", ss); box.appendChild(info); say(); }
+  { const b = el("button", "btn"), now = el("div"), out = el("div"), cp = el("button", "btn"); now.id = "vDiagNow"; out.id = "vDiag"; b.textContent = "اختبار تحويل الصوت (٣٠ ثانية)"; b.style.marginTop = "12px"; cp.textContent = "انسخ التقرير"; cp.style.marginTop = "6px"; cp.hidden = true;
+    b.onclick = async () => { b.disabled = true; out.textContent = ""; cp.hidden = true; try { await vDiagRun(out, now); } catch(e){ out.textContent += "\nFAILED: " + e.message; } b.disabled = false; cp.hidden = false; };
+    cp.onclick = async () => { try { await navigator.clipboard.writeText(out.textContent); toast("نُسخ التقرير"); } catch(e){ toast("حدّد النص وانسخه يدوياً"); } };
+    box.append(b, now, out, cp); }
   const hint = el("div", "hint"); hint.textContent = "القوالب: القالب الأول هو الذي يبدأ به اختصار «تسجيل فوري».  لكل قالب زر كبير في شاشة التدوين الصوتي. اترك الصفحة فارغة ليذهب إلى صفحة اليوم."; hint.style.marginTop = "12px"; box.appendChild(hint);
   const wrap = el("div"); box.appendChild(wrap);
   const list = () => Array.isArray(PREFS.vTpls) ? PREFS.vTpls : (PREFS.vTpls = []);
