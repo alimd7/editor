@@ -13,6 +13,8 @@
  "launch_handler": {"client_mode": ["focus-existing", "auto"]},
  "share_target": {"action": "./m.html", "method": "GET", "params": {"title": "title", "text": "text", "url": "url"}},
  "shortcuts": [
+  {"name": "تسجيل فوري", "short_name": "تسجيل", "url": "./m.html#vr"},
+  {"name": "تدوين صوتي", "short_name": "صوتي", "url": "./m.html#v"},
   {"name": "بحث عن صفحة", "short_name": "بحث", "url": "./m.html#s"},
   {"name": "صفحة اليوم", "short_name": "اليوم", "url": "./m.html#p=@today"}
  ],

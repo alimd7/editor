@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <!-- أمان: لا اتصال إلا بخادم Roam -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: 'self'; manifest-src 'self'; worker-src 'self' blob:; font-src 'self'; connect-src https://api.roamresearch.com https://*.api.roamresearch.com:*;">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: 'self'; manifest-src 'self'; worker-src 'self' blob:; media-src blob:; font-src 'self'; connect-src https://api.roamresearch.com https://*.api.roamresearch.com:*;">
 <title>المحرر (جوال)</title>
 <link rel="manifest" href="manifest-mobile.webmanifest">
 <meta name="theme-color" content="#0f8f7e">
@@ -221,6 +221,38 @@ textarea.live{flex:1;min-width:0;display:block;border:0;outline:0;resize:none;ov
 #page .pbar .ttl{margin-inline-end:6px}
 #pPin.on{color:#e0a100}#pPin.on svg{fill:currentColor}
 #pPin[hidden]{display:none}
+#home .bar .ic{width:34px}
+#voice .body{padding:12px 12px 40px}
+#vTpls{display:flex;flex-direction:column;gap:10px}
+.vt{display:flex;align-items:center;gap:12px;min-height:64px;padding:10px 16px;border:1px solid var(--line);border-radius:14px;background:var(--card);text-align:right;font-size:17px;font-weight:700;color:var(--fg)}
+.vt:active{background:var(--sel)}
+.vt svg{flex:none;width:26px;height:26px;fill:none;stroke:var(--acc);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.vt span{flex:1;min-width:0}.vt small{display:block;font-weight:400;font-size:12px;color:var(--mut);direction:rtl;unicode-bidi:plaintext}
+#vLive{display:flex;flex-direction:column;gap:12px;min-height:60vh}#vLive[hidden],#vTpls[hidden],#vHist[hidden]{display:none}
+#vState{display:flex;align-items:center;gap:10px;font-weight:700;font-size:18px}
+#vState i{width:14px;height:14px;border-radius:50%;background:var(--danger);animation:vblink 1.1s infinite}
+@keyframes vblink{50%{opacity:.25}}
+#vNote{font-size:13px;color:var(--danger)}#vNote:empty{display:none}
+#vText{flex:1;min-height:120px;border:1px solid var(--line);border-radius:12px;padding:10px 12px;direction:rtl;text-align:right;overflow:auto;white-space:pre-wrap}
+#vText em{font-style:normal;color:var(--mut)}
+#vStop{min-height:76px;border-radius:16px;background:var(--acc);color:var(--accfg);font-size:20px;font-weight:700}
+#vCancel{min-height:44px;border-radius:12px;color:var(--danger);border:1px solid var(--line)}
+#vHist .sec{margin:18px -12px 6px}
+.vr{border-bottom:1px solid var(--line);padding:10px 2px}
+.vr .vm{display:flex;gap:8px;align-items:center;font-size:12px;color:var(--mut)}.vr .vm b{color:var(--fg);font-weight:600}.vr .vm .ok{color:var(--acc)}.vr .vm .no{color:var(--danger)}
+.vr .vx{direction:rtl;text-align:right;white-space:pre-wrap;padding:6px 8px;margin:6px 0;border-radius:8px;outline:0;min-height:1.6em}
+.vr .vx:focus{background:var(--card)}.vr .vx:empty::before{content:"(بلا نص)";color:var(--mut)}
+.vr .va{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.vr .va button{padding:6px 12px;border:1px solid var(--line);border-radius:10px;font-size:13px}
+.vr .va button.go{background:var(--acc);color:var(--accfg);border-color:var(--acc)}.vr .va button.d{color:var(--danger)}
+.vr audio{width:100%;height:36px;margin-top:6px}
+.vtpl{border:1px solid var(--line);border-radius:10px;padding:8px;margin-top:8px;display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.vtpl input,.vtpl select{min-width:0;height:36px;border:1px solid var(--line);border-radius:8px;padding:0 8px;background:var(--bg);color:var(--fg);font-size:14px;direction:rtl;text-align:right}
+.vtpl button{grid-column:1/-1;color:var(--danger);font-size:13px;justify-self:start}
+#vPause{min-height:76px;border-radius:16px;border:2px solid var(--acc);color:var(--acc);font-size:20px;font-weight:700}
+#vPause.on{background:var(--danger);border-color:var(--danger);color:#fff}
+#vState.pz i{animation:none;background:var(--mut)}
+.vr .vf{font-size:12px;color:var(--mut);direction:rtl;unicode-bidi:plaintext;margin-top:4px}
 </style>
 
 <body>
@@ -241,6 +273,7 @@ textarea.live{flex:1;min-width:0;display:block;border:0;outline:0;resize:none;ov
   <header class="bar">
     <button id="tPen" class="ic" aria-label="وجهة الإرسال"><svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16v4zM13.5 6.5l4 4"/></svg></button>
     <input id="tq" dir="rtl" type="search" enterkeyhint="done" autocomplete="off" autocapitalize="off" spellcheck="false">
+    <button id="bMic" class="ic" aria-label="تدوين صوتي"><svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button>
     <button class="ic bFont" aria-label="حجم الخط">Aa</button>
     <button class="ic bSet" aria-label="الإعدادات"><svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg></button>
   </header>
@@ -249,6 +282,26 @@ textarea.live{flex:1;min-width:0;display:block;border:0;outline:0;resize:none;ov
   <div id="err" hidden><div></div><button id="errX" aria-label="إخفاء">✕</button></div>
   <div id="sugg" class="sugg" hidden></div>
   <div id="keys" class="keys"></div>
+</div>
+
+<!-- ============ التدوين الصوتي ============ -->
+<div id="voice" class="scr" hidden>
+  <header class="bar">
+    <div class="ttl">تدوين صوتي</div>
+    <button class="ic bSet" aria-label="الإعدادات"><svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg></button>
+  </header>
+  <div class="body">
+    <div id="vTpls"></div>
+    <div id="vLive" hidden>
+      <div id="vState"><i></i><span id="vClock">٠:٠٠</span><span id="vName"></span></div>
+      <div id="vNote"></div>
+      <div id="vText"></div>
+      <button id="vPause">إيقاف مؤقت</button>
+      <button id="vStop">إنهاء وإرسال</button>
+      <button id="vCancel">إلغاء التسجيل</button>
+    </div>
+    <div id="vHist"></div>
+  </div>
 </div>
 
 <!-- ============ العرض (صفحة أو كتلة مع أبيها) ============ -->
@@ -1111,13 +1164,14 @@ function plan(blocks, pn, parentUid, pageUid, base, numeric){
 /* ============================================================
    التوجيه بين الشاشات (زر الرجوع في أندرويد يعمل)
    ============================================================ */
-const SCREENS = ["search","home","page","settings"];
+const SCREENS = ["search","home","page","settings","voice"];
 let ROUTE = {name:""}, PREV = "";
 const startHash = () => PREFS.start === "write" ? "c" : "s";
 function parseHash(){
   const h = location.hash.slice(1);
   if (h === "s") return {name:"search"};
   if (h === "c") return {name:"home"};
+  if (h === "v" || h === "vr") return {name:"voice", auto:h === "vr"};
   if (h === "set") return {name:"settings"};
   if (h.startsWith("p=")){ let t = h.slice(2); try { t = decodeURIComponent(t); } catch(e){} return {name:"page", kind:"page", title:t === "@today" ? dailyTitle() : t}; }
   if (h.startsWith("b=")){ const m = h.slice(2).split("&q="); let q = m[1] || ""; try { q = decodeURIComponent(q); } catch(e){}
@@ -1130,24 +1184,25 @@ function goReplace(h){ history.replaceState(Object.assign({}, history.state, {ta
 function back(){ if (depth() > 0) history.back(); else goReplace(startHash()); }
 const pageHash = t => "p="+encodeURIComponent(t);
 function route(){
-  leavePage();
+  leavePage(); if (V && parseHash().name !== "voice") vFinish(false);   // غادرت الشاشة والتسجيل جارٍ: أنهِه واحفظه
   PREV = ROUTE.name; ROUTE = parseHash();
   $("#fontPop").hidden = true; tabMenuClose();
   if (!G() && ROUTE.name !== "settings"){ goReplace("set"); return; }
   if (!ROUTE.name){ goReplace(startHash()); return; }
   if (ROUTE.name !== "settings"){                    // كل شاشة تخص نوعاً من الألسنة: المسودة للكتابة، والغراف للبحث والعرض
-    const need = ROUTE.name === "home" ? "draft" : "graph", st = history.state && history.state.tab;
+    const need = ROUTE.name === "home" || ROUTE.name === "voice" ? "draft" : "graph", st = history.state && history.state.tab;
     let i = TABS[TABI] && TABS[TABI].kind === need ? TABI : -1;
     if (st != null && TABS[st] && TABS[st].kind === need) i = st;
     if (i < 0) i = TABS.findIndex(t => t.kind === need);
     if (i < 0){ i = 1 - TABI; TABS[i] = need === "draft" ? {kind:"draft"} : {kind:"graph", graph:RAW.roam.current}; }
     if (i !== TABI) tabEnter(i);
-    TABS[TABI].hash = location.hash.slice(1); tabsSave();
+    if (ROUTE.name !== "voice"){ TABS[TABI].hash = location.hash.slice(1); tabsSave(); }
   }
   const noTabs = ROUTE.name === "settings"; $("#tabs").hidden = noTabs; document.documentElement.style.setProperty("--tabh", noTabs ? "0px" : "calc(39px + env(safe-area-inset-top))");
   tabsDraw(); if (ROUTE.name !== "search") NOBLK = false;
   SCREENS.forEach(s => $("#"+s).hidden = s !== ROUTE.name);
-  if (ROUTE.name === "home") enterHome();
+  if (ROUTE.name === "voice") enterVoice();
+  else if (ROUTE.name === "home") enterHome();
   else if (ROUTE.name === "search") enterSearch();
   else if (ROUTE.name === "page") enterView();
   else if (ROUTE.name === "settings") renderSettings();
@@ -1575,6 +1630,196 @@ function drawSearch(){
   }, 140);
 }
 sq.addEventListener("input", () => { NOBLK = false; drawSearch(); });
+/* ============================================================
+   التدوين الصوتي: قالب ← تسجيل ← نص ← إرسال. الصوت الأصلي يُحفظ في الجهاز.
+   محرّك التحويل قابل للتبديل: VENG[PREFS.vEngine] (الافتراضي: المدمج في كروم)
+   ============================================================ */
+let V = null, VDB = null;
+const IC_MIC = '<svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>';
+const vTpls = () => { const a = Array.isArray(PREFS.vTpls) ? PREFS.vTpls.filter(t => t && t.name) : []; return a.length ? a : [{name:"اليوم", graph:"", page:"", tag:""}]; };
+const vGraph = t => graphs().find(g => g.name === t.graph) || G();
+const vWhere = t => { const g = vGraph(t); return (t.page || "صفحة اليوم") + (graphs().length > 1 && g ? " · " + glabel(g.name) : "") + (t.tag ? " · #" + t.tag : ""); };
+function vdb(){
+  if (VDB) return Promise.resolve(VDB);
+  return new Promise((ok, no) => { const r = indexedDB.open("rqm-voice", 1); r.onupgradeneeded = () => r.result.createObjectStore("recs", {keyPath:"id"}); r.onsuccess = () => { VDB = r.result; ok(VDB); }; r.onerror = () => no(r.error); });
+}
+const vreq = q => new Promise((ok, no) => { q.onsuccess = () => ok(q.result); q.onerror = () => no(q.error); });
+async function vPut(rec){ const db = await vdb(); await vreq(db.transaction("recs", "readwrite").objectStore("recs").put(rec)); }
+async function vDel(id){ const db = await vdb(); await vreq(db.transaction("recs", "readwrite").objectStore("recs").delete(id)); }
+async function vAll(){ const db = await vdb(); return (await vreq(db.transaction("recs").objectStore("recs").getAll())).filter(r => r.id !== "__dir").sort((a, b) => b.t - a.t); }
+const vClock = ms => { const x = Math.floor(ms / 1000); return AR(Math.floor(x / 60)) + ":" + AR(x % 60).padStart(2, "٠"); };
+
+/* محرّك كروم المدمج: يعيد {stop(): Promise<string>} ويبلّغ بالنص أولاً بأول */
+const VENG = {
+  chrome(v, onText, onNote){
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR){ onNote("هذا المتصفح لا يحوّل الصوت إلى نص؛ سيُحفظ الصوت وحده"); return {stop:async () => ""}; }
+    let fin = "", segs = [], interim = "", on = true, r = null, quick = 0, last = 0, useTrack = true, done = null;
+    const sess = () => segs.join(" "), all = () => (fin + " " + sess()).trim();
+    const begin = () => {
+      r = new SR(); r.lang = PREFS.vLang || "ar-SA"; r.continuous = true; r.interimResults = true; segs = []; interim = "";
+      r.onresult = e => {
+        const f = []; let it = "";
+        for (let i = 0; i < e.results.length; i++){ const x = e.results[i], t = x[0].transcript.trim(); if (!t) continue;
+          if (x.isFinal){ if (f.length && t.startsWith(f[f.length-1])) f[f.length-1] = t; else f.push(t); } else it += " " + t; }   // بعض الهواتف تكرّر ما سبق في كل نتيجة
+        segs = f; interim = it.trim(); onText(all(), interim);
+      };
+      r.onerror = e => {
+        if (e.error === "audio-capture" && v.stream){ if (useTrack) useTrack = false; else { v.dropAudio(); onNote("تعارض على الميكروفون: أُوقف حفظ الصوت لهذا التسجيل ليستمر التحويل"); } }
+        else if (e.error === "not-allowed" || e.error === "service-not-allowed"){ on = false; onNote("المتصفح لم يأذن بتحويل الصوت إلى نص؛ الصوت يُحفظ وحده"); }
+        else if (e.error === "network") onNote("خدمة التحويل لا تستجيب (الشبكة)؛ الصوت يُحفظ");
+        else if (e.error === "language-not-supported"){ on = false; onNote("اللغة المختارة غير مدعومة في هذا الهاتف"); }
+      };
+      r.onend = () => {
+        fin = all(); segs = []; interim = ""; onText(fin, "");
+        if (!on){ if (done) done(); return; }
+        const now = Date.now(); quick = now - last < 1200 ? quick + 1 : 0; last = now;
+        if (quick > 6){ on = false; onNote("توقف التحويل مراراً؛ الصوت يُحفظ وحده"); return; }
+        setTimeout(() => { if (on) begin(); }, 150);
+      };
+      const tr = useTrack && v.stream ? v.stream.getAudioTracks()[0] : null;
+      try { if (tr) r.start(tr); else r.start(); } catch(e){ try { useTrack = false; r.start(); } catch(e2){} }
+    };
+    last = Date.now(); begin();
+    return {pause(){ if (!on) return; on = false; try { r.stop(); } catch(e){} }, resume(){ if (on) return; on = true; quick = 0; last = Date.now(); done = null; begin(); },
+      stop:() => new Promise(ok => { const was = on; on = false; let fired = false; done = () => { if (!fired){ fired = true; ok(all()); } };
+      if (!was){ done(); return; } try { r.stop(); } catch(e){ done(); } setTimeout(() => { fin = (all() + " " + interim).trim(); segs = []; done(); }, 1800); })};
+  }
+};
+async function vStart(tpl){
+  if (V) return;
+  const g = vGraph(tpl); if (!g || !g.token){ toast("أضف رمز الغراف من الإعدادات"); return; }
+  const v = V = {tpl, g, t:Date.now(), t0:Date.now(), acc:0, paused:false, text:"", chunks:[], stream:null, mr:null, lock:null, dropAudio(){ try { if (v.mr && v.mr.state !== "inactive") v.mr.stop(); } catch(e){} if (v.stream) v.stream.getTracks().forEach(x => x.stop()); v.stream = null; v.mr = null; v.chunks = []; }};
+  $("#vTpls").hidden = true; $("#vHist").hidden = true; $("#vLive").hidden = false; $("#vName").textContent = "— " + tpl.name; $("#vNote").textContent = ""; $("#vText").textContent = ""; $("#vClock").textContent = vClock(0); vPauseMark();
+  if (PREFS.vAudio !== false && navigator.mediaDevices && window.MediaRecorder){
+    try { v.stream = await navigator.mediaDevices.getUserMedia({audio:true}); if (V !== v){ v.dropAudio(); return; }
+      v.mr = new MediaRecorder(v.stream); v.mr.ondataavailable = e => { if (e.data && e.data.size) v.chunks.push(e.data); }; v.mr.start(1000); }
+    catch(e){ $("#vNote").textContent = "تعذّر الوصول إلى الميكروفون لحفظ الصوت"; v.stream = null; }
+  }
+  try { if (navigator.wakeLock) v.lock = await navigator.wakeLock.request("screen"); } catch(e){}
+  v.tick = setInterval(() => { $("#vClock").textContent = vClock(vDur(v)); }, 500);
+  v.eng = (VENG[PREFS.vEngine] || VENG.chrome)(v, (fin, interim) => { v.text = fin; const b = $("#vText"); b.textContent = fin + (fin && interim ? " " : ""); if (interim){ const e = el("em"); e.textContent = interim; b.appendChild(e); } b.scrollTop = b.scrollHeight; },
+    m => { $("#vNote").textContent = m; });
+}
+const vDur = v => v.acc + (v.paused ? 0 : Date.now() - v.t0);
+function vPauseMark(){ const b = $("#vPause"), p = !!(V && V.paused); b.textContent = p ? "مواصلة التسجيل" : "إيقاف مؤقت"; b.classList.toggle("on", p); $("#vState").classList.toggle("pz", p); }
+function vPause(){                                    // إيقاف مؤقت ومواصلة، مراتٍ بلا حدّ: التسجيل واحد والنص متصل
+  const v = V; if (!v || v.ending) return;
+  if (!v.paused){ v.acc = vDur(v); v.paused = true; try { if (v.mr && v.mr.state === "recording") v.mr.pause(); } catch(e){} if (v.eng && v.eng.pause) v.eng.pause(); }
+  else { v.paused = false; v.t0 = Date.now(); try { if (v.mr && v.mr.state === "paused") v.mr.resume(); } catch(e){} if (v.eng && v.eng.resume) v.eng.resume(); }
+  vPauseMark();
+}
+/* الملف الصوتي يُحفظ خارج التطبيق: في مجلد تختاره، أو في مجلد التنزيلات */
+function vFileName(rec){ const d = new Date(rec.t), ext = /mp4|aac/.test(rec.blob.type) ? ".m4a" : /ogg/.test(rec.blob.type) ? ".ogg" : ".webm";
+  return "voice_" + d.getFullYear() + "-" + p2(d.getMonth()+1) + "-" + p2(d.getDate()) + "_" + p2(d.getHours()) + "-" + p2(d.getMinutes()) + "-" + p2(d.getSeconds()) + ext; }   // اسم لاتيني: بعض المتصفحات تُسقط الأسماء العربية عند التنزيل
+async function vDirGet(){ try { const db = await vdb(), x = await vreq(db.transaction("recs").objectStore("recs").get("__dir")); return x && x.handle; } catch(e){ return null; } }
+async function vDirSet(h){ const db = await vdb(); await vreq(db.transaction("recs", "readwrite").objectStore("recs").put({id:"__dir", t:0, handle:h})); }
+async function vExport(rec, force){
+  if (!rec.blob) return ""; const mode = PREFS.vSave || "dl"; if (mode === "app" && !force) return "";
+  const name = vFileName(rec);
+  if (mode === "dir"){
+    try { const h = await vDirGet(); if (!h) throw new Error("لم يُختر مجلد");
+      let ok = (await h.queryPermission({mode:"readwrite"})) === "granted"; if (!ok) ok = (await h.requestPermission({mode:"readwrite"})) === "granted"; if (!ok) throw new Error("لا إذن");
+      const f = await h.getFileHandle(name, {create:true}), w = await f.createWritable(); await w.write(rec.blob); await w.close();
+      rec.file = h.name + "/" + name; await vPut(rec); return rec.file; }
+    catch(e){ toast("تعذّر الحفظ في المجلد (" + e.message + ")؛ نُزّل الملف إلى التنزيلات", 4000); }
+  }
+  const a = el("a"), u = URL.createObjectURL(rec.blob); a.href = u; a.download = name; a.style.display = "none"; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(u), 60000);
+  rec.file = "التنزيلات/" + name; await vPut(rec); return rec.file;
+}
+async function vFinish(cancel){
+  const v = V; if (!v || v.ending) return; v.ending = true; v.dur = vDur(v); clearInterval(v.tick); $("#vStop").disabled = true; $("#vStop").textContent = "…";
+  let text = ""; try { text = v.eng ? await v.eng.stop() : ""; } catch(e){}
+  let blob = null;
+  if (v.mr){ await new Promise(ok => { v.mr.onstop = ok; try { if (v.mr.state === "paused") v.mr.resume(); v.mr.stop(); } catch(e){ ok(); } setTimeout(ok, 1500); }); if (v.chunks.length) blob = new Blob(v.chunks, {type:v.mr.mimeType || "audio/webm"}); }
+  if (v.stream) v.stream.getTracks().forEach(x => x.stop());
+  try { if (v.lock) await v.lock.release(); } catch(e){}
+  V = null; $("#vStop").disabled = false; $("#vStop").textContent = "إنهاء وإرسال"; $("#vLive").hidden = true; $("#vTpls").hidden = false; $("#vHist").hidden = false;
+  if (cancel === true){ toast("أُلغي التسجيل"); return; }
+  text = (text || "").replace(/\s+/g, " ").trim();
+  if (!text && !blob){ toast("لم يُلتقط شيء"); return; }
+  const rec = {id:"v" + v.t.toString(36), t:v.t, dur:v.dur, name:v.tpl.name, graph:v.g.name, page:v.tpl.page || "", tag:v.tpl.tag || "", text, blob, sent:false};
+  try { await vPut(rec); } catch(e){ toast("تعذّر حفظ التسجيل في الجهاز: " + e.message, 4000); }
+  try { await vExport(rec); } catch(e){ toast("تعذّر حفظ الملف الصوتي: " + e.message, 4000); }
+  if (text) await vSend(rec); else toast("لم يُلتقط نص؛ الصوت محفوظ هنا لتسمعه وتكتبه", 4000);
+  vDrawList();
+}
+const hashTag = t => /^[^\s#\[\]]+$/.test(t) ? "#" + t : "#[[" + t + "]]";
+async function vSend(rec){                            // الكتلة الأم: التاريخ والوقت والوسوم · تحتها النص
+  const g = graphs().find(x => x.name === rec.graph);
+  try {
+    if (!g || !g.token) throw new Error("لا رمز لغراف " + rec.graph);
+    if (!rec.text.trim()) throw new Error("لا نص");
+    const d = new Date(rec.t), opt = {graph:g}; let parent;
+    if (!rec.page){ parent = dailyUid(d); await roam("write", {action:"create-page", page:{title:dailyTitle(d), uid:parent}}, {soft:true, graph:g}); }
+    else {
+      const q = await roam("q", {query:"[:find ?u . :in $ ?t :where [?e :node/title ?t] [?e :block/uid ?u]]", args:[rec.page]}, opt); parent = q && typeof q.result === "string" ? q.result : null;
+      if (!parent){ parent = newUid(); await roam("write", {action:"create-page", page:{title:rec.page, uid:parent}}, opt); }
+    }
+    const tags = [PREFS.vTag === undefined ? "صوتي" : PREFS.vTag, rec.tag].filter(Boolean).map(hashTag).join(" ");
+    const head = (rec.page ? "[[" + dailyTitle(d) + "]] " : "") + p2(d.getHours()) + ":" + p2(d.getMinutes()) + (tags ? " " + tags : ""), hu = rec.hu || newUid(), cu = newUid();
+    rec.hu = hu;
+    await roam("write", {action:"batch-actions", actions:[
+      {action:"create-block", location:{"parent-uid":parent, order:"last"}, block:{uid:hu, string:head}},
+      {action:"create-block", location:{"parent-uid":hu, order:"last"}, block:{uid:cu, string:rec.text.trim()}}]}, opt);
+    rec.sent = true; rec.err = ""; await vPut(rec);
+    toast("أُرسل ✓ ← " + (rec.page || "اليوم") + (graphs().length > 1 ? " · " + glabel(g.name) : ""), 2600);
+  } catch(e){ rec.err = e.message; try { await vPut(rec); } catch(e2){} toast("لم يُرسل، وهو محفوظ هنا: " + e.message, 4500); }
+}
+async function vDrawList(){
+  const box = $("#vHist"); let recs = []; try { recs = await vAll(); } catch(e){}
+  box.innerHTML = ""; if (!recs.length) return;
+  const size = recs.reduce((n, r) => n + (r.blob ? r.blob.size : 0), 0);
+  box.appendChild(el("div", "sec", "التسجيلات: " + AR(recs.length) + (size ? " · الصوت " + AR(Math.round(size / 104857.6) / 10) + " م.ب" : "")));
+  for (const r of recs.slice(0, 60)){
+    const d = el("div", "vr"), m = el("div", "vm"), x = el("div", "vx"), a = el("div", "va"), dt = new Date(r.t);
+    m.innerHTML = "<b></b><span></span><span></span>"; m.children[0].textContent = r.name; m.children[1].textContent = dt.toLocaleDateString("ar-EG", {day:"numeric", month:"short"}) + " " + p2(dt.getHours()) + ":" + p2(dt.getMinutes()) + " · " + vClock(r.dur || 0);
+    m.children[2].textContent = r.sent ? "أُرسل ✓" : (r.err ? "لم يُرسل" : "غير مرسل"); m.children[2].className = r.sent ? "ok" : "no";
+    x.textContent = r.text; x.contentEditable = r.sent ? "false" : "true"; x.onblur = async () => { const t = x.textContent.trim(); if (t !== r.text){ r.text = t; await vPut(r); } };
+    if (r.blob){ const b = el("button"); b.textContent = "▶ استمع"; b.onclick = () => { if (d.querySelector("audio")) return; const au = el("audio"); au.controls = true; au.src = URL.createObjectURL(r.blob); d.appendChild(au); au.play().catch(() => {}); }; a.appendChild(b); }
+    if (!r.sent){ const b = el("button", "go"); b.textContent = "إرسال"; b.onclick = async () => { r.text = x.textContent.trim(); b.disabled = true; await vSend(r); vDrawList(); }; a.appendChild(b); }
+    if (r.blob){ const b = el("button"); b.textContent = r.file ? "احفظ الملف ثانية" : "احفظ الملف"; b.onclick = async () => { await vExport(r, true); vDrawList(); }; a.appendChild(b); }
+    const del = el("button", "d"); del.textContent = "حذف"; del.onclick = async () => { if (!del._arm){ del._arm = true; del.textContent = "تأكيد الحذف"; setTimeout(() => { del._arm = false; del.textContent = "حذف"; }, 2500); return; } await vDel(r.id); vDrawList(); }; a.appendChild(del);
+    d.append(m, x, a); if (r.file){ const f = el("div", "vf"); f.textContent = "الملف: " + r.file; d.appendChild(f); } box.appendChild(d);
+  }
+}
+function enterVoice(){
+  const box = $("#vTpls"); box.innerHTML = "";
+  for (const t of vTpls()){ const b = el("button", "vt", IC_MIC + "<span></span>"); b.children[1].textContent = t.name; const sm = el("small"); sm.textContent = vWhere(t); b.children[1].appendChild(sm); b.onclick = () => vStart(t); box.appendChild(b); }
+  if (!V){ $("#vLive").hidden = true; box.hidden = false; $("#vHist").hidden = false; }
+  vDrawList();
+  if (ROUTE.auto){ history.replaceState(history.state, "", "#v"); if (!V) vStart(vTpls()[0]); }   // اختصار «تسجيل فوري»: يبدأ بالقالب الأول
+}
+$("#bMic").onclick = () => go("v");
+$("#vStop").onclick = () => vFinish(false);
+$("#vPause").onclick = vPause;
+if (window.launchQueue) launchQueue.setConsumer(p => { try { const h = p && p.targetURL ? new URL(p.targetURL).hash.slice(1) : ""; if (h && h !== location.hash.slice(1)) go(h); else if (h === "vr") route(); } catch(e){} });
+$("#vCancel").onclick = () => vFinish(true);
+function voiceSettings(box, h3){
+  h3("التدوين الصوتي");
+  const fld = (label, node) => { const l = el("label", "f"); l.append(label, node); box.appendChild(l); return node; };
+  const ls = el("select"); [["ar-SA","العربية (السعودية)"],["ar-IQ","العربية (العراق)"],["ar-LB","العربية (لبنان)"],["ar-EG","العربية (مصر)"],["fa-IR","الفارسية"],["en-US","الإنجليزية"]].forEach(o => { const x = el("option"); x.value = o[0]; x.textContent = o[1]; ls.appendChild(x); });
+  ls.value = PREFS.vLang || "ar-SA"; ls.onchange = () => { PREFS.vLang = ls.value; savePrefs(); }; fld("لغة الكلام", ls);
+  const tg = el("input"); tg.type = "text"; tg.dir = "rtl"; tg.value = PREFS.vTag === undefined ? "صوتي" : PREFS.vTag; tg.placeholder = "بلا وسم"; tg.oninput = () => { PREFS.vTag = tg.value.trim().replace(/^#/, ""); savePrefs(); }; fld("وسم كل تدوينة صوتية", tg);
+  { const ck = el("label", "ck"), cb = el("input"); cb.type = "checkbox"; cb.checked = PREFS.vAudio !== false; cb.onchange = () => { PREFS.vAudio = cb.checked; savePrefs(); }; ck.append(cb, "حفظ الصوت الأصلي في الجهاز مع كل تدوينة"); box.appendChild(ck); }
+  { const opts = [["dl","مجلد التنزيلات في الهاتف"]]; if (window.showDirectoryPicker) opts.push(["dir","مجلد أختاره"]); opts.push(["app","داخل التطبيق فقط"]);
+    const ss = el("select"); opts.forEach(o => { const x = el("option"); x.value = o[0]; x.textContent = o[1]; ss.appendChild(x); }); ss.value = opts.some(o => o[0] === PREFS.vSave) ? PREFS.vSave : "dl";
+    const info = el("div", "hint"); info.style.marginTop = "4px"; const say = async () => { const h = ss.value === "dir" ? await vDirGet() : null; info.textContent = ss.value === "dir" ? (h ? "المجلد: " + h.name : "لم يُختر مجلد بعد") : ss.value === "dl" ? "يُنزَّل ملف صوتي عند انتهاء كل تسجيل" : "الصوت في المتصفح فقط، ويزول بمسح بياناته"; };
+    ss.onchange = async () => { if (ss.value === "dir"){ try { const h = await window.showDirectoryPicker({mode:"readwrite"}); await vDirSet(h); } catch(e){ ss.value = PREFS.vSave || "dl"; } } PREFS.vSave = ss.value; savePrefs(); say(); };
+    fld("مكان حفظ الملف الصوتي", ss); box.appendChild(info); say(); }
+  const hint = el("div", "hint"); hint.textContent = "القوالب: القالب الأول هو الذي يبدأ به اختصار «تسجيل فوري».  لكل قالب زر كبير في شاشة التدوين الصوتي. اترك الصفحة فارغة ليذهب إلى صفحة اليوم."; hint.style.marginTop = "12px"; box.appendChild(hint);
+  const wrap = el("div"); box.appendChild(wrap);
+  const list = () => Array.isArray(PREFS.vTpls) ? PREFS.vTpls : (PREFS.vTpls = []);
+  const draw = () => { wrap.innerHTML = "";
+    list().forEach((t, k) => { const c = el("div", "vtpl");
+      const inp = (key, ph) => { const i = el("input"); i.type = "text"; i.placeholder = ph; i.value = t[key] || ""; i.oninput = () => { const v = i.value.trim(); t[key] = key === "tag" ? v.replace(/^#/, "") : v; savePrefs(); }; c.appendChild(i); };
+      inp("name", "اسم القالب");
+      const gs = el("select"); [["", "الغراف الحالي"]].concat(graphs().map(g => [g.name, glabel(g.name)])).forEach(o => { const x = el("option"); x.value = o[0]; x.textContent = o[1]; gs.appendChild(x); }); gs.value = graphs().some(g => g.name === t.graph) ? t.graph : ""; gs.onchange = () => { t.graph = gs.value; savePrefs(); }; c.appendChild(gs);
+      inp("page", "الصفحة (فارغ = اليوم)"); inp("tag", "وسم القالب (اختياري)");
+      const x = el("button"); x.textContent = "حذف القالب"; x.onclick = () => { list().splice(k, 1); savePrefs(); draw(); }; c.appendChild(x); wrap.appendChild(c); });
+    const add = el("button", "btn"); add.textContent = "＋ قالب"; add.style.marginTop = "8px"; add.onclick = () => { list().push({name:"", graph:"", page:"", tag:""}); savePrefs(); draw(); }; wrap.appendChild(add); };
+  draw();
+}
 $("#pPin").onclick = () => { if (ROUTE.kind !== "page") return; const on = pinToggle(RAW.roam.current, ROUTE.title); pinMark(); toast(on ? "ثُبّتت: تجدها في البحث وهو فارغ" : "أُلغي التثبيت"); };
 $("#pq").addEventListener("click", e => { e.preventDefault(); go("s"); sq.focus(); sq.select(); });   // شريط البحث فوق الصفحة: لمسة تنقلك إلى البحث والمؤشر فيه
 swipeable($("#sPages"), r => { if (r.dataset.t) draftAdjacent(r.dataset.t); });
@@ -2226,6 +2471,7 @@ function renderSettings(){
   h3("الكتابة من المسودة");
   { const ckh = el("label", "ck"), cbh = el("input"); cbh.type = "checkbox"; cbh.checked = graphs().length > 0 && graphs().every(g => g.header !== false);
     cbh.onchange = () => { graphs().forEach(g => { g.header = cbh.checked; }); saveCfg(); }; ckh.append(cbh, "ترويسة التاريخ والوقت فوق كل ما يُرسل من المسودة"); box.appendChild(ckh); }
+  voiceSettings(box, h3);
   h3("أسماء الألسنة");
   for (const g of graphs()){ const l = el("label", "f"), inp = el("input"); inp.type = "text"; inp.dir = "rtl"; inp.style.direction = "rtl"; inp.style.textAlign = "right"; inp.placeholder = g.name; inp.value = GLAB[g.name] || "";
     inp.oninput = () => { const v = inp.value.trim(); if (v) GLAB[g.name] = v; else delete GLAB[g.name]; store.set("rq-glabels", JSON.stringify(GLAB)); }; l.append(g.name, inp); box.appendChild(l); }
