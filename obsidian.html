@@ -174,7 +174,6 @@ body.rpopen{padding-left:var(--spw,46vw)}
 .rphd{padding:6px 8px 2px;color:var(--muted);font-size:12px}
 #rpDoc{padding:4px 0 40px}
 body.docview #docSlot{flex:1}
-#rpSplit.on{color:var(--accent)}
 .link,.bref,.ext{cursor:pointer}
 .bref{border-bottom:1px dashed var(--muted)}
 .ext{text-decoration:underline}
@@ -184,7 +183,6 @@ body.docview #docSlot{flex:1}
 #rpTitle[title]:not([title=""]){cursor:pointer}
 #rpState{flex:none;color:var(--muted);font-size:12px}
 #rpState.dirty{color:var(--accent)}
-#rpCtx{color:var(--muted);border-inline-start:3px solid var(--line);padding:2px 10px;margin:0 0 6px;cursor:pointer;font-size:.92em}
 #outline2{padding:4px 2px 0}
 body.pgactive #outline2{outline:0}
 #rpRefs{margin-top:18px}
@@ -218,8 +216,26 @@ mark.hit{background:#ffd54a;color:#000;border-radius:3px}
 body.docview #btnHdr{display:none}
 .vrow{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
 .vrow select{font:inherit;padding:2px 6px}
+.sic{flex:none;display:inline-grid;place-items:center;width:32px;height:32px;padding:0!important;border:0;background:none;color:var(--muted);border-radius:8px;cursor:pointer}
+.sic:hover{color:var(--accent);background:var(--hover)}
+.sic svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.sic.on{color:var(--accent)}
+#rpStar{display:none;width:28px;height:28px}#rpBox.tgt #rpStar.show{display:inline-grid}
+#rpStar.on{color:#e0a100}#rpStar.on svg{fill:currentColor}
+#rpSync[hidden],#btnSplit[hidden]{display:none}
+#rpTitle.bigt{display:block;font-size:1.55em;font-weight:700;line-height:1.35;margin:4px 0 8px;cursor:default}
+#rpCrumb{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 6px;font-size:.88em;color:var(--muted);margin:2px 0 10px;unicode-bidi:plaintext}
+#rpCrumb a{color:var(--link);cursor:pointer;text-decoration:none;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;unicode-bidi:plaintext}
+#rpCrumb a:hover{text-decoration:underline}
+#rpCrumb .sep{opacity:.6}
+.row.tgt{background:color-mix(in srgb,var(--accent) 10%,transparent);border-radius:5px}
 #rpDot{flex:none;width:10px;height:10px;border-radius:50%;background:#2ea44f;margin:0 8px;cursor:default}
-#rpDot.warn{background:#e8912d}
+#rpDot.warn{background:#e8912d}#rpDot.err{background:#d33}#rpDot.off{background:var(--line)}
+#dsNote{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--panel);font-size:.9em}
+#dsNote[hidden]{display:none}#dsNote span{flex:1;min-width:180px}
+#dsView{position:fixed;inset:0;z-index:80;background:var(--bg);overflow:auto;padding:12px 16px}
+#dsView .dsvh{display:flex;align-items:center;gap:10px;font-weight:700;margin-bottom:10px}#dsView .dsvh button{margin-inline-start:auto}
+#dsView ul{margin:0;padding-inline-start:22px}#dsView li{margin:2px 0;unicode-bidi:plaintext}
 #rpDot[hidden]{display:none}
 #settings .ghost.danger{border-color:color-mix(in srgb,var(--danger) 35%,var(--bg))}
 .actions #btnClear{background:var(--danger);color:#fff;border:1px solid var(--danger);border-radius:7px;padding:6px 22px;font-weight:600}
@@ -264,7 +280,6 @@ body.docview #rp #btnSend,body.docview #rp #btnClear{display:inline-block}
 body.rpopen #rpSep{display:block}
 #rpSep:hover,body.resz #rpSep{background:color-mix(in srgb,var(--accent) 35%,transparent)}
 body.resz{user-select:none;cursor:col-resize}
-#rpPin.on{color:#e0a100}#rpPin[hidden]{display:none}
 .rpi .pinm{flex:none;color:#e0a100;font-size:.85em}
 .block.bsel>.row{background:color-mix(in srgb,var(--accent) 17%,transparent);border-radius:5px}
 .block.bsel>.row ::selection{background:transparent}
@@ -285,8 +300,8 @@ body.bdrag,body.bdrag *{cursor:grabbing!important;user-select:none!important}
   <div id="rpBar">
     <div id="rpBox"><span id="rpTI" title="وجهة الإرسال — اضغط لإلغائها والعودة إلى اليوم">▤</span>
     <input id="rpQ" type="search" name="rq-find" dir="rtl" autocomplete="off" autocorrect="off" spellcheck="false" data-lpignore="true" data-1p-ignore placeholder="بحث" title="Ctrl+Shift+F">
-    <span id="rpTT"></span><small id="rpTG"></small></div>
-    <span id="rpDot" class="ok"></span>
+    <span id="rpTT"></span><small id="rpTG"></small><button id="rpStar" class="sic" title="ثبّت الصفحة للوصول السريع من شريط البحث، أو ألغِ تثبيتها"><svg viewBox="0 0 24 24"><path d="M12 3.5l2.6 5.4 5.9.8-4.3 4.1 1 5.8-5.2-2.8-5.2 2.8 1-5.8-4.3-4.1 5.9-.8z"/></svg></button></div>
+    <span id="rpDot" class="ok"></span><button id="rpSync" class="sic" title="مزامنة (Alt+R)"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.6-5.9M20 4v5h-5"/></svg></button>
   </div>
   <div id="rpRes" hidden></div>
 
@@ -332,8 +347,9 @@ body.bdrag,body.bdrag *{cursor:grabbing!important;user-select:none!important}
     <button class="send" id="btnSend" title="Ctrl+Enter">إرسال</button>
     <button class="ghost danger" id="btnClear" title="مسح كل ما كتبت">مسح</button>
     <span class="spacer"></span>
-    <button class="ghost" id="btnWide" title="عرض الصفحة كاملاً / عرض محدود">↔</button>
-    <button class="ghost" id="btnSettings" title="إعدادات">⚙</button>
+    <button class="ghost sic" id="btnWide" title="عرض الصفحة كاملاً / عرض محدود"><svg viewBox="0 0 24 24"><path d="M4 5v14M20 5v14M8 12h8M10.5 9.5L8 12l2.5 2.5M13.5 9.5L16 12l-2.5 2.5"/></svg></button>
+    <button class="ghost sic" id="btnSettings" title="إعدادات"><svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg></button>
+    <button class="ghost sic" id="btnSplit" title="اعرض الصفحة بجانب المسودة، أو وحدها" hidden><svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="14" rx="2"/><path d="M12 5v14"/></svg></button>
   </div>
 
   <div id="settings"></div>
@@ -3242,16 +3258,14 @@ const pins = g => { const a = pinsAll()[g]; return Array.isArray(a) ? a : []; };
 function pinToggle(g, t){ const all = pinsAll(), a = pins(g), k = a.indexOf(t); if (k >= 0) a.splice(k, 1); else a.push(t); all[g] = a; store.set("rq-pins", JSON.stringify(all)); return k < 0; }
 const recentsD = g => jget("rq-recent:" + g, []);
 function recentPush(g, t){ const r = recentsD(g).filter(x => x !== t); r.unshift(t); store.set("rq-recent:" + g, JSON.stringify(r.slice(0, 12))); }
-const DOC_HTML = '<div id="rpHead"><span id="rpTitle"></span><button id="rpPin" class="ic" title="ثبّت هذه الصفحة للوصول السريع من شريط البحث، أو ألغِ تثبيتها">☆</button><button id="rpSyncDoc" class="ic" title="زامن هذه الصفحة من Roam (Alt+R)">↻</button><button id="rpSplit" class="ic" title="اعرض الوثيقة بجانب المسودة، أو مكانها">◫</button></div>' +
-  '<div id="rpEmpty" class="hint">ابحث في الأعلى لفتح صفحة أو كتلة.</div><div id="rpCtx" hidden></div><div id="outline2"></div><div id="rpMore" class="hint" hidden></div><div id="rpRefs"></div>';
+const DOC_HTML = '<div id="rpHead"><div id="rpCrumb" hidden></div><div id="rpTitle" class="bigt"></div></div>' +
+  '<div id="rpEmpty" class="hint">ابحث في الأعلى لفتح صفحة أو كتلة.</div><div id="outline2"></div><div id="rpMore" class="hint" hidden></div><div id="rpRefs"></div>';
 function newDocEl(){
   const d = el("div"); d.id = "rpDoc"; d.innerHTML = DOC_HTML; const q = x => d.querySelector(x);
-  q("#rpSplit").onclick = () => { store.set("rq-split", isSplit() ? "" : "1"); layout(); if (DOC){ activate("page"); render(); } };
-  q("#rpSyncDoc").onclick = syncDoc;
-  q("#rpPin").onclick = () => { if (!DOC || DOC.kind !== "page") return; const on = pinToggle(S.graph, DOC.title); layout(); toast(on ? "ثُبّتت: تجدها في شريط البحث وهو فارغ" : "أُلغي التثبيت"); };
-  q("#rpTitle").onclick = () => { if (DOC && DOC.kind === "block" && DOC.title) openDoc({kind:"page", title:DOC.title}); };
   q("#outline2").addEventListener("mousedown", () => activate("page"), true);
-  q("#rpCtx").addEventListener("click", e => { if (roamClick(e)) e.stopPropagation(); }, true);
+  q("#rpCrumb").addEventListener("click", e => { const a = e.target.closest("a"); if (!a || !DOC) return; e.preventDefault();
+    if (a.dataset.p != null) openDoc({kind:"page", title:a.dataset.p, reveal:DOC.uid});
+    else openDoc({kind:"block", uid:a.dataset.u, reveal:DOC.uid, q:DOC.q}); });
   return d;
 }
 function layout(){                                   // لسان غراف: وثيقته في مكانها، والمسودة لوحة على اليسار إن طُلبت · لسان المسودة: المسودة
@@ -3263,8 +3277,9 @@ function layout(){                                   // لسان غراف: وث�
   else if (o.parentElement === $("#sdBody")){ $("#docSlot").before(o); document.querySelector("#app > .actions").prepend(bs, bc); sdClose(); }
   sideApply(sp);
   if (d){ if (d.parentElement !== $("#docSlot")) $("#docSlot").appendChild(d); d.hidden = !inG;
-    d.querySelector("#rpSplit").classList.toggle("on", isSplit()); d.querySelector("#rpEmpty").hidden = !!DOC; d.querySelector("#rpHead").hidden = !DOC;
-    const pb = d.querySelector("#rpPin"), pg = !!DOC && DOC.kind === "page", on = pg && pins(S.graph).includes(DOC.title); pb.hidden = !pg; pb.textContent = on ? "★" : "☆"; pb.classList.toggle("on", on); }
+    d.querySelector("#rpEmpty").hidden = !!DOC; d.querySelector("#rpHead").hidden = !DOC; }
+  const bsp = $("#btnSplit"); bsp.hidden = !inG; bsp.classList.toggle("on", isSplit());
+  barMark();
 }
 /* ---- اللوحة الجانبية: عنوانها وجهة الكتابة (اليوم في غراف اللسان، أو صفحة تختارها) ---- */
 function sideApply(sp){
@@ -3380,8 +3395,8 @@ async function tabSwitch(id){
     } else S.page = DR.set ? DR.page : {kind:"today", title:""};
     $("#rpQ").value = t.q || ""; layout(); tabsDraw(); barMark(); rpDot();
     if (t.kind === "graph" && !DOC && t.pending){ const sp = t.pending; t.pending = null; TABS.busy = false; await openDoc(sp, true); }
-    else { window.scrollTo(0, t.scroll || 0); if (DOC && VIEW.roots) RQ.ROOTHL.set(DOC.rootT || "", $("#rpDoc"), true); if (t.kind === "draft"){ draftAdapt(); focusLastBlock(); } }
-    tabsSave();
+    else { window.scrollTo(0, t.scroll || 0); if (DOC && VIEW.roots) RQ.ROOTHL.set(DOC.rootT || "", $("#rpDoc"), true); if (t.kind === "draft"){ draftAdapt(); focusLastBlock(); DSYNC.now(false); } }
+    DSYNC.drawNote(); tabsSave();
   } catch(e){ toast("تعذّر التنقل: " + e.message); }
   finally { TABS.busy = false; }
 }
@@ -3397,12 +3412,18 @@ async function openInGraph(g, spec){                 // افتح وثيقة في
   await tabSwitch(t.id); if (spec) await openDoc(spec);
 }
 function toDraft(){ const t = TABS.list.find(x => x.kind === "draft") || tabNew("draft"); tabSwitch(t.id); }
-function barMark(){                                  // شريط المسودة يُظهر وجهة الإرسال (رمز الصفحة، العنوان، كبسولة الغراف) ما دام غير مفتوح للبحث
-  const box = $("#rpBox"), q = $("#rpQ"), draft = !!TABS.cur && TABS.cur.kind === "draft" && !isOb();
-  const show = draft && document.activeElement !== q && !q.value;
+function barMark(){                                  // الشريط: في المسودة وجهة الإرسال، وفي لسان الغراف الصفحة المفتوحة (رمزها، عنوانها، نجمتها) — ما دام غير مفتوح للبحث
+  const box = $("#rpBox"), q = $("#rpQ"); if (!box) return;
+  const draft = !!TABS.cur && TABS.cur.kind === "draft" && !isOb(), gdoc = !!TABS.cur && TABS.cur.kind === "graph" && !!DOC && !isOb();
+  const show = (draft || gdoc) && document.activeElement !== q && !q.value;
   box.classList.toggle("tgt", show);
-  if (draft){ $("#rpTT").textContent = DR.set && DR.page.kind === "page" ? DR.page.title : "اليوم"; $("#rpTG").textContent = CFG.roam.graphs.length > 1 ? glabel(DR.graph) : ""; }
-  $("#rpTI").title = DR.set ? "وجهة الإرسال — اضغط لإلغائها والعودة إلى اليوم" : "وجهة الإرسال: اليوم";
+  const star = $("#rpStar"), ti = $("#rpTI");
+  if (draft){ $("#rpTT").textContent = DR.set && DR.page.kind === "page" ? DR.page.title : "اليوم"; $("#rpTG").textContent = CFG.roam.graphs.length > 1 ? glabel(DR.graph) : ""; star.classList.remove("show");
+    ti.style.color = ""; ti.title = DR.set ? "وجهة الإرسال — اضغط لإلغائها والعودة إلى اليوم" : "وجهة الإرسال: اليوم"; }
+  else if (gdoc){ const t = DOC.title || ""; $("#rpTT").textContent = t; $("#rpTG").textContent = "";
+    const on = !!t && isDest({kind:"page", title:t, g:S.graph}); ti.style.color = on ? "" : "var(--muted)"; ti.title = on ? "وجهة الإرسال — اضغط لإلغائها" : "اجعلها وجهة الإرسال";
+    const pg = DOC.kind === "page", pin = pg && pins(S.graph).includes(t); star.classList.toggle("show", pg); star.classList.toggle("on", pin); }
+  const sy = $("#rpSync"); if (sy){ sy.hidden = isOb() || !(draft || (TABS.cur && TABS.cur.kind === "graph")); sy.title = draft ? "زامن المسودة مع الأجهزة الأخرى" : "زامن هذه الصفحة من Roam (Alt+R)"; }
 }
 const isDest = it => it.today ? !DR.set && (it.g || S.graph) === DR.graph : DR.set && DR.page.kind === "page" && DR.page.title === it.title && (it.g || S.graph) === DR.graph;
 function setTarget(it){                              // رمز الصفحة: اجعلها وجهة ما يُرسل من المسودة (ورمز الوجهة الحالية يلغيها)
@@ -3432,7 +3453,7 @@ function tabsInit(){
 /* المسودة تُحفظ حتى تمسحها أنت */
 let draftT = 0;
 function draftTouch(){ if (isOb()) return; clearTimeout(draftT); draftT = setTimeout(draftSave, 500); }
-function draftSave(){ if (isOb()) return; const m = ACTIVE === "main" ? model : CTXS.main.model; if (m) store.set("rq-draft", JSON.stringify(m)); }
+function draftSave(){ if (isOb()) return; const m = ACTIVE === "main" ? model : CTXS.main.model; if (m) store.set("rq-draft", JSON.stringify(m)); DSYNC.changed(); }
 function draftLoad(){
   if (isOb()) return false;
   try { const m = JSON.parse(store.get("rq-draft") || "null");
@@ -3449,6 +3470,8 @@ function tabSettings(box){                           // الإعدادات: أس
 
 function rpDot(){                                    // نقطة واحدة: خضراء = محفوظ ومُرسل · برتقالية = غير ذلك
   const d = $("#rpDot"); if (!d) return; d.hidden = isOb();
+  if (TABS.cur && TABS.cur.kind === "draft"){ const s0 = DSYNC.state; d.className = s0 === "ok" ? "ok" : s0 === "err" ? "err" : s0 === "off" ? "off" : "warn";
+    d.title = s0 === "ok" ? "المسودة مُزامَنة" : s0 === "err" ? "تعذّرت مزامنة المسودة" : s0 === "off" ? "مزامنة المسودة معطّلة (لا غراف برمز)" : "المسودة في انتظار المزامنة"; return; }
   const run = RQ.SYNC.running, pend = RQ.pending();
   d.className = (RP.dirty || pend || run) ? "warn" : "ok";
   d.title = run ? (RQ.SYNC.msg || "يزامن…") : RP.dirty ? "تعديلات لم تُحفظ بعد" : pend ? "تعديلات في طريقها إلى Roam (" + AR(pend) + ")" : "كل شيء محفوظ ومُرسل";
@@ -3473,6 +3496,10 @@ function rpSyncUI(){
   }
 }
 function syncSettings(box){                          // يُستدعى من لوحة الإعدادات
+  box.appendChild(h("h4", {}, "مزامنة المسودة بين الأجهزة"));
+  { const sel = h("select", {onchange:e => { store.set("rq-dsync-graph", e.target.value); DSYNC.now(true); }}, h("option", {value:"-"}, "بلا مزامنة"), ...CFG.roam.graphs.filter(g => g.token).map(g => h("option", {value:g.name}, g.name)));
+    const cur = store.get("rq-dsync-graph"); sel.value = cur === "-" ? "-" : (CFG.roam.graphs.find(g => g.name === cur && g.token) || CFG.roam.graphs.find(g => g.token) || {name:"-"}).name;
+    box.appendChild(h("div", {class:"vrow"}, "تُحفظ المسودة في صفحة «المحرر/المسودة» في الغراف: ", sel)); }
   box.appendChild(h("h4", {}, "النسخة المحلية والمزامنة"));
   box.appendChild(h("div", {id:"rpSyncBox"}, h("div", {id:"syncMsg", class:"hint"}), h("div", {id:"rpSyncBtns"})));
   rpSyncUI();
@@ -3607,19 +3634,37 @@ async function openDoc(spec, fromHistory){
       if (!tr || !b) throw new Error("الكتلة غير موجودة في النسخة المحلية — جرّب المزامنة");
       const n = mk((b.h ? "#".repeat(Math.min(3, b.h)) + " " : "") + (b.s || "")); n.uid = b.u; snap.set(b.u, {t:n.text, p:tr.p, i:0, lazy:false});
       n.children = await docKids(b.u, 0, bud, snap, true); nodes = [n];
-      if (tr.p !== b.g){ const pb = await RQ.rq(db.transaction("blocks").objectStore("blocks").get(tr.p)); if (pb) ctx = {uid:tr.p, s:(pb.s || "").replace(/^#{1,6}[ \t]+/, "")}; }
-      d = {kind:"block", title:RQ.pageTitle(b.g), pageUid:b.g, rootUid:tr.p, base:tr.o, snap, uid:b.u, q:spec.q};
+      const crumbs = []; { let p = tr.p, guard = 0;                 // المسار: الآباء من الأعلى إلى الأب المباشر
+        while (p && p !== b.g && guard++ < 60){ const pt = await RQ.rq(db.transaction("tree").objectStore("tree").get(p)), pb = await RQ.rq(db.transaction("blocks").objectStore("blocks").get(p)); if (!pt || !pb) break; crumbs.unshift({uid:p, s:(pb.s || "").replace(/^#{1,6}[ \t]+/, "")}); p = pt.p; } }
+      let hit = null;
+      if (spec.reveal && spec.reveal !== b.u){                     // جئت من كتلة تحتها: انشر الطريق إليها وحدها، واطوِ ما سواه
+        const path = []; { let p = spec.reveal, guard = 0; while (p && p !== b.u && guard++ < 60){ path.unshift(p); const pt = await RQ.rq(db.transaction("tree").objectStore("tree").get(p)); if (!pt) break; p = pt.p; } }
+        let cur = n;
+        for (const u of path){
+          if (cur.lazy){ cur.children = await docKids(cur.uid, 0, bud, snap, true); cur.lazy = false; const sn = snap.get(cur.uid); if (sn) sn.lazy = false; }
+          for (const c of cur.children) if (c.children.length || c.lazy) c.collapsed = true;
+          cur.collapsed = false; const nx = cur.children.find(c => c.uid === u); if (!nx) break; cur = nx;
+        }
+        if (cur.uid === spec.reveal){ hit = cur; if (cur.lazy){ cur.children = await docKids(cur.uid, 0, bud, snap, true); cur.lazy = false; const sn = snap.get(cur.uid); if (sn) sn.lazy = false; } cur.collapsed = false; }
+      }
+      d = {kind:"block", title:RQ.pageTitle(b.g), pageUid:b.g, rootUid:tr.p, base:tr.o, snap, uid:b.u, q:spec.q, crumbs, hit};
     }
     if (!fromHistory){ const st = {tab:TABS.cur.id, doc:spec.kind === "page" ? {kind:"page", title:spec.title} : {kind:"block", uid:spec.uid}}; if (history.state && history.state.doc) history.pushState(st, ""); else { history.replaceState({base:1}, ""); history.pushState(st, ""); } }
     DOC = d; activate("page"); model = nodes; editingId = null; HIST.past = []; HIST.future = []; HIST.mark = 0;
     if (!nodes.length){ const e = mk(""); model.push(e); }
-    $("#rpTitle").textContent = d.title; $("#rpTitle").title = d.kind === "block" ? "افتح الصفحة كلها" : "";
-    const cx = $("#rpCtx"); cx.hidden = !ctx; if (ctx){ cx.innerHTML = '<small>الأب:</small> ' + renderInline(ctx.s.length > 400 ? ctx.s.slice(0, 400) + "…" : ctx.s); cx.onclick = () => openDoc({kind:"block", uid:ctx.uid}); }
+    $("#rpTitle").textContent = d.kind === "page" ? d.title : ""; $("#rpTitle").hidden = d.kind !== "page";
+    const cr = $("#rpCrumb"); cr.hidden = d.kind !== "block"; cr.innerHTML = "";
+    if (d.kind === "block"){                                       // المسار: الصفحة ثم الآباء، وكل جزء يُضغط
+      const a0 = el("a"); a0.dataset.p = d.title; a0.textContent = d.title || "؟"; cr.appendChild(a0);
+      for (const c of d.crumbs){ const sp = el("span", "sep"); sp.textContent = "›"; const a = el("a"); a.dataset.u = c.uid; const t = c.s.length > 90 ? c.s.slice(0, 90) + "…" : c.s; a.innerHTML = renderInline(t); a.querySelectorAll("a,.link,.bref").forEach(x => x.replaceWith(document.createTextNode(x.textContent))); a.title = c.s.slice(0, 300); cr.append(sp, a); }
+    }
     $("#rpMore").hidden = !(d.kind === "page" && d.total > nodes.length); if (!$("#rpMore").hidden) $("#rpMore").textContent = "المعروض أول " + AR(nodes.length) + " من " + AR(d.total) + " كتلة في أعلى الصفحة؛ الباقي تصل إليه بالبحث.";
     layout(); render(); rpState("محفوظ ✓"); $("#rp").scrollTop = 0; if (!isSplit()) window.scrollTo(0, 0); $("#rpRefs").innerHTML = "";
-    if (d.kind === "block" && d.q){
-      const v = $('#outline2 .block[data-id="' + nodes[0].id + '"] > .row .view');
-      if (v){ const hits = RQ.markMatches(v, d.q); if (hits.length) hits[0].scrollIntoView({block:"center"}); }
+    if (d.kind === "block"){
+      const tg = d.hit || nodes[0], v = $('#outline2 .block[data-id="' + tg.id + '"] > .row .view');
+      if (d.hit){ const r = v && v.closest(".row"); if (r) r.classList.add("tgt"); }
+      const hits = v && d.q ? RQ.markMatches(v, d.q) : [];
+      if (hits.length) hits[0].scrollIntoView({block:"center"}); else if (d.hit && v) v.scrollIntoView({block:"center"});
     }
     d.rootT = d.kind === "page" ? d.title : (VIEW.roots ? await RQ.rootOfBlock(d.uid) : "");
     RQ.ROOTHL.set(d.rootT, $("#rpDoc"), VIEW.roots); tabsSave();
@@ -3630,7 +3675,7 @@ function dailyUidOf(t){
   const m = t.match(/^([A-Z][a-z]+) (\d{1,2})(?:st|nd|rd|th), (\d{4})$/); if (!m) return null;
   const mi = MONTHS.indexOf(m[1]); return mi < 0 ? null : p2(mi + 1) + "-" + p2(+m[2]) + "-" + m[3];
 }
-function closeDoc(){ RQ.ROOTHL.set("", null, false); if (!$("#rpDoc")){ DOC = null; return; } DOC = null; activate("page"); model = []; editingId = null; $("#outline2").innerHTML = ""; $("#rpTitle").textContent = ""; $("#rpRefs").innerHTML = ""; $("#rpCtx").hidden = true; $("#rpMore").hidden = true; rpState(""); activate("main"); layout(); tabsSave(); }
+function closeDoc(){ RQ.ROOTHL.set("", null, false); if (!$("#rpDoc")){ DOC = null; return; } DOC = null; activate("page"); model = []; editingId = null; $("#outline2").innerHTML = ""; $("#rpTitle").textContent = ""; $("#rpRefs").innerHTML = ""; $("#rpCrumb").hidden = true; $("#rpMore").hidden = true; rpState(""); activate("main"); layout(); tabsSave(); }
 function refView(b){
   let cls = "view", txt = (b.h ? "#".repeat(b.h) + " " : "") + (b.s || "");
   const hm = txt.match(/^(#{1,6})[ \t]+([\s\S]*)$/); if (hm){ cls += " h" + Math.min(6, hm[1].length); txt = hm[2]; }
@@ -3838,8 +3883,13 @@ function todoKey(n, t){                              // لا شيء ← TODO ←
 
 /* ---- ربط اللوحة بالمحرر ---- */
 function rpInit(){
-  $("#rpTI").onmousedown = e => { e.preventDefault(); e.stopPropagation(); if (DR.set){ clearTarget(); toast("وجهة الإرسال: اليوم"); } };
-  $("#rpBox").onmousedown = e => { if (e.target.id === "rpQ") return; e.preventDefault(); $("#rpBox").classList.remove("tgt"); $("#rpQ").focus(); };
+  $("#rpTI").onmousedown = e => { e.preventDefault(); e.stopPropagation();
+    if (TABS.cur && TABS.cur.kind === "graph" && DOC){ const it = {kind:"page", title:DOC.title, g:S.graph}; if (isDest(it)){ clearTarget(); toast("وجهة الإرسال: اليوم"); } else { DR.graph = S.graph; DR.set = true; DR.page = {kind:"page", title:DOC.title}; saveDR(); toast("وجهة الإرسال: " + DOC.title); } barMark(); return; }
+    if (DR.set){ clearTarget(); toast("وجهة الإرسال: اليوم"); } };
+  $("#rpStar").onmousedown = e => { e.preventDefault(); e.stopPropagation(); if (!DOC || DOC.kind !== "page") return; const on = pinToggle(S.graph, DOC.title); barMark(); toast(on ? "ثُبّتت: تجدها في شريط البحث وهو فارغ" : "أُلغي التثبيت"); };
+  $("#rpSync").onclick = () => { if (TABS.cur && TABS.cur.kind === "draft") DSYNC.now(true); else syncDoc(); };
+  $("#btnSplit").onclick = () => { store.set("rq-split", isSplit() ? "" : "1"); layout(); if (DOC){ activate("page"); render(); } };
+  $("#rpBox").onmousedown = e => { if (e.target.id === "rpQ" || e.target.closest("#rpStar")) return; e.preventDefault(); $("#rpBox").classList.remove("tgt"); $("#rpQ").focus(); };
   $("#rpQ").addEventListener("blur", () => setTimeout(barMark, 0));
   document.addEventListener("mousedown", e => { if (!e.target.closest("#rpRes,#rpBox")) $("#rpRes").hidden = true; });
   setInterval(rpDot, 2000);
@@ -3954,12 +4004,141 @@ function viewSettings(box){
 const xselText = () => store.get("rq-xsel") !== "blocks";
 
 /* ============================================================
+   مزامنة المسودة بين الأجهزة: كتلة كود واحدة في صفحة «المحرر/المسودة» في Roam
+   ============================================================ */
+const DSYNC = (function(){
+  const TITLE = "المحرر/المسودة", MAIN = "rqDraftMn", PGU = "rqDraftPg";
+  const H = () => { try { return parent.ENGHOOK || {}; } catch(e){ return {}; } };
+  const st = Object.assign({t:0, h:"", editT:0}, (() => { try { return JSON.parse(store.get("rq-dsync") || "{}"); } catch(e){ return {}; } })());
+  let state = "off", timer = 0, busy = false, again = false, page = "", copies = [], gname = "";
+  const save = () => store.set("rq-dsync", JSON.stringify(st));
+  const hash = s => { let h = 5381; for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0; return s.length + ":" + h; };
+  const ser = list => list.map(n => { const o = {x:n.text}; if (n.collapsed) o.c = 1; if (n.children.length) o.k = ser(n.children); return o; });
+  const de = list => (list || []).map(o => { const n = mk(o.x || "", de(o.k)); if (o.c) n.collapsed = true; return n; });
+  const mainModel = () => ACTIVE === "main" ? model : (CTXS.main.model || []);
+  const body = m => (m.length === 1 && m[0].hdr) ? m[0].children : m;
+  const local = () => ({v:1, dest:CFG.dest, m:ser(body(mainModel()))});
+  const enabled = () => !(isOb() && !EMBED) && !!graphName();
+  function graphName(){
+    if (EMBED){ const h = H(); return h.dsGraph ? h.dsGraph() : ""; }
+    const want = store.get("rq-dsync-graph"); if (want === "-") return "";
+    const g = CFG.roam.graphs.find(x => x.name === want && x.token) || CFG.roam.graphs.find(x => x.token); return g ? g.name : "";
+  }
+  async function call(kind, b){
+    if (EMBED){ const h = H(); if (!h.dsCall) throw new Error("لا اتصال"); return await h.dsCall(kind, b); }
+    const g = CFG.roam.graphs.find(x => x.name === gname); if (!g || !g.token) throw new Error("لا رمز للغراف");
+    const r = await fetch("https://api.roamresearch.com/api/graph/" + encodeURIComponent(g.name) + "/" + kind, {method:"POST", headers:{"X-Authorization":"Bearer " + g.token, "Content-Type":"application/json"}, body:JSON.stringify(b)});
+    return {ok:r.ok, status:r.status, text:await r.text()};
+  }
+  function setState(s){ state = s; if (EMBED){ const h = H(); h.dsState && h.dsState(s); } else if (typeof rpDot === "function") rpDot(); }
+  const wrap = o => "```json\n" + JSON.stringify(o) + "\n```";
+  const unwrap = s => { try { return JSON.parse(String(s || "").replace(/^\s*```[a-z]*\n?/, "").replace(/\n?```\s*$/, "")); } catch(e){ return null; } };
+  function apply(o){                                  // ضع النسخة الواردة في المسودة كما هي
+    let nodes = de(o.m);
+    if (o.dest !== CFG.dest){
+      if (EMBED){ CFG.dest = o.dest === "obsidian" ? "obsidian" : "roam"; saveCfg(); applyDest(); const h = H(); h.mode && h.mode(); }
+      else { const lines = []; (function f(l){ for (const n of l){ lines.push(n.text); f(n.children); } })(nodes); nodes = parseMarkdown(lines.join("\n")); toast("المسودة كانت بنمط الأسطر في الجهاز الآخر؛ عُرضت هنا كتلاً"); }
+    }
+    const m = (!EMBED && S.header && !isOb()) ? [mkHeader(nodes.length ? nodes : [mk("")])] : (nodes.length ? nodes : [mk("")]);
+    if (ACTIVE === "main"){ model = m; editingId = null; render(); } else CTXS.main.model = m;
+    st.h = hash(JSON.stringify(local().m)); st.editT = o.t; save(); draftSave();
+  }
+  async function ensurePageUid(){
+    if (page) return page;
+    const r = await call("q", {query:"[:find ?u . :in $ ?t :where [?e :node/title ?t] [?e :block/uid ?u]]", args:[TITLE]});
+    if (!r.ok) throw new Error("Roam (" + r.status + ")");
+    let u = null; try { u = JSON.parse(r.text).result; } catch(e){}
+    if (!u){ await ensurePage(call, PGU, TITLE); u = PGU; }
+    return page = u;
+  }
+  async function now(force){
+    if (!enabled()){ setState("off"); return; }
+    if (busy){ again = true; return; }
+    if (!navigator.onLine){ setState("pend"); return; }
+    busy = true; clearTimeout(timer); gname = graphName(); setState("busy");
+    try {
+      const pu = await ensurePageUid();
+      const r = await call("q", {query:"[:find ?u ?s :in $ ?p :where [?pg :block/uid ?p] [?pg :block/children ?b] [?b :block/uid ?u] [?b :block/string ?s]]", args:[pu]});
+      if (!r.ok) throw new Error("Roam (" + r.status + ")");
+      let rows = []; try { rows = JSON.parse(r.text).result || []; } catch(e){}
+      let main = null, hasMain = false; copies = [];
+      for (const [u, s] of rows){ const o = unwrap(s); if (u === MAIN){ hasMain = true; if (o && o.m) main = o; } else if (o && o.m) copies.push(Object.assign({u}, o)); }
+      copies.sort((a, b) => (b.t || 0) - (a.t || 0));
+      const loc = local(), lh = hash(JSON.stringify(loc.m)), empty = !JSON.stringify(loc.m).replace(/"x":""/g, "").match(/"x":/), dirty = lh !== st.h && !empty;
+      if (main && (main.t || 0) > st.t){
+        if (!dirty){ apply(main); st.t = main.t; save(); }
+        else {                                       // كُتب في الجهازين: الأحدث يبقى، والأقدم يُحفظ «نسخة لم تُدمج»
+          const mine = Object.assign({}, loc, {t:st.editT || Date.now(), dev:EMBED ? "الهاتف" : "الحاسوب", copy:1});
+          const older = (st.editT || 0) >= main.t ? Object.assign({}, main, {copy:1}) : mine, cu = newUid();
+          const w = await call("write", {action:"create-block", location:{"parent-uid":pu, order:"last"}, block:{uid:cu, string:wrap(older)}});
+          if (w.ok) copies.unshift(Object.assign({u:cu}, older));
+          if (older === mine){ apply(main); st.t = main.t; save(); }
+        }
+      }
+      const loc2 = local(), lh2 = hash(JSON.stringify(loc2.m));
+      if (lh2 !== st.h || !hasMain){
+        const o = Object.assign(loc2, {t:st.editT || Date.now(), dev:EMBED ? "الهاتف" : "الحاسوب"});
+        const w = hasMain ? await call("write", {action:"update-block", block:{uid:MAIN, string:wrap(o)}})
+                          : await call("write", {action:"create-block", location:{"parent-uid":pu, order:0}, block:{uid:MAIN, string:wrap(o)}});
+        if (!w.ok) throw new Error("Roam (" + w.status + ")");
+        st.t = o.t; st.h = lh2; save();
+      }
+      setState("ok"); drawNote();
+      if (force) toast("زُومنت المسودة");
+    } catch(e){ setState("err"); if (force) toast("تعذّرت مزامنة المسودة: " + e.message); }
+    finally { busy = false; if (again){ again = false; setTimeout(() => now(false), 300); } }
+  }
+  function changed(){                                 // تغيّرت المسودة: ارفعها بعد لحظات من التوقف عن الكتابة
+    if (!enabled() || !st.t && !JSON.stringify(local().m).replace(/"x":""/g, "").match(/"x":/)) return;
+    const h = hash(JSON.stringify(local().m)); if (h === st.h) return;
+    st.editT = Date.now(); save(); setState("pend");
+    clearTimeout(timer); timer = setTimeout(() => now(false), 3000);
+  }
+  /* ---- النسخ التي لم تُدمج ---- */
+  function drawNote(){
+    let box = $("#dsNote");
+    if (!box){ box = el("div"); box.id = "dsNote"; const o = $("#outline"); o.parentElement.insertBefore(box, o); }
+    box.hidden = !copies.length || (TABS.cur && TABS.cur.kind !== "draft" && !EMBED); box.innerHTML = ""; if (box.hidden) return;
+    const c = copies[0], when = c.t ? new Date(c.t).toLocaleString("ar-EG", {dateStyle:"short", timeStyle:"short"}) : "";
+    const t = el("span"); t.textContent = "توجد نسخة أخرى لم تُدمج" + (c.dev ? " (من " + c.dev + (when ? "، " + when : "") + ")" : "") + (copies.length > 1 ? " — وغيرها " + copies.length.toLocaleString("ar-EG") : "");
+    const b = (label, fn) => { const x = el("button", "ghost"); x.textContent = label; x.onclick = fn; box.appendChild(x); };
+    box.appendChild(t); b("اعرضها", () => view(c)); b("ألحقها", () => append(c)); b("احذفها", () => drop(c));
+  }
+  function view(c){
+    const ov = el("div"); ov.id = "dsView";
+    const head = el("div", "dsvh"), x = el("button", "ghost"); head.textContent = "نسخة لم تُدمج" + (c.dev ? " — من " + c.dev : ""); x.textContent = "رجوع"; x.onclick = () => ov.remove(); head.appendChild(x); ov.appendChild(head);
+    const bodyEl = el("div", "dsvb");
+    (function f(list, host){ const ul = el("ul"); for (const o of list){ const li = el("li"); li.innerHTML = c.dest === "obsidian" ? renderObsInline(o.x || "") : renderInline(o.x || ""); if (o.k) f(o.k, li); ul.appendChild(li); } host.appendChild(ul); })(c.m, bodyEl);
+    ov.appendChild(bodyEl); document.body.appendChild(ov);
+  }
+  async function append(c){
+    let nodes = de(c.m);
+    if (c.dest !== CFG.dest){
+      if (CFG.dest === "obsidian"){ const md = toObsidian(prune(nodes, 6, true), true); nodes = splitUnits(md).map(u => mk(u)); }
+      else { const lines = []; (function f(l){ for (const n of l){ lines.push(n.text); f(n.children); } })(nodes); nodes = parseMarkdown(lines.join("\n")); }
+    }
+    if (ACTIVE !== "main") activate("main");
+    pushHist(); const host = (model.length === 1 && model[0].hdr) ? model[0].children : model;
+    while (host.length && !host[host.length-1].text.trim() && !host[host.length-1].children.length) host.pop();
+    const key = n => JSON.stringify(ser([n])), have = new Set(host.map(key));   // يُلحق ما ليس في المسودة الحالية وحده
+    const add = nodes.filter(n => !have.has(key(n)) && (n.text.trim() || n.children.length));
+    if (!add.length) toast("ليس فيها ما ليس في مسودتك");
+    host.push(...add); editingId = null; render(); draftSave(); await drop(c, true);
+  }
+  async function drop(c, quiet){
+    try { gname = graphName(); const w = await call("write", {action:"delete-block", block:{uid:c.u}}); if (!w.ok) throw new Error("Roam (" + w.status + ")"); copies = copies.filter(x => x !== c); drawNote(); if (!quiet) toast("حُذفت النسخة"); }
+    catch(e){ toast("تعذّر الحذف: " + e.message); }
+  }
+  return {now, changed, get state(){ return state; }, drawNote, enabled};
+})();
+
+/* ============================================================
    وضع المسودة داخل نسخة الجوال (index.html?embed=1)
    ============================================================ */
 function embedInit(){
   document.body.classList.add("embed");
   const H = () => { try { return parent.ENGHOOK || {}; } catch(e){ return {}; } };
-  draftSave = function(){ store.set("rq-draft:" + CFG.dest, JSON.stringify(ACTIVE === "main" ? model : CTXS.main.model)); };
+  draftSave = function(){ store.set("rq-draft:" + CFG.dest, JSON.stringify(ACTIVE === "main" ? model : CTXS.main.model)); DSYNC.changed(); };
   draftTouch = function(){ clearTimeout(draftT); draftT = setTimeout(draftSave, 400); };
   draftLoad = function(){
     try { const m = JSON.parse(store.get("rq-draft:" + CFG.dest) || "null");
@@ -4025,7 +4204,9 @@ const ENGAPI = {
   bsShift(out){ bsShift(out); },
   bsStep(d){ bsMoveHead(d); },
   undo(){ BS.ids = []; undo(); },
-  bsClear(){ bsClear(); }
+  bsClear(){ bsClear(); },
+  sync(force){ return DSYNC.now(force); },
+  dsState(){ return DSYNC.state; }
 };
 function looksDoc(txt, html){                        // نصّ فيه عناوين وفقرات بلا نقاط قوائم: وثيقة (نمط الأسطر)
   if (html && !/<li\b/i.test(html) && /<h[1-6]\b/i.test(html)) return true;
@@ -4089,6 +4270,8 @@ applyView();
 init(); rpInit(); sideInit();
 if (draftLoad()) render();
 tabsInit();
+setTimeout(() => DSYNC.now(false), 2000);
+document.addEventListener("visibilitychange", () => { if (!document.hidden && TABS.cur && TABS.cur.kind === "draft") DSYNC.now(false); });
 }
 document.addEventListener("keydown", e => {
   if (!e.altKey || e.ctrlKey || e.shiftKey) return;
