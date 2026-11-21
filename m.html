@@ -2,9 +2,9 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
 <!-- أمان: لا اتصال إلا بخادم Roam -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: 'self'; manifest-src 'self'; worker-src 'self' blob:; media-src blob:; font-src 'self'; connect-src https://api.roamresearch.com https://*.api.roamresearch.com:* https://api.elevenlabs.io;">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: 'self'; manifest-src 'self'; worker-src 'self' blob:; media-src blob:; font-src 'self'; frame-src 'self'; child-src 'self'; connect-src https://api.roamresearch.com https://*.api.roamresearch.com:* https://api.elevenlabs.io;">
 <title>المحرر (جوال)</title>
 <link rel="manifest" href="manifest-mobile.webmanifest">
 <meta name="theme-color" content="#0f8f7e">
@@ -14,7 +14,7 @@
 @media (prefers-color-scheme:dark){:root{--bg:#13171c;--fg:#e2e6ea;--mut:#8b96a3;--line:#2a313a;--card:#1b2128;--acc:#27b3a0;--accfg:#06201c;--link:#74b6f2;--mark:#6a5900;--code:#222a33;--sel:#17332f}}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);overscroll-behavior-y:contain}
-body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans Arabic",sans-serif;font-size:16px;touch-action:manipulation}
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans Arabic",sans-serif;font-size:16px;touch-action:pan-x pan-y}
 button,select,input,textarea{font:inherit;color:inherit}
 button{background:none;border:0;padding:0;margin:0;cursor:pointer}
 [hidden]{display:none!important}
@@ -190,7 +190,6 @@ mark.hit.cur{outline:2px solid var(--acc)}
 .tgl.has::before{content:"";position:absolute;top:calc(var(--fs)*var(--lh)/2 - 5px);inset-inline-start:4px;width:7px;height:7px;border:solid var(--mut);border-width:0 2px 2px 0;transform:rotate(135deg)}
 .tgl.open::before{transform:rotate(45deg);top:calc(var(--fs)*var(--lh)/2 - 7px)}
 textarea.live{flex:1;min-width:0;display:block;border:0;outline:0;resize:none;overflow:hidden;background:transparent;color:inherit;padding:1px 2px;margin:0;font:inherit;line-height:var(--lh);unicode-bidi:plaintext;text-align:right;font-family:var(--ff,inherit)}
-.row.editing{background:var(--sel)}
 .k.dl{color:var(--danger)}
 #tabs{position:fixed;left:0;right:0;top:var(--vvt,0px);height:38px;display:flex;align-items:flex-end;gap:4px;padding:calc(env(safe-area-inset-top)) 8px 0;background:var(--card);border-bottom:1px solid var(--line);z-index:30;user-select:none;-webkit-user-select:none;box-sizing:content-box}
 #tabs[hidden]{display:none}
@@ -256,6 +255,43 @@ textarea.live{flex:1;min-width:0;display:block;border:0;outline:0;resize:none;ov
 #vDiag{margin-top:8px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;font-size:12px;line-height:1.5;white-space:pre-wrap;direction:ltr;text-align:left;max-height:46vh;overflow:auto;user-select:text;-webkit-user-select:text}
 #vDiag:empty{display:none}
 #vDiagNow{margin-top:8px;font-weight:700;color:var(--danger);font-size:16px}#vDiagNow:empty{display:none}
+.pill{flex:1;min-width:0;height:40px;display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:20px;padding:0 6px 0 12px;background:var(--bg)}
+.pill:focus-within{border-color:var(--acc)}
+.pill input{flex:1;min-width:0;height:100%;border:0!important;outline:0;background:transparent!important;padding:0!important;font-size:var(--fs);border-radius:0!important}
+.pill .ptt{display:none;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;unicode-bidi:plaintext;text-align:right;font-size:calc(var(--fs) - 1px)}
+.pill.tgt input{display:none}.pill.tgt .ptt{display:block}
+.pti{flex:none;width:34px;height:34px;margin-inline-start:-6px;display:grid;place-items:center;color:var(--mut);border-radius:17px}
+.pti svg{width:18px;height:18px}
+.pti.on{color:var(--acc)}
+.pti:active{background:var(--sel)}
+.pill .gl{flex:none;font-size:11px;border:1px solid var(--line);border-radius:9px;padding:1px 7px;color:var(--mut);white-space:nowrap}
+.pill .gl.on,.it .gl.on{color:var(--acc);border-color:var(--acc)}
+.pill .gl:empty{display:none}
+.pill .pin{flex:none;width:34px;height:34px;display:grid;place-items:center;color:var(--mut);border-radius:17px}
+.pill .pin svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linejoin:round}
+.pill .pin.on{color:#e0a100}.pill .pin.on svg{fill:currentColor}
+.pill:not(.tgt) .pin,.pill:not(.tgt) .pti,.pill:not(.tgt) .gl{display:none}
+.sdot{flex:none;width:10px;height:10px;border-radius:50%;background:#2ea44f;margin:0 2px}
+.sdot.warn{background:#e8912d}
+.ptitle{font-size:1.5em;font-weight:700;line-height:1.35;padding:6px 4px 10px 4px;word-break:break-word;unicode-bidi:plaintext;text-align:right}
+.ptitle:empty{display:none}
+.it .pi.dst{width:40px;height:40px;margin:-10px -8px -10px 0;border-radius:20px}
+.it .pi.dst:active{background:var(--sel)}
+.it .pi.on{color:var(--acc)}
+#pPull{height:0;overflow:hidden;display:grid;place-items:center;color:var(--mut);font-size:13px;transition:height .15s}
+#fsBadge{position:fixed;top:40%;left:50%;transform:translate(-50%,-50%);background:var(--fg);color:var(--bg);font-size:20px;font-weight:700;padding:10px 20px;border-radius:14px;opacity:0;pointer-events:none;transition:opacity .25s;z-index:70}
+#fsBadge.show{opacity:.92}
+#foldPop{position:fixed;z-index:65;display:flex;gap:6px;background:var(--fg);color:var(--bg);padding:6px;border-radius:14px;box-shadow:0 6px 22px rgba(0,0,0,.3)}
+#foldPop button{height:40px;padding:0 14px;border-radius:10px;color:inherit;font-size:14px;font-weight:600}
+#foldPop button:active{background:rgba(127,127,127,.3)}
+.row.bsel{background:color-mix(in srgb,var(--acc) 20%,transparent)}
+.row.dropin{outline:2px solid var(--acc);outline-offset:1px}
+#dropLine{position:fixed;height:3px;border-radius:2px;background:var(--acc);pointer-events:none;z-index:60;display:none}
+body.bdrag{user-select:none;-webkit-user-select:none}
+.selkeys{position:fixed;left:0;right:0;bottom:0;z-index:22}
+#engWrap{flex:1;min-height:0;position:relative}
+#engF{position:absolute;inset:0;width:100%;height:100%;border:0;background:var(--bg)}
+.k.mode{font-size:12px;font-weight:700;color:var(--acc);direction:rtl;min-width:52px}
 .krow{display:flex;gap:6px}
 .krow input{flex:1;min-width:0}
 </style>
@@ -276,17 +312,18 @@ textarea.live{flex:1;min-width:0;display:block;border:0;outline:0;resize:none;ov
 <!-- ============ الكتابة ============ -->
 <div id="home" class="scr" hidden>
   <header class="bar">
-    <button id="tPen" class="ic" aria-label="وجهة الإرسال"><svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16v4zM13.5 6.5l4 4"/></svg></button>
-    <input id="tq" dir="rtl" type="search" enterkeyhint="done" autocomplete="off" autocapitalize="off" spellcheck="false">
-    <button id="bMic" class="ic" aria-label="تدوين صوتي"><svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button>
-    <button class="ic bFont" aria-label="حجم الخط">Aa</button>
+    <div id="tBox" class="pill tgt"><span id="tTI" class="pti on" aria-label="وجهة الإرسال"></span>
+      <input id="tq" dir="rtl" type="search" enterkeyhint="done" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="بحث">
+      <span id="tTT" class="ptt"></span><span id="tTG" class="gl on"></span></div>
     <button class="ic bSet" aria-label="الإعدادات"><svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg></button>
   </header>
   <div id="tList" class="list" hidden></div>
-  <textarea id="ta" dir="rtl" autocomplete="off" autocapitalize="sentences" spellcheck="false"></textarea>
+  <div id="engWrap"><iframe id="engF" title="المسودة"></iframe></div>
+  <textarea id="ta" hidden></textarea>
   <div id="err" hidden><div></div><button id="errX" aria-label="إخفاء">✕</button></div>
   <div id="sugg" class="sugg" hidden></div>
   <div id="keys" class="keys"></div>
+  <div id="dSel" class="keys" hidden></div>
 </div>
 
 <!-- ============ التدوين الصوتي ============ -->
@@ -312,25 +349,16 @@ textarea.live{flex:1;min-width:0;display:block;border:0;outline:0;resize:none;ov
 <!-- ============ العرض (صفحة أو كتلة مع أبيها) ============ -->
 <div id="page" class="scr" hidden>
   <header class="bar">
-    <input id="pq" dir="rtl" type="search" readonly placeholder="بحث" aria-label="بحث">
+    <div id="pBox" class="pill tgt"><span id="pTI" class="pti" aria-label="اجعلها وجهة الإرسال"></span>
+      <input id="pq" dir="rtl" type="search" readonly placeholder="بحث" aria-label="بحث">
+      <span id="pTT" class="ptt"></span>
+      <button id="pPin" class="pin" aria-label="ثبّت الصفحة أو ألغِ تثبيتها"><svg viewBox="0 0 24 24"><path d="M12 3.5l2.6 5.4 5.9.8-4.3 4.1 1 5.8-5.2-2.8-5.2 2.8 1-5.8-4.3-4.1 5.9-.8z"/></svg></button></div>
+    <span id="pDot" class="sdot"></span>
     <button class="ic bSet" aria-label="الإعدادات"><svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg></button>
   </header>
-  <header class="bar pbar">
-    <div id="pTitle" class="ttl"></div>
-    <button id="pPin" class="ic" aria-label="ثبّت الصفحة أو ألغِ تثبيتها"><svg viewBox="0 0 24 24"><path d="M12 3.5l2.6 5.4 5.9.8-4.3 4.1 1 5.8-5.2-2.8-5.2 2.8 1-5.8-4.3-4.1 5.9-.8z"/></svg></button>
-    <button id="pFold" class="ic" aria-label="طيّ الكل ونشره"><svg viewBox="0 0 24 24"><path d="M7 9l5-5 5 5M7 15l5 5 5-5"/></svg></button>
-    <button class="ic bFont" aria-label="حجم الخط">Aa</button>
-    <button id="pReload" class="ic" aria-label="تحديث"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.6-5.9M20 4v5h-5"/></svg></button>
-  </header>
-  <div id="pBody" class="body"><div id="pTree"></div><div id="pRefs"></div></div>
+  <div id="pBody" class="body"><div id="pPull"></div><div id="pTitle" class="ptitle"></div><div id="pTree"></div><div id="pRefs"></div></div>
   <div id="pEdit" hidden><div id="psugg" class="sugg" hidden></div><div id="pkeys" class="keys"></div></div>
-  <div id="pSel" class="selbar" hidden>
-    <button data-a="mom">＋أم</button>
-    <button data-a="kid">＋بنت</button>
-    <button data-a="sis">＋أخت</button>
-    <button data-a="edit" class="x" aria-label="تعديل"><svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16v4zM13.5 6.5l4 4"/></svg></button>
-    <button data-a="del" class="x" aria-label="حذف"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg></button>
-  </div>
+  <div id="pSel" hidden></div>
   <div id="hitNav" hidden><button data-h="-1" aria-label="السابق">‹</button><span></span><button data-h="1" aria-label="التالي">›</button></div>
   <button id="pAdd" class="fab" aria-label="اكتب في آخر الصفحة"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
 </div>
@@ -351,6 +379,7 @@ textarea.live{flex:1;min-width:0;display:block;border:0;outline:0;resize:none;ov
 <input type="date" id="dpick" tabindex="-1" aria-hidden="true">
 <div id="prog" hidden></div>
 <div id="toast"></div>
+<div id="fsBadge"></div>
 
 <script>
 "use strict";
@@ -418,6 +447,7 @@ function applyFont(){
   document.documentElement.style.setProperty("--fs", PREFS.fs+"px");
   document.documentElement.style.setProperty("--lh", PREFS.lh);
   if (FONTS[PREFS.font]) document.documentElement.style.setProperty("--ff", FONTS[PREFS.font]); else document.documentElement.style.removeProperty("--ff");
+  if (typeof engView === "function") engView();
   $("#fsVal").textContent = AR(PREFS.fs);
   document.querySelectorAll("#fontPop [data-l]").forEach(b => b.classList.toggle("on", +b.dataset.l === +PREFS.lh));
 }
@@ -432,7 +462,13 @@ function loadPages(){
 const pinsAll = () => { try { return JSON.parse(store.get("rq-pins") || "{}") || {}; } catch(e){ return {}; } };
 const pins = g => { const a = pinsAll()[g]; return Array.isArray(a) ? a : []; };
 function pinToggle(g, t){ const all = pinsAll(), a = pins(g), k = a.indexOf(t); if (k >= 0) a.splice(k, 1); else a.push(t); all[g] = a; store.set("rq-pins", JSON.stringify(all)); return k < 0; }
-function pinMark(){ const b = $("#pPin"), pg = ROUTE.name === "page" && ROUTE.kind === "page"; b.hidden = !pg; b.classList.toggle("on", pg && pins(RAW.roam.current).includes(ROUTE.title)); }
+const pTitleNow = () => ROUTE.name !== "page" ? "" : ROUTE.kind === "page" ? ROUTE.title : (CUR && CUR.title) || "";
+function pinMark(){                                  // شريط الصفحة: رمزها (وجهة الإرسال؟)، عنوانها، نجمة تثبيتها
+  const b = $("#pPin"), pg = ROUTE.name === "page" && ROUTE.kind === "page", t = pTitleNow();
+  b.hidden = !pg; b.classList.toggle("on", pg && pins(RAW.roam.current).includes(ROUTE.title));
+  $("#pTT").textContent = t; $("#pTI").classList.toggle("on", !!t && isDestM(RAW.roam.current, {kind:"page", title:t}));
+  if (typeof dotMark === "function") dotMark();
+}
 function recents(){ const g = G(); if (!g) return []; try { return JSON.parse(store.get("rqm-recent:"+g.name) || "[]"); } catch(e){ return []; } }
 function addRecent(title){
   const g = G(); if (!g || !title) return;
@@ -545,13 +581,26 @@ async function pullSubtrees(nodes){                  // يملأ ما تحت ك�
   const by = new Map(); for (const row of (res.result || [])){ const o = row[0]; if (o) by.set(K(o,"block/uid"), o); }
   for (const n of want){ const o = by.get(n.uid); n.kids = o ? nb(o, null).kids : []; n.kids.forEach(k => { k.pn = n; k.parent = n.uid; }); n.loaded = true; n.lazy = false; }
 }
+/* تأكّد أن للمعرّف صفحةً بعنوانها قبل الكتابة تحتها؛ وإلا صارت الكتل معلّقة تحت معرّف بلا عنوان («؟» في Roam) */
+async function ensurePage(uid, title, opt){
+  const o = Object.assign({soft:true}, opt || {}), call = (k, b) => roam(k, b, o);
+  const hasTitle = async () => { const r = await call("q", {query:"[:find ?t . :in $ ?u :where [?e :block/uid ?u] [?e :node/title ?t]]", args:[uid]});
+    if (!r.ok) throw new Error("استعلام الصفحة فشل ("+r.status+"): "+r.text.replace(/\s+/g," ").slice(0,120));
+    try { return !!JSON.parse(r.text).result; } catch(e){ return false; } };
+  if (await hasTitle()) return;
+  const c = await call("write", {action:"create-page", page:{title, uid}});
+  if (c.ok && await hasTitle()) return;
+  const u = await call("write", {action:"update-page", page:{uid, title}});   // المعرّف موجود بلا عنوان: سمّه
+  if (u.ok && await hasTitle()) return;
+  const bad = (!u.ok ? u : c);
+  throw new Error("تعذّر إنشاء الصفحة «"+title+"» ("+bad.status+"): "+bad.text.replace(/\s+/g," ").slice(0,120));
+}
 async function pageUid(title, create){
   const res = await roam("q", {query:"[:find ?u :in $ ?t :where [?e :node/title ?t] [?e :block/uid ?u]]", args:[title]});
   let uid = res.result && res.result[0] && res.result[0][0];
   if (!uid && create){
     uid = dailyUidFromTitle(title) || newUid();
-    const c = await roam("write", {action:"create-page", page:{title, uid}}, {soft:true});
-    if (!c.ok && c.status !== 400) throw new Error("إنشاء الصفحة فشل ("+c.status+"): "+c.text.slice(0,120));
+    await ensurePage(uid, title);
   }
   return uid || null;
 }
@@ -1134,6 +1183,11 @@ async function flush(){
   try {
     while (QUEUE.length && G() === g){
       const it = QUEUE[0]; let r;
+      if (it.body.action === "create-page" && it.body.page && it.body.page.uid){   // لا تمضِ إلى الكتل قبل أن تقوم صفحتها بعنوانها
+        try { await ensurePage(it.body.page.uid, it.body.page.title, {graph:g, timeout:30000}); }
+        catch(e){ it.tries++; saveQueue(); if (it.tries === 1 || it.tries % 5 === 0) toast("لم تُنشأ الصفحة بعد، وستُعاد المحاولة: " + e.message, 6000); break; }
+        QUEUE.shift(); saveQueue(); continue;
+      }
       try { r = await roam("write", it.body, {graph:g, soft:true, timeout:30000}); }
       catch(e){ it.tries++; saveQueue(); break; }
       if (!r.ok){
@@ -1156,9 +1210,9 @@ function plan(blocks, pn, parentUid, pageUid, base, numeric){
     list.forEach((b, i) => {
       const uid = newUid(), o = start + i;
       const node = mkNode({uid, s:b.string, order:o, h:b.heading || 0, parent:pu, pn:pnode, g:pageUid, loc:LOC, _open:b.children.length > 0});
-      const blk = {uid, string:b.string}; if (b.heading) blk.heading = b.heading;
+      const blk = {uid, string:b.string}; if (b.heading) blk.heading = b.heading; if (b.open === false && b.children.length) blk.open = false;
       acts.push({action:"create-block", location:{"parent-uid":pu, order:num ? o : "last"}, block:blk});
-      const rec = {u:uid, s:b.string, p:pu, g:pageUid, o}; if (b.heading) rec.h = b.heading; recs.push(rec);
+      const rec = {u:uid, s:b.string, p:pu, g:pageUid, o}; if (b.heading) rec.h = b.heading; if (blk.open === false) rec.c = 1; recs.push(rec);
       if (top) tops.push(node); else pnode.kids.push(node);
       walk(b.children, uid, node, 0, false, false);
     });
@@ -1281,26 +1335,47 @@ function allPages(){
   if (!ALLP) ALLP = graphs().map(g => { const raw = store.get("rq-pages:"+g.name) || "", pages = raw ? raw.split("\n") : []; return {g:g.name, pages, pagesN:pages.map(norm)}; });
   return ALLP;
 }
-function tMark(){
-  const pen = $("#tPen"), q = $("#tq"), multi = graphs().length > 1;
-  pen.classList.toggle("on", DR.set); q.classList.toggle("tgt", DR.set);
-  q.placeholder = (DR.set && DR.page.kind === "page" ? DR.page.title : "اليوم") + (multi ? "  ·  " + glabel(DR.graph) : "");
+function tMark(){                                    // شريط المسودة: رمز الصفحة، عنوان الوجهة، كبسولة غرافها — ما دام غير مفتوح للبحث
+  const q = $("#tq"), show = document.activeElement !== q && !q.value;
+  $("#tBox").classList.toggle("tgt", show);
+  $("#tTT").textContent = DR.set && DR.page.kind === "page" ? DR.page.title : "اليوم";
+  $("#tTG").textContent = graphs().length > 1 ? glabel(DR.graph) : "";
 }
-function tSet(g, page){ DR.graph = g; DR.set = true; DR.page = page; saveDR(); graphLite(g); TARGET = page; if (page.kind === "page") addRecent(page.title);
-  $("#tq").value = ""; $("#tList").hidden = true; tMark(); setTimeout(() => ta.focus(), 50); }
-function tClear(){ DR.set = false; DR.page = {kind:"today", title:""}; saveDR(); TARGET = {kind:"today"}; tMark(); }
+const isDestM = (g, page) => g === DR.graph && (page.kind === "today" ? !DR.set || DR.page.kind === "today" : DR.set && DR.page.kind === "page" && DR.page.title === page.title);
+function destToggle(g, page){                        // رمز الصفحة: اجعلها وجهة الإرسال، أو ألغِها (فتعود إلى اليوم)
+  if (isDestM(g, page) && page.kind === "page"){ tClear(); toast("الوجهة: اليوم", 1500); return false; }
+  DR.graph = g; DR.set = page.kind === "page"; DR.page = page.kind === "page" ? {kind:"page", title:page.title} : {kind:"today", title:""}; saveDR();
+  if (TABS[TABI] && TABS[TABI].kind === "draft"){ graphLite(g); TARGET = DR.set ? DR.page : {kind:"today"}; }
+  if (page.kind === "page") addRecent(page.title);
+  tMark(); engDest(); toast("الوجهة: " + (page.kind === "page" ? page.title : "اليوم") + (graphs().length > 1 ? " · " + glabel(g) : ""), 1800); return true;
+}
+function tSet(g, page){ DR.graph = g; DR.set = page.kind === "page"; DR.page = page.kind === "page" ? page : {kind:"today", title:""}; saveDR(); graphLite(g); TARGET = DR.set ? page : {kind:"today"}; if (page.kind === "page") addRecent(page.title);
+  $("#tq").value = ""; $("#tList").hidden = true; $("#tq").blur(); tMark(); engDest(); setTimeout(engFocus, 50); }
+function tClear(){ DR.set = false; DR.page = {kind:"today", title:""}; saveDR(); TARGET = {kind:"today"}; tMark(); engDest(); }
 function tDraw(){
   const box = $("#tList"), q = $("#tq").value.trim(), multi = graphs().length > 1; box.innerHTML = "";
-  const row = (title, g, page, special) => { const d = el("div", "it" + (special ? " sp" : "")), a = el("span", "t"); a.textContent = title; d.appendChild(el("span", "pi", IC_PAGE)); d.appendChild(a);
-    if (multi){ const l = el("span", "gl"); l.textContent = glabel(g); d.appendChild(l); } d.dataset.g = g; d.dataset.k = page.kind; d.dataset.title = page.title || ""; d.onclick = () => { if (d._swiped) return; tSet(g, page); }; box.appendChild(d); };
-  if (!q || "اليوم".includes(q)) for (const g of graphs()) row("اليوم", g.name, {kind:"today", title:""}, true);
+  const row = (title, g, page, special, newp) => { const on = !newp && isDestM(g, page), d = el("div", "it" + (special ? " sp" : "")), a = el("span", "t"); a.textContent = title;
+    const ic = el("span", "pi dst" + (on ? " on" : ""), IC_PAGE); d.appendChild(ic); d.appendChild(a);
+    if (multi){ const l = el("span", "gl" + (on ? " on" : "")); l.textContent = glabel(g); d.appendChild(l); } d.dataset.g = g; d.dataset.k = page.kind; d.dataset.title = page.title || "";
+    d.onclick = e => { if (d._swiped) return;
+      if (newp || e.target.closest(".dst")){ if (newp || !isDestM(g, page)) tSet(g, page); else { tClear(); toast("الوجهة: اليوم", 1500); tDraw(); } return; }
+      openAdjacent(g, page.kind === "today" ? dailyTitle() : page.title); };
+    box.appendChild(d); };
+  if (!q){                                            // الوجهة الحالية أولاً، ثم اليوم إن لم يكن هو الوجهة، ثم المثبتة
+    if (DR.set && DR.page.kind === "page") row(DR.page.title, DR.graph, DR.page);
+    row("اليوم", DR.graph, {kind:"today", title:""}, true);
+    const pn = []; for (const g of graphs()) for (const t of pins(g.name)) if (!(g.name === DR.graph && DR.set && t === DR.page.title)) pn.push([t, g.name]);
+    if (pn.length){ box.appendChild(el("div", "sec", "المثبتة")); for (const [t, g] of pn) row(t, g, {kind:"page", title:t}); }
+    box.hidden = false; return;
+  }
+  if ("اليوم".includes(q)) for (const g of graphs()) row("اليوم", g.name, {kind:"today", title:""}, true);
   if (q){
     const qn = norm(q), a = [], b = [];
     for (const G0 of allPages()) for (let k=0;k<G0.pages.length;k++){ const p = G0.pagesN[k].indexOf(qn); if (p < 0) continue; (p === 0 ? a : b).push([G0.pages[k], G0.g]); if (a.length > 80) break; }
     const byLen = (x, y) => x[0].length - y[0].length, res = a.sort(byLen).concat(b.sort(byLen)).slice(0, 24);
     for (const r of res) row(r[0], r[1], {kind:"page", title:r[0]});
-    if (!res.some(r => norm(r[0]) === qn && r[1] === DR.graph)) row("＋ " + q + " (صفحة جديدة)", DR.graph, {kind:"page", title:q}, true);
-  } else recents().slice(0, 8).forEach(t => row(t, RAW.roam.current, {kind:"page", title:t}));
+    if (!res.some(r => norm(r[0]) === qn && r[1] === DR.graph)) row("＋ " + q + " (صفحة جديدة)", DR.graph, {kind:"page", title:q}, true, true);
+  }
   box.hidden = false;
 }
 /* تمرير الإصبع أفقياً على نتيجة: افتحها في اللسان المجاور */
@@ -1341,15 +1416,17 @@ const KEYS_HTML = '<div class="ks">' +
   '<button class="k" data-k="tag">#</button>' +
   '<button class="k" data-k="bold">**</button><button class="k" data-k="hl">^^</button>' +
   '<button class="k" data-k="todo" aria-label="مهمة بتاريخ">' + SV('<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8 12.5l3 3 5-6.5"/>') + '</button>' +
+  '<button class="k" data-k="plain" aria-label="لصق كنصّ">' + SV('<rect x="6" y="4" width="12" height="17" rx="2"/><path d="M9 4V3h6v1M9 10h6M9 14h6M9 18h3"/>') + '</button>' +
   '<button class="k" data-k="undo" aria-label="تراجع">' + SV('<path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/>') + '</button>' +
   '<button class="k" data-k="redo" aria-label="إعادة">' + SV('<path d="M15 14l5-5-5-5"/><path d="M20 9H10a6 6 0 0 0 0 12h3"/>') + '</button></div>';
-$("#keys").innerHTML = KEYS_HTML + '<button class="send">إرسال</button>';
+$("#keys").innerHTML = KEYS_HTML.replace('<div class="ks">', '<div class="ks"><button class="k mode" data-k="mode" id="kMode" aria-label="نمط المسودة">كتل</button>') + '<button class="send">إرسال</button>';
 $("#pkeys").innerHTML = KEYS_HTML.replace('</div>', '<button class="k dl" data-k="del" aria-label="احذف الكتلة">' + SV('<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/>') + '</button></div>') + '<button class="send">تم</button>';
 let ED = {ta:$("#ta"), sugg:$("#sugg")};             // مربع الكتابة النشط وشريط اقتراحه
+let plainNext = false;
 function ins(text, selStart, selEnd){
   const ta = ED.ta; ta.focus();
   if (selStart != null) ta.setSelectionRange(selStart, selEnd == null ? selStart : selEnd);
-  let ok = false; try { ok = document.execCommand("insertText", false, text); } catch(e){}
+  let ok = false; try { ok = (ta.ownerDocument || document).execCommand("insertText", false, text); } catch(e){}
   if (!ok){ const s = ta.selectionStart; ta.setRangeText(text, s, ta.selectionEnd, "end"); ta.dispatchEvent(new Event("input", {bubbles:true})); }
 }
 function wrapPair(open, close){
@@ -1377,14 +1454,19 @@ const KEYS = {
   bold(){ wrapPair("**", "**"); },
   hl(){ wrapPair("^^", "^^"); },
   tag(){ const ta = ED.ta, s = ta.selectionStart, prev = ta.value[s-1]; ins((s === 0 || /\s/.test(prev) ? "" : " ") + "#"); },
-  todo(){ const ta = ED.ta, v = ta.value, s = ta.selectionStart, ls = v.lastIndexOf("\n", s-1) + 1, ind = v.slice(ls).match(/^[ \t]*/)[0].length;
+  todo(){ if (ED.eng){ engKey("t", {altKey:true}); return; } const ta = ED.ta, v = ta.value, s = ta.selectionStart, ls = v.lastIndexOf("\n", s-1) + 1, ind = v.slice(ls).match(/^[ \t]*/)[0].length;
           if (!v.slice(ls+ind).startsWith("{{[[TODO]]}} ")){ ins("{{[[TODO]]}} ", ls+ind); const p = s + 13; ta.setSelectionRange(p, p); }
           showDates(); },
-  in(){ if (LIVE) liveShift(1); else shiftLines(1); },
-  out(){ if (LIVE) liveShift(-1); else shiftLines(-1); },
+  in(){ if (LIVE) liveShift(1); else if (ED.eng) engKey("Tab"); else shiftLines(1); },
+  out(){ if (LIVE) liveShift(-1); else if (ED.eng) engKey("Tab", {shiftKey:true}); else shiftLines(-1); },
+  mode(){ ENG().then(w => { w.ENGAPI.setMode(w.ENGAPI.mode() === "obsidian" ? "roam" : "obsidian"); kModeMark(); toast(w.ENGAPI.mode() === "obsidian" ? "المسودة: أسطر وعناوين" : "المسودة: كتل Roam", 1600); }); },
   del(){ liveDelete(); },
-  undo(){ ED.ta.focus(); document.execCommand("undo"); },
-  redo(){ ED.ta.focus(); document.execCommand("redo"); },
+  undo(){ if (ED.eng){ engKey("z", {ctrlKey:true}); return; } ED.ta.focus(); document.execCommand("undo"); },
+  redo(){ if (ED.eng){ engKey("z", {ctrlKey:true, shiftKey:true}); return; } ED.ta.focus(); document.execCommand("redo"); },
+  async plain(){                                      // لصق كنصّ خام: بلا تحويل إلى كتل
+    let t = null; try { t = await navigator.clipboard.readText(); } catch(e){}
+    if (t == null){ plainNext = true; if (ED.eng && ED.win) ED.win.plainNext = true; toast("الصق الآن بالضغط الطويل: يُلصق كنصّ خام", 3000); return; }
+    ins(t); },
   close(){ liveClose(); closeComp(); }
 };
 document.querySelectorAll(".keys, .sugg").forEach(k => k.addEventListener("mousedown", e => e.preventDefault()));   // لا تسحب التركيز من مربع الكتابة
@@ -1393,6 +1475,7 @@ document.querySelectorAll(".keys").forEach(k => k.addEventListener("click", e =>
   if (b && KEYS[b.dataset.k]){ if (b.dataset.k !== "todo") DATEMODE = false; KEYS[b.dataset.k](); if (!/^(close|del|in|out)$/.test(b.dataset.k) || !LIVE) updateSugg(); return; }
   if (e.target.closest(".send")){ if (k.id === "keys") send(); else if (LIVE) liveClose(); else compSend(); }
 }));
+const edActive = () => { const t = ED.ta; if (!t || !t.isConnected) return false; return t.ownerDocument === document ? document.activeElement === t : document.activeElement === $("#engF") && t.ownerDocument.activeElement === t; };
 function caretCtx(){
   const ta = ED.ta, c = ta.selectionStart; if (c !== ta.selectionEnd) return null;
   const before = ta.value.slice(0, c), ls = before.lastIndexOf("\n") + 1, line = before.slice(ls);
@@ -1407,7 +1490,7 @@ let suggCtx = null, DATEMODE = false, sgSeq = 0;
 function updateSugg(){
   if (DATEMODE) return;
   const box = ED.sugg, seq = ++sgSeq;
-  suggCtx = (document.activeElement === ED.ta) ? caretCtx() : null;
+  suggCtx = edActive() ? caretCtx() : null;
   if (!suggCtx){ box.hidden = true; return; }
   const q = suggCtx.q.trim();
   if (suggCtx.kind === "ref"){                       // (( : ابحث داخل نصوص الكتل
@@ -1443,6 +1526,7 @@ function showDates(){
 }
 function putDate(dt){
   const ta = ED.ta, link = "[[" + dailyTitle(dt) + "]]"; DATEMODE = false;
+  if (ED.eng){ ENG().then(w => { w.ENGAPI.date(dt); updateSugg(); }); return; }
   if (LIVE){ liveDate(link); return; }
   if (COMP && COMP.mode === "edit"){                  // تعديل كتلة واحدة: التاريخ في السطر نفسه
     const c = ta.selectionStart, prev = ta.value[c-1], next = ta.value[c];
@@ -1462,7 +1546,7 @@ document.querySelectorAll(".sugg").forEach(box => box.addEventListener("click", 
   const b = e.target.closest(".sg"); if (!b) return;
   const ta = ED.ta;
   if (b.dataset.d){
-    if (b.dataset.d === "none"){ DATEMODE = false; ta.focus(); updateSugg(); }
+    if (b.dataset.d === "none"){ DATEMODE = false; if (ED.eng && ENGW) ENGW.ENGAPI.nodate(); ta.focus(); updateSugg(); }
     else if (b.dataset.d === "pick"){ const dp = $("#dpick"); dp.value = isoStr(); try { dp.showPicker(); } catch(err){ dp.click(); } }
     else putDate(new Date(+b.dataset.d));
     return;
@@ -1509,15 +1593,52 @@ function setTarget(t){
   if (t.kind === "page") addRecent(t.title);
 }
 function enterHome(){
-  ED = {ta, sugg:$("#sugg")}; TARGET = DR.set ? DR.page : {kind:"today"}; tMark(); $("#tList").hidden = true; $("#tq").value = "";
-  updateSugg();
-  setTimeout(() => ta.focus(), 60);
+  TARGET = DR.set ? DR.page : {kind:"today"}; $("#tList").hidden = true; $("#tq").value = ""; tMark();
+  ENG().then(w => { engDest(); kModeMark(); ED = {ta:w.document.querySelector("textarea.ed") || ta, sugg:$("#sugg"), eng:true, win:w}; updateSugg(); setTimeout(engFocus, 60); });
 }
-$("#tq").addEventListener("input", tDraw);
+/* ---- المسودة: محرّر الحاسوب نفسه (كتل Roam، أو أسطر وعناوين) داخل إطار ---- */
+let ENGW = null, ENGP = null;
+function ENG(){
+  if (ENGW) return Promise.resolve(ENGW);
+  if (!ENGP) ENGP = new Promise(res => { ENG._res = res; const f = $("#engF"); if (!f.getAttribute("src")) f.src = "index.html?embed=1"; });
+  return ENGP;
+}
+const engDest = () => { if (ENGW) ENGW.ENGAPI.setGraph(DR.graph); };
+const engFocus = () => { if (ENGW && ROUTE.name === "home") ENGW.ENGAPI.focus(); };
+const engKey = (k, o) => { if (ENGW) ENGW.ENGAPI.key(k, o); };
+function engView(){ if (!ENGW) return; ENGW.ENGAPI.view(PREFS.fs, PREFS.lh, PREFS.font);
+  const cs = getComputedStyle(document.documentElement), v = n => cs.getPropertyValue(n).trim();
+  ENGW.ENGAPI.theme({"--bg":v("--bg"), "--text":v("--fg"), "--muted":v("--mut"), "--line":v("--line"), "--accent":v("--acc"), "--link":v("--link"), "--panel":v("--card"), "--hover":v("--card"), "--code":v("--code"), "--mark":v("--mark"), "--bullet":v("--fg"), "--halo":v("--line")}); }
+function kModeMark(){ const b = $("#kMode"); if (b && ENGW) b.textContent = ENGW.ENGAPI.mode() === "obsidian" ? "أسطر" : "كتل"; }
+window.ENGHOOK = {
+  ready(w){
+    ENGW = w; engDest(); engView(); w.ENGAPI.hold(+PREFS.holdMs || 500); kModeMark();
+    const old = store.get("rqm-draft"); if (old && old.trim() && w.ENGAPI.empty()){ w.ENGAPI.insert(old); store.set("rqm-draft", ""); }
+    if (ENG._res) ENG._res(w); else ENGP = Promise.resolve(w);
+  },
+  focus(t){ ED = {ta:t, sugg:$("#sugg"), eng:true, win:ENGW}; $("#tList").hidden = true; if ($("#tq").value){ $("#tq").value = ""; } tMark(); updateSugg(); },
+  sugg(){ if (!DATEMODE) updateSugg(); },
+  dates(){ showDates(); },
+  mode(){ kModeMark(); },
+  bs(on){ $("#dSel").hidden = !on; $("#keys").hidden = on; if (on) $("#sugg").hidden = true; },
+  fs(){ return +PREFS.fs || 17; },
+  setFs(v){ setFs(v); },
+  fsDone(){ savePrefs(); }
+};
+$("#dSel").addEventListener("pointerdown", e => e.preventDefault());
+$("#dSel").addEventListener("click", e => {
+  const b = e.target.closest("[data-b]"); if (!b || !ENGW) return; const a = b.dataset.b, X = ENGW.ENGAPI;
+  if (a === "undo"){ X.undo(); return; }
+  if (a === "del") X.bsDel(); else if (a === "copy") X.bsCopy(false).then(ok => toast(ok ? "نُسخت الكتل" : "تعذّر النسخ", 1500)); else if (a === "cut") X.bsCopy(true);
+  else if (a === "in") X.bsShift(false); else if (a === "out") X.bsShift(true); else if (a === "up") X.bsStep(-1); else if (a === "down") X.bsStep(1);
+});
+$("#tq").addEventListener("input", () => { tDraw(); });
 swipeable($("#tList"), r => openAdjacent(r.dataset.g, r.dataset.k === "today" ? dailyTitle() : r.dataset.title));
-$("#tq").addEventListener("focus", tDraw);
-$("#tq").addEventListener("keydown", e => { if (e.key === "Enter"){ e.preventDefault(); const f = $("#tList .it"); if (f) f.click(); } else if (e.key === "Escape"){ $("#tList").hidden = true; ta.focus(); } });
-$("#tPen").onclick = () => { if (DR.set){ tClear(); toast("الوجهة: اليوم"); } else $("#tq").focus(); };
+$("#tq").addEventListener("focus", () => { tMark(); tDraw(); });
+$("#tq").addEventListener("blur", () => setTimeout(() => { tMark(); if (document.activeElement !== $("#tq") && !$("#tq").value) $("#tList").hidden = true; }, 200));
+$("#tq").addEventListener("keydown", e => { if (e.key === "Enter"){ e.preventDefault(); const f = $("#tList .it .dst"); if (f) f.click(); } else if (e.key === "Escape"){ $("#tList").hidden = true; $("#tq").value = ""; $("#tq").blur(); } });
+$("#tTI").addEventListener("click", e => { e.stopPropagation(); if (DR.set){ tClear(); toast("الوجهة: اليوم", 1500); } });
+$("#tBox").addEventListener("click", e => { if (e.target.closest("#tTI") || e.target.id === "tq") return; $("#tBox").classList.remove("tgt"); $("#tq").focus(); });
 ta.addEventListener("focus", () => { $("#tList").hidden = true; });
 ta.value = store.get("rqm-draft") || "";
 let draftTimer;
@@ -1536,22 +1657,22 @@ function headerText(g){
 let sending = false;
 async function send(){
   if (sending) return;
-  const g = G(), t = TARGET, btn = $("#keys .send");
-  let blocks = parseOutline(ta.value);
+  const g = G(), t = TARGET, btn = $("#keys .send"), w = await ENG();
+  let blocks = w.ENGAPI.content();
   if (!blocks.length){ toast("لا يوجد نص للإرسال"); return; }
   if (!g || !g.token){ toast("أضف رمز الغراف من الإعدادات"); go("set"); return; }
   if (g.header) blocks = [{string:headerText(g), children:blocks}];
   sending = true; btn.disabled = true; btn.textContent = "…"; showErr("");
   try {
     let parent, title;
-    if (t.kind === "today"){ parent = dailyUid(); title = dailyTitle(); await roam("write", {action:"create-page", page:{title, uid:parent}}, {soft:true}); }
+    if (t.kind === "today"){ parent = dailyUid(); title = dailyTitle(); await ensurePage(parent, title); }
     else { title = t.title; parent = await pageUid(title, true); if (!parent) throw new Error("تعذّر تحديد الصفحة"); }
     let base = 0; if (LOC){ try { await openLocal(); base = (await lMaxOrder(parent)) + 1; } catch(e){} }
     const pl = plan(blocks, null, parent, parent, base, false);
     await writeBlocks(pl.acts);
     if (LOC){ try { await lPutPage(parent, title); await lPutRecs(pl.recs); } catch(e){} }
     addPageTitle(title);
-    ta.value = ""; store.set("rqm-draft", ""); taDir();
+    w.ENGAPI.clear();
     if (t.kind === "page") addRecent(t.title);
     const pc = pageCache.get(cacheKey(title)); if (pc) pc.stale = true;
     toast("أُرسل ✓ " + AR(pl.acts.length) + (pl.acts.length === 1 ? " كتلة" : " كتل") + " ← " + (t.kind === "today" ? "اليوم" : title), 2000);
@@ -1591,7 +1712,8 @@ function pagesInfo(){
 }
 function pageRow(title, sub, data, special){
   const d = el("div", "it" + (special ? " sp" : "")); d.dataset.t = data == null ? title : data;
-  d.appendChild(el("span", "pi", IC_PAGE));
+  const pt = d.dataset.t === "@today" ? {kind:"today", title:""} : {kind:"page", title:d.dataset.t};
+  d.appendChild(el("span", "pi dst" + (isDestM(RAW.roam.current, pt) ? " on" : ""), IC_PAGE));
   const a = el("span", "t"); a.textContent = title; d.appendChild(a);
   if (sub){ const b = el("span", "s"); b.textContent = sub; d.appendChild(b); }
   return d;
@@ -1779,10 +1901,10 @@ async function vSend(rec){                            // الكتلة الأم: 
     if (!g || !g.token) throw new Error("لا رمز لغراف " + rec.graph);
     if (!rec.text.trim()) throw new Error("لا نص");
     const d = new Date(rec.t), opt = {graph:g}; let parent;
-    if (!rec.page){ parent = dailyUid(d); await roam("write", {action:"create-page", page:{title:dailyTitle(d), uid:parent}}, {soft:true, graph:g}); }
+    if (!rec.page){ parent = dailyUid(d); await ensurePage(parent, dailyTitle(d), {graph:g}); }
     else {
       const q = await roam("q", {query:"[:find ?u . :in $ ?t :where [?e :node/title ?t] [?e :block/uid ?u]]", args:[rec.page]}, opt); parent = q && typeof q.result === "string" ? q.result : null;
-      if (!parent){ parent = newUid(); await roam("write", {action:"create-page", page:{title:rec.page, uid:parent}}, opt); }
+      if (!parent){ parent = newUid(); await ensurePage(parent, rec.page, {graph:g}); }
     }
     const tags = [PREFS.vTag === undefined ? "صوتي" : PREFS.vTag, rec.tag].filter(Boolean).map(hashTag).join(" ");
     const head = (rec.page ? "[[" + dailyTitle(d) + "]] " : "") + p2(d.getHours()) + ":" + p2(d.getMinutes()) + (tags ? " " + tags : ""), hu = rec.hu || newUid(), cu = newUid();
@@ -1819,10 +1941,12 @@ function enterVoice(){
   vDrawList();
   if (ROUTE.auto){ history.replaceState(history.state, "", "#v"); if (!V) vStart(vTpls()[0]); }   // اختصار «تسجيل فوري»: يبدأ بالقالب الأول
 }
-$("#bMic").onclick = () => go("v");
 $("#vStop").onclick = () => vFinish(false);
 $("#vPause").onclick = vPause;
-if (window.launchQueue) launchQueue.setConsumer(p => { try { const h = p && p.targetURL ? new URL(p.targetURL).hash.slice(1) : ""; if (h && h !== location.hash.slice(1)) go(h); else if (h === "vr") route(); } catch(e){} });
+if (window.launchQueue) launchQueue.setConsumer(p => { try {
+  const u = p && p.targetURL ? new URL(p.targetURL) : null; if (!u) return;
+  if (u.search && takeShared(new URLSearchParams(u.search))){ route(); return; }   // المشاركة والمحرر مفتوح أصلاً
+  const h = u.hash.slice(1); if (h && h !== location.hash.slice(1)) go(h); else if (h === "vr") route(); } catch(e){} });
 $("#vCancel").onclick = () => vFinish(true);
 /* اختبار التحويل: (أ) التحويل وحده (ب) مع التسجيل ومشاركة مسار الصوت (ج) مع التسجيل بلا مشاركة — يبيّن أين العطل */
 async function vDiagRun(out, now){
@@ -1899,12 +2023,16 @@ function voiceSettings(box, h3){
     const add = el("button", "btn"); add.textContent = "＋ قالب"; add.style.marginTop = "8px"; add.onclick = () => { list().push({name:"", graph:"", page:"", tag:""}); savePrefs(); draw(); }; wrap.appendChild(add); };
   draw();
 }
-$("#pPin").onclick = () => { if (ROUTE.kind !== "page") return; const on = pinToggle(RAW.roam.current, ROUTE.title); pinMark(); toast(on ? "ثُبّتت: تجدها في البحث وهو فارغ" : "أُلغي التثبيت"); };
-$("#pq").addEventListener("click", e => { e.preventDefault(); go("s"); sq.focus(); sq.select(); });   // شريط البحث فوق الصفحة: لمسة تنقلك إلى البحث والمؤشر فيه
+$("#pPin").onclick = e => { e.stopPropagation(); if (ROUTE.kind !== "page") return; const on = pinToggle(RAW.roam.current, ROUTE.title); pinMark(); toast(on ? "ثُبّتت: تجدها في البحث وهو فارغ" : "أُلغي التثبيت"); };
+$("#pTI").addEventListener("click", e => { e.stopPropagation(); const t = pTitleNow(); if (!t) return; destToggle(RAW.roam.current, {kind:"page", title:t}); pinMark(); });
+$("#pBox").addEventListener("click", e => { if (e.target.closest("#pTI,#pPin")) return; e.preventDefault(); go("s"); sq.focus(); sq.select(); });   // الشريط فوق الصفحة: لمسة تنقلك إلى البحث والمؤشر فيه
+function dotMark(){ const d = $("#pDot"); if (d) d.classList.toggle("warn", QUEUE.length > 0 || SYNC.running); }
+setInterval(dotMark, 1500);
 swipeable($("#sPages"), r => { if (r.dataset.t) draftAdjacent(r.dataset.t); });
 sq.addEventListener("keydown", e => { if (e.key === "Enter"){ e.preventDefault(); const f = $("#sPages .it") || $("#sBlocks .it"); if (f) f.click(); } });
 $("#sList").addEventListener("click", e => {
   const it = e.target.closest(".it"); if (!it || it._swiped) return;
+  if (!it.dataset.u && e.target.closest(".dst")){ const t = it.dataset.t; destToggle(RAW.roam.current, t === "@today" ? {kind:"today", title:""} : {kind:"page", title:t}); drawSearch(); return; }
   if (it.dataset.u){ go("b=" + it.dataset.u + (SMODE === 2 ? "&m=2" : "") + "&q=" + encodeURIComponent($("#sBlocks")._q || sq.value.trim())); return; }
   const t = it.dataset.t;
   go(pageHash(t === "@today" ? dailyTitle() : t));
@@ -1998,7 +2126,7 @@ function fillRefs(body, r){
   resolveRefs(body);
 }
 function enterView(){
-  $("#pAdd").hidden = ROUTE.kind !== "page"; $("#pFold").hidden = ROUTE.kind !== "page"; pinMark();
+  $("#pAdd").hidden = ROUTE.kind !== "page"; pinMark();
   if (ROUTE.kind === "block") return enterBlock(ROUTE.uid, ROUTE.q);
   return enterPage(ROUTE.title);
 }
@@ -2074,7 +2202,7 @@ async function enterBlock(uid, q){
   const bk = uid + "|" + JSON.stringify(q || ""), hit = BCACHE.get(bk);
   if (hit && hit.root){                               // عدنا إليها: اعرضها كما كانت، بلا قراءة من التخزين
     ++viewSeq; CUR = hit; ROOTHL.set(hit.rootT || "", pBody, !!PREFS.roots && !!hit.rootT);
-    const tt = $("#pTitle"); tt.textContent = hit.title; tt.onclick = () => { if (hit.title) go(pageHash(hit.title)); };
+    const tt = $("#pTitle"); tt.textContent = hit.title; tt.onclick = () => { if (hit.title) go(pageHash(hit.title)); }; pinMark();
     pRefs.innerHTML = ""; drawTree();
     const be = pTree.querySelector('.blk[data-u="'+uid+'"]');
     if (be){ be.querySelector(":scope > .row").classList.add("tgt"); HITS = (q && q.length) ? markMatches(be.querySelector(":scope > .row > .txt"), q) : []; hitI = 0; $("#hitNav").hidden = HITS.length < 2; }
@@ -2097,7 +2225,7 @@ async function enterBlock(uid, q){
     if (seq !== viewSeq) return;
     CUR.root = root; CUR.title = title; BCACHE.set(bk, CUR); const me = CUR;
     if (PREFS.roots) rootOfBlock(uid).then(rt => { me.rootT = rt; if (seq === viewSeq) ROOTHL.set(rt, pBody, true); });
-    const tt = $("#pTitle"); tt.textContent = title; tt.onclick = () => { if (title) go(pageHash(title)); };
+    const tt = $("#pTitle"); tt.textContent = title; tt.onclick = () => { if (title) go(pageHash(title)); }; pinMark();
     drawTree();
     const be = pTree.querySelector('.blk[data-u="'+uid+'"]'); if (!be) return;
     be.querySelector(":scope > .row").classList.add("tgt");
@@ -2165,32 +2293,15 @@ pBody.addEventListener("click", e => {
   const sel = window.getSelection(); if (sel && !sel.isCollapsed) return;        // تظليل نص: دعه للنسخ
   const b = row.parentElement, n = b._n;
   if (b.closest("#pRefs")){ if (LOC) liveClose().then(() => go("b=" + n.uid)); return; }   // المراجع للقراءة: لمسها يدخل إليها
-  liveOpen(n, null);
+  const tx = row.querySelector(":scope > .txt"), raw = (n.h ? "#".repeat(n.h) + " " : "") + n.s;
+  liveOpen(n, tx && !tx.hidden ? clickCaret(tx, raw, e) : null);
 });
 function clearSel(){
-  if (SEL){ const r = SEL.el.querySelector(":scope > .row"); if (r) r.classList.remove("sel"); }
-  SEL = null; $("#pSel").hidden = true;
+  if (typeof bselClear === "function") bselClear();
+  SEL = null;
   if (!COMP){ $("#pAdd").hidden = !(CUR && CUR.kind === "page" && ROUTE.name === "page"); if (ROUTE.name === "page" && HITS.length > 1 && CUR && CUR.kind === "block") $("#hitNav").hidden = false; }
 }
-const delBtn = $('#pSel [data-a="del"]'), DEL_IC = delBtn.innerHTML; let armT;
-function disarm(){ clearTimeout(armT); delBtn.classList.remove("arm"); delBtn.innerHTML = DEL_IC; }
-$("#pSel").addEventListener("click", async e => {
-  const b = e.target.closest("button"); if (!b || !SEL) return;
-  const n = SEL.n, be = SEL.el, a = b.dataset.a;
-  if (a === "del"){
-    if (!b.classList.contains("arm")){ b.classList.add("arm"); b.textContent = hasKids(n) ? "احذفها وأولادها؟" : "تأكيد الحذف؟"; armT = setTimeout(disarm, 3000); return; }
-    disarm(); clearSel(); try { await deleteBlk(be); } catch(err){ toast("تعذّر الحذف: " + err.message, 4000); } return;
-  }
-  clearSel();
-  try {
-    const pseudo = () => n.pn || mkNode({uid:n.parent, g:n.g, pseudo:true, kids:[n]});
-    if (a === "kid"){ await openBlk(be); openComp({mode:"add", pn:n, at:"last", host:be.querySelector(":scope > .kids"), ref:null}); }
-    else if (a === "sis") openComp({mode:"add", pn:pseudo(), at:n.order + 1, host:be.parentElement, ref:be.nextSibling});
-    else if (a === "mom") openComp({mode:"add", rel:"mom", n, blk:be, pn:pseudo(), at:n.order, host:be.parentElement, ref:be});
-    else if (a === "edit") await openEdit(be);
-  } catch(err){ toast(err.message, 3500); }
-});
-async function deleteBlk(be){
+async function deleteBlk(be, quiet){
   const n = be._n, pn = n.pn;
   if (LOC){
     await openLocal(); const all = [n.uid];
@@ -2207,21 +2318,85 @@ async function deleteBlk(be){
   const hb = host.parentElement; if (pn && hb && hb._n === pn){ if (!hasKids(pn)){ pn._open = false; host.hidden = true; } setBul(hb); }
   refText.delete(n.uid);
   enqueue({action:"delete-block", block:{uid:n.uid}}, []);
-  toast("حُذفت", 1500);
+  if (!quiet) toast("حُذفت", 1500);
 }
 $("#pAdd").onclick = () => liveNew();
-$("#pReload").onclick = async () => {
+async function pageReload(){                         // السحب إلى أسفل من رأس الصفحة: زامن الصفحة المفتوحة من Roam
   if (!CUR) return;
+  await liveClose();
   if (LOC && navigator.onLine && !SYNC.running){ toast("يزامن الصفحة…", 1500); const ok = await syncGraph(false, CUR.root && CUR.root.uid || null); if (!ok) toast(SYNC.msg, 4000); }
-  if (CUR.kind === "page"){ CUR.stale = true; pageCache.set(cacheKey(CUR.title), CUR); loadPage(CUR, false); } else route();
-};
-let foldState = 0;
-$("#pFold").onclick = () => {                         // طيّ الكل ← نشر المحمَّل ← طيّ…
-  if (!CUR || !CUR.root) return;
-  foldState = foldState ? 0 : 1;
-  (function setAll(nodes, d){ for (const n of nodes){ n._open = !!foldState && d < 6 && n.kids.length > 0; setAll(n.kids, d + 1); } })(CUR.root.kids, 0);
-  drawTree(); pBody.scrollTop = 0; toast(foldState ? "نُشر الكل" : "طُوي الكل", 1200);
-};
+  if (CUR.kind === "page"){ CUR.stale = true; pageCache.set(cacheKey(CUR.title), CUR); loadPage(CUR, false); } else { BCACHE.clear(); route(); }
+}
+async function foldAll(open, refs){                  // طيّ الكل أو نشره (في الصفحة، أو في المراجع المرتبطة وحدها)
+  if (!CUR) return; await liveClose();
+  let nodes = [];
+  if (refs){ const r = CUR.refs; if (!r) return; if (open){ r.open = true; } nodes = r.groups.flatMap(g => g.blocks); }
+  else { if (!CUR.root) return; nodes = CUR.root.kids; }
+  if (!open){ (function shut(ns){ for (const n of ns){ n._open = false; shut(n.kids); } })(nodes); }
+  else {
+    let bud = 500; busy(true);
+    try {
+      const q = nodes.map(n => [n, 0]);
+      while (q.length && bud > 0){
+        const [n, d] = q.shift(); if (!hasKids(n) || d > 7) continue;
+        if (n.lazy || n.more){ try { await loadKids(n); } catch(e){ break; } }
+        n._open = n.kids.length > 0; bud -= n.kids.length;
+        for (const k of n.kids) q.push([k, d + 1]);
+      }
+    } finally { busy(false); }
+  }
+  const sc = pBody.scrollTop;
+  if (refs){ drawRefs(); } else drawTree();
+  pBody.scrollTop = sc; toast(open ? "نُشر الكل" : "طُوي الكل", 1200);
+}
+/* ---- القرص بإصبعين: حجم الخط · السحب إلى أسفل: التحديث · المساحة الخالية: الطيّ والنشر ---- */
+let fsT = 0;
+function fsShow(){ const b = $("#fsBadge"); b.textContent = AR(PREFS.fs); b.classList.add("show"); clearTimeout(fsT); fsT = setTimeout(() => b.classList.remove("show"), 800); }
+function setFs(v, save){ const f = Math.min(30, Math.max(12, Math.round(v))); if (f !== PREFS.fs){ PREFS.fs = f; applyFont(); } fsShow(); if (save) savePrefs(); }
+function attachPinch(node){
+  let z = null; const dist = e => Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+  node.addEventListener("touchstart", e => { if (e.touches.length === 2){ z = {d:dist(e), fs:+PREFS.fs || 17, raf:0}; } }, {passive:true});
+  node.addEventListener("touchmove", e => { if (!z || e.touches.length !== 2) return; e.preventDefault(); const k = dist(e) / z.d;
+    if (!z.raf) z.raf = requestAnimationFrame(() => { if (z){ z.raf = 0; setFs(z.fs * k); } }); }, {passive:false});
+  const end = e => { if (z && e.touches.length < 2){ z = null; savePrefs(); } };
+  node.addEventListener("touchend", end); node.addEventListener("touchcancel", end);
+}
+attachPinch(pBody); attachPinch($("#home")); attachPinch($("#sList"));
+(function pullToRefresh(){
+  let p = null; const bar = $("#pPull");
+  pBody.addEventListener("touchstart", e => { p = (e.touches.length === 1 && pBody.scrollTop <= 0 && !LIVE) ? {y:e.touches[0].clientY, h:0} : null; }, {passive:true});
+  pBody.addEventListener("touchmove", e => { if (!p) return; if (e.touches.length !== 1){ p = null; bar.style.height = "0"; return; }
+    const dy = e.touches[0].clientY - p.y; if (dy <= 0 || pBody.scrollTop > 0){ bar.style.height = "0"; p.h = 0; return; }
+    p.h = Math.min(70, dy / 2.2); bar.style.height = p.h + "px"; bar.textContent = p.h >= 52 ? "أفلت للتحديث" : "اسحب للتحديث"; }, {passive:true});
+  const end = () => { if (!p) return; const go = p.h >= 52; p = null; bar.style.height = "0"; if (go) pageReload(); };
+  pBody.addEventListener("touchend", end); pBody.addEventListener("touchcancel", end);
+})();
+function foldPop(x, y, refs){
+  const old = $("#foldPop"); if (old) old.remove();
+  const m = el("div"); m.id = "foldPop";
+  const b = (t, open) => { const x0 = el("button"); x0.textContent = t; x0.onclick = e => { e.stopPropagation(); m.remove(); foldAll(open, refs); }; m.appendChild(x0); };
+  b(refs ? "طيّ المراجع" : "طيّ الكلّ", false); b(refs ? "نشر المراجع" : "نشر الكلّ", true);
+  document.body.appendChild(m);
+  const w = m.offsetWidth, h = m.offsetHeight; m.style.left = Math.max(8, Math.min(innerWidth - w - 8, x - w / 2)) + "px"; m.style.top = Math.max(8, y - h - 14) + "px";
+  setTimeout(() => document.addEventListener("pointerdown", function off(e){ if (!e.target.closest("#foldPop")){ m.remove(); document.removeEventListener("pointerdown", off, true); } }, true), 0);
+}
+const isEmptySpot = t => !!t && pBody.contains(t) && !t.closest(".row,a,button,textarea,.comp,.more,.pmsg button,mark,.ptitle");
+(function foldGesture(){
+  let lp = null, lastTap = 0;
+  pBody.addEventListener("touchstart", e => {
+    if (e.touches.length !== 1 || (PREFS.foldG || "long") !== "long" || BSEL.on){ lp = null; return; }
+    const t = e.target; if (!isEmptySpot(t) && !t.closest(".rh")) return;
+    const x = e.touches[0].clientX, y = e.touches[0].clientY, refs = !!t.closest("#pRefs");
+    lp = {x, y, tm:setTimeout(() => { lp = null; if (navigator.vibrate) navigator.vibrate(15); foldPop(x, y, refs); }, 550)};
+  }, {passive:true});
+  pBody.addEventListener("touchmove", e => { if (lp && Math.hypot(e.touches[0].clientX - lp.x, e.touches[0].clientY - lp.y) > 10){ clearTimeout(lp.tm); lp = null; } }, {passive:true});
+  const end = () => { if (lp){ clearTimeout(lp.tm); lp = null; } };
+  pBody.addEventListener("touchend", end); pBody.addEventListener("touchcancel", end);
+  pBody.addEventListener("click", e => {
+    if ((PREFS.foldG || "long") !== "dbl" || !isEmptySpot(e.target)) return;
+    const now = Date.now(); if (now - lastTap < 320){ lastTap = 0; foldPop(e.clientX, e.clientY, !!e.target.closest("#pRefs")); } else lastTap = now;
+  });
+})();
 
 /* ============================================================
    الكتابة في الموضع: إضافة كتل، أو تعديل كتلة
@@ -2331,12 +2506,40 @@ async function openEdit(be){
   openComp({mode:"edit", n, blk:be});
 }
 
+/* ---- موضع اللمس ← موضع المؤشر في النص الخام (كما في محرر الحاسوب) ---- */
+function shownOffset(v, x, y){
+  const w = document.createTreeWalker(v, NodeFilter.SHOW_TEXT), RTL = /[\u0590-\u08FF\uFB1D-\uFEFC]/;
+  let t, pre = 0, best = null, bestD = Infinity;
+  while ((t = w.nextNode())){
+    const str = t.nodeValue;
+    for (let i=0;i<str.length;i++){
+      const r = document.createRange(); r.setStart(t,i); r.setEnd(t,i+1);
+      const b = r.getBoundingClientRect(); if (!b.width && !b.height) continue;
+      const dy = y<b.top ? b.top-y : (y>b.bottom ? y-b.bottom : 0), dx = x<b.left ? b.left-x : (x>b.right ? x-b.right : 0), d = dy*2000 + dx;
+      if (d < bestD){ const edge = RTL.test(str[i]) ? b.right : b.left; best = pre + i + (Math.abs(x-edge) > b.width/2 ? 1 : 0); bestD = d; }
+    }
+    pre += str.length;
+  }
+  return best;
+}
+function rawOffset(raw, shown, off){
+  let i = 0, j = 0;
+  while (j < off && i < raw.length){
+    const c = shown[j]; if (c === undefined) break;
+    if (/[\u200b\u200e\u2066-\u2069]/.test(c)){ j++; continue; }
+    if (raw[i] === c){ i++; j++; continue; }
+    const k = raw.indexOf(c, i); if (k >= 0 && k-i <= 40){ i = k+1; j++; } else j++;
+  }
+  return i;
+}
+function clickCaret(v, raw, e){ try { const off = shownOffset(v, e.clientX, e.clientY); return off == null ? null : rawOffset(raw, v.textContent || "", off); } catch(err){ return null; } }
+
 /* ============================================================
    التحرير الحر داخل الصفحة: كتلة واحدة تُحرَّر في مكانها، وتُحفظ عند مغادرتها
    ============================================================ */
 let LIVE = null;
 const HEAD_RE = /^(#{1,3})[ \t]+([\s\S]*)$/;
-function redraw(){ const sc = pBody.scrollTop; drawTree(); pBody.scrollTop = sc; }
+function redraw(){ const sc = pBody.scrollTop; drawTree(); pBody.scrollTop = sc; if (BSEL.on) bselRefresh(); }
 function draftAt(pn, order, text){                   // كتلة جديدة لم تُرسل بعد (تُنشأ في Roam حين يصير فيها نص)
   const m = mkNode({uid:newUid(), s:text || "", order, parent:pn.uid, pn, g:pn.isPage ? pn.uid : pn.g, loc:LOC, draft:true, _open:false});
   pn.kids.forEach(k => { if (k.order >= order) k.order++; });
@@ -2389,12 +2592,13 @@ async function liveOpen(n, caret, keepText){
   t.addEventListener("input", e => { grow(); edInput(e, false); });
   t.addEventListener("beforeinput", e => {
     if (e.inputType === "insertLineBreak" || e.inputType === "insertParagraph"){ e.preventDefault(); liveEnter(); }
-    else if (e.inputType === "deleteContentBackward" && t.selectionStart === 0 && t.selectionEnd === 0 && t.value === ""){ e.preventDefault(); liveBack(); }
+    else if (e.inputType === "deleteContentBackward" && t.selectionStart === 0 && t.selectionEnd === 0){ e.preventDefault(); if (t.value === "") liveBack(); else liveMerge(); }
   });
   t.addEventListener("keydown", e => {                // بعض اللوحات ترسل الضغطة نفسها حين لا نص يُحذف
-    if (e.key === "Backspace" && t.value === ""){ e.preventDefault(); liveBack(); }
+    if (e.key === "Backspace" && t.selectionStart === 0 && t.selectionEnd === 0){ e.preventDefault(); if (t.value === "") liveBack(); else liveMerge(); }
     else if (e.key === "Enter" && !e.shiftKey && !e.isComposing){ e.preventDefault(); liveEnter(); }
   });
+  t.addEventListener("paste", e => livePaste(e));
   t.addEventListener("blur", () => setTimeout(() => { if (LIVE === L && document.activeElement !== t && !L.busy) liveClose(); }, 250));
   ED = {ta:t, sugg:$("#psugg")}; $("#pEdit").hidden = false; $("#pAdd").hidden = true; $("#hitNav").hidden = true;
   t.focus(); const p = caret == null ? t.value.length : Math.min(caret, t.value.length); t.setSelectionRange(p, p); grow();
@@ -2452,6 +2656,51 @@ async function liveBack(){                            // حذف للخلف في 
     finishIdle(); if (prev) await liveOpen(prev, null);
   } catch(e){ toast("تعذّر الحذف: " + e.message, 3500); } finally { L.busy = false; }
 }
+async function liveMerge(){                           // Backspace في أول كتلة فيها نص: ادمجها بالتي قبلها
+  const L = LIVE; if (!L || L.busy) return; const n = L.n, prev = prevBlock(L.be);
+  if (!prev || hasKids(n) || !pTree.contains(L.be)) return;
+  if (!pTree.querySelector('.blk[data-u="' + prev.uid + '"]')) return;
+  L.busy = true;
+  try {
+    const mine = L.ta.value, pr = (prev.h ? "#".repeat(prev.h) + " " : "") + prev.s, at = pr.length;
+    L.drop = true; LIVE = null; L.ta.remove();
+    if (n.draft) dropDraft(n); else await deleteBlk(L.be, true);
+    redraw(); finishIdle(); await liveOpen(prev, at, pr + mine);
+  } catch(e){ toast("تعذّر الدمج: " + e.message, 3500); } finally { L.busy = false; }
+}
+function livePaste(e){                               // لصق نص منسّق في كتلة: يتحوّل إلى كتل Roam بعناوينها وتفرّعها (كما في محرر الحاسوب)
+  if (plainNext){ plainNext = false; return; }
+  const cd = e.clipboardData; if (!cd) return;
+  const txt = cd.getData("text/plain") || "", html = cd.getData("text/html") || "";
+  const mdLike = /(\*\*|^#{1,6}[ \t]|^\s*[-*•][ \t]|^\s*>|^\s*\|.*\||```)/m.test(txt);
+  const rich = html && !mdLike && /<(strong|b|em|i|h[1-6]|ul|ol|li|a|code|pre|table|blockquote|p|div|br)\b/i.test(html);
+  if (!rich && !/\r?\n/.test(txt.trim())) return;   // سطر واحد عادي: لصق عادي
+  e.preventDefault();
+  ENG().then(w => {
+    let roots = null; try { roots = rich ? w.htmlToBlocks(html) : w.parseMarkdown(txt); } catch(err){ roots = null; }
+    const blocks = roots && roots.length ? w.prune(roots, 3) : null;
+    if (!blocks || !blocks.length){ ins(txt); return; }
+    if (blocks.length === 1 && !blocks[0].children.length){ ins(blocks[0].string); return; }
+    liveInsertBlocks(blocks);
+  }).catch(() => ins(txt));
+}
+async function liveInsertBlocks(blocks){              // أدخل كتلاً بعد الكتلة الجارية (أو مكانها إن كانت فارغة)
+  const L = LIVE; if (!L || L.busy) return; const n = L.n, pn = n.pn; if (!pn) return;
+  L.busy = true;
+  try {
+    const empty = !L.ta.value.trim(); let base;
+    if (empty){ L.drop = true; LIVE = null; L.ta.remove(); if (n.draft) dropDraft(n); else await deleteBlk(L.be, true); base = n.order; }
+    else { await liveCommit(); L.drop = true; LIVE = null; L.ta.remove(); base = n.order + 1; }
+    if (pn.isPage) await ensureRoot();
+    const page = pn.isPage ? pn.uid : pn.g, pl = plan(blocks, pn, pn.uid, page, base, true), len = pl.tops.length;
+    if (LOC){ try { await openLocal(); await lShift(pn.uid, base, len); await lPutRecs(pl.recs); } catch(e){} }
+    pn.kids.forEach(k => { if (k.order >= base) k.order += len; });
+    let i = pn.kids.findIndex(k => k.order >= base + len); if (i < 0) i = pn.kids.length; pn.kids.splice(i, 0, ...pl.tops);
+    for (const r of pl.recs) PEND.add(r.u);
+    for (let k = 0; k < pl.acts.length; k += 50){ const part = pl.acts.slice(k, k + 50); enqueue({action:"batch-actions", actions:part}, part.map(a => a.block.uid)); }
+    redraw(); finishIdle(); toast("أُلصقت " + AR(pl.recs.length) + " كتلة", 1600);
+  } catch(e){ toast("تعذّر اللصق: " + e.message, 4000); } finally { L.busy = false; }
+}
 function finishIdle(){ if (!LIVE){ $("#pEdit").hidden = true; $("#psugg").hidden = true; ED = {ta, sugg:$("#sugg")}; $("#pAdd").hidden = !(CUR && CUR.kind === "page" && ROUTE.name === "page"); } }
 let delArm = 0;
 async function liveDelete(){                          // زر السلة: احذف الكتلة الجارية (وأولادها بعد تأكيد)
@@ -2497,6 +2746,230 @@ async function liveDate(link){                        // المهمة تنزل �
     L.drop = true; LIVE = null; t.remove(); redraw(); await liveOpen(n, caret);
   } catch(e){ toast("تعذّر: " + e.message, 3500); } finally { L.busy = false; }
 }
+
+/* ============================================================
+   تظليل الكتل باللمس، ونقلها، والعمل عليها (صفحة الغراف)
+   ============================================================ */
+const BSEL = {on:false, a:null, h:null, list:[], undo:[]};    // a/h: عنصرا الطرفين (.blk) · list: الظاهرة المظلّلة
+const visBlks = () => [...pTree.querySelectorAll(".blk")].filter(x => x.offsetParent !== null && x._n && !x._n.draft);
+function bselPaint(){
+  document.querySelectorAll(".row.bsel").forEach(r => r.classList.remove("bsel"));
+  for (const b of BSEL.list) b.querySelector(":scope > .row").classList.add("bsel");
+}
+function bselSet(a, h){
+  const all = visBlks(); let i = all.indexOf(a), j = all.indexOf(h);
+  if (i < 0) return; if (j < 0) j = i;
+  BSEL.on = true; BSEL.a = a; BSEL.h = h; BSEL.list = all.slice(Math.min(i, j), Math.max(i, j) + 1);
+  bselPaint(); $("#pSel").hidden = false; $("#pAdd").hidden = true; $("#hitNav").hidden = true;
+}
+function bselClear(){
+  if (!BSEL.on) return; BSEL.on = false; BSEL.a = BSEL.h = null; BSEL.list = []; bselPaint();
+  $("#pSel").hidden = true; if (!LIVE && !COMP) $("#pAdd").hidden = !(CUR && CUR.kind === "page" && ROUTE.name === "page");
+}
+function bselRefresh(){                              // بعد إعادة الرسم: أعد ربط الطرفين بعناصرهما الجديدة
+  if (!BSEL.on) return; const f = b => b && pTree.querySelector('.blk[data-u="' + b._n.uid + '"]');
+  const a = f(BSEL.a), h = f(BSEL.h); if (!a){ bselClear(); return; } bselSet(a, h || a);
+}
+function bselRoots(){ const set = new Set(BSEL.list); return BSEL.list.filter(b => { let p = b.parentElement && b.parentElement.closest(".blk"); while (p){ if (set.has(p)) return false; p = p.parentElement && p.parentElement.closest(".blk"); } return true; }); }
+async function loadDeep(n, bud){                     // حمّل الشجرة كلها تحت الكتلة (للنسخ والتراجع)
+  if (bud.n <= 0) return false;
+  while (n.lazy || n.more){ await loadKids(n); if (!n.more) break; }
+  bud.n -= n.kids.length;
+  for (const k of n.kids) if (!(await loadDeep(k, bud))) return false;
+  return bud.n > 0;
+}
+const snapTree = n => ({uid:n.uid, s:n.s, h:n.h || 0, kids:n.kids.map(snapTree)});
+function mdOf(nodes, d){ let out = ""; for (const n of nodes){ const pad = "    ".repeat(d), ls = ((n.h ? "#".repeat(n.h) + " " : "") + n.s).split("\n"); out += pad + "- " + ls[0] + "\n"; for (let i=1;i<ls.length;i++) out += pad + "  " + ls[i] + "\n"; out += mdOf(n.kids, d + 1); } return out; }
+async function bselCopy(cut){
+  const roots = bselRoots(); if (!roots.length) return;
+  busy(true); let full = true; try { const bud = {n:3000}; for (const b of roots) if (!(await loadDeep(b._n, bud))) full = false; } catch(e){ full = false; } finally { busy(false); }
+  const text = mdOf(roots.map(b => b._n), 0).replace(/\s+$/, "");
+  let ok = false; try { await navigator.clipboard.writeText(text); ok = true; } catch(e){}
+  if (!ok){ const t = el("textarea"); t.value = text; t.style.cssText = "position:fixed;opacity:0"; document.body.appendChild(t); t.select(); try { ok = document.execCommand("copy"); } catch(e){} t.remove(); }
+  if (!cut){ toast(ok ? "نُسخت " + AR(roots.length) + (roots.length === 1 ? " كتلة" : " كتل") + (full ? "" : " (بعض ما تحتها لم يُحمَّل)") : "تعذّر النسخ", 1800); return; }
+  if (!ok){ toast("تعذّر النسخ، فلم يُقصّ شيء", 2500); return; }
+  await bselDelete(true);
+}
+async function bselDelete(cut){
+  const roots = bselRoots(); if (!roots.length) return;
+  busy(true); const snaps = [];
+  try {
+    const bud = {n:3000}; let full = true;
+    for (const b of roots){ if (!(await loadDeep(b._n, bud))) full = false; }
+    for (const b of roots){ const n = b._n; snaps.push({pn:n.pn, order:n.order, tree:snapTree(n)}); }
+    for (const b of [...roots].reverse()) await deleteBlk(b, true);
+    BSEL.undo.push(full ? {kind:"del", snaps} : {kind:"none"});
+  } catch(e){ toast("تعذّر الحذف: " + e.message, 3500); } finally { busy(false); }
+  bselClear(); redraw(); toast((cut ? "قُصّت " : "حُذفت ") + AR(roots.length) + (roots.length === 1 ? " كتلة" : " كتل") + " — التراجع من شريط التظليل", 2400);
+}
+async function restoreTree(pn, order, tree){          // أعد كتلاً محذوفة بمعرّفاتها نفسها
+  if (pn.isPage && !pn.uid) await ensureRoot();
+  const acts = [], recs = [], page = pn.isPage ? pn.uid : pn.g;
+  const mkn = (t, par, o, pnode) => { const node = mkNode({uid:t.uid, s:t.s, h:t.h, order:o, parent:par, pn:pnode, g:page, loc:LOC, _open:false});
+    const blk = {uid:t.uid, string:t.s}; if (t.h) blk.heading = t.h;
+    acts.push({action:"create-block", location:{"parent-uid":par, order:o}, block:blk}); const r = {u:t.uid, s:t.s, p:par, g:page, o}; if (t.h) r.h = t.h; recs.push(r);
+    node.kids = t.kids.map((k, i) => mkn(k, t.uid, i, node)); node.lazy = false; node.loaded = true; return node; };
+  const top = mkn(tree, pn.uid, order, pn);
+  if (LOC){ try { await openLocal(); await lShift(pn.uid, order, 1); await lPutRecs(recs); } catch(e){} }
+  pn.kids.forEach(k => { if (k.order >= order) k.order++; });
+  let i = pn.kids.findIndex(k => k.order > order); if (i < 0) i = pn.kids.length; pn.kids.splice(i, 0, top);
+  for (const r of recs) PEND.add(r.u);
+  for (let k = 0; k < acts.length; k += 50){ const part = acts.slice(k, k + 50); enqueue({action:"batch-actions", actions:part}, part.map(a => a.block.uid)); }
+}
+async function bselUndo(){
+  const u = BSEL.undo.pop(); if (!u){ toast("لا يوجد ما يُتراجع عنه", 1500); return; }
+  if (u.kind === "none"){ toast("لا تراجع لهذا الحذف: ما تحته كبير جداً", 2500); return; }
+  busy(true);
+  try {
+    if (u.kind === "del"){ for (const s0 of u.snaps) await restoreTree(s0.pn, s0.order, s0.tree); }
+    else if (u.kind === "move"){ for (const m of [...u.moves].reverse()) await moveNode(m.n, m.pn, m.order); for (const p of u.opened || []) p._open = p._was; }
+  } catch(e){ toast("تعذّر التراجع: " + e.message, 3500); } finally { busy(false); }
+  bselClear(); redraw(); toast("تُراجع", 1200);
+}
+async function bselShift(dir){                         // أدخِل الكتل المظلّلة تحت أختها السابقة، أو أخرجها بعد أبيها
+  const roots = bselRoots().map(b => b._n); if (!roots.length) return;
+  const moves = [], set = new Set(roots); busy(true);
+  try {
+    if (dir > 0){
+      const pn0 = roots[0].pn, i0 = pn0.kids.indexOf(roots[0]); if (i0 <= 0) return;
+      for (const n of roots){
+        const pn = n.pn, i = pn.kids.indexOf(n); if (i <= 0) continue; const np = pn.kids[i-1]; if (np.draft || set.has(np) && !moves.some(m => m.n === np)) continue;
+        if (np.lazy || np.more){ while (np.lazy || np.more){ await loadKids(np); if (!np.more) break; } }
+        const order = np.kids.length ? np.kids[np.kids.length-1].order + 1 : 0;
+        moves.push({n, pn, order:n.order}); np._open = true; await moveNode(n, np, order);
+      }
+    } else {
+      for (const n of [...roots].reverse()){ const pn = n.pn; if (!pn || pn.isPage || !pn.pn) continue; moves.push({n, pn, order:n.order}); await moveNode(n, pn.pn, pn.order + 1); }
+    }
+  } catch(e){ toast("تعذّر: " + e.message, 3500); } finally { busy(false); }
+  if (moves.length) BSEL.undo.push({kind:"move", moves});
+  redraw(); bselRefresh();
+}
+function bselStep(dir){ const all = visBlks(), j = all.indexOf(BSEL.h) + dir; if (j >= 0 && j < all.length) bselSet(BSEL.a, all[j]); }
+$("#pSel").innerHTML = '<div class="ks">' +
+  '<button class="k" data-b="del" aria-label="حذف">' + SV('<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/>') + '</button>' +
+  '<button class="k" data-b="copy" aria-label="نسخ">' + SV('<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/>') + '</button>' +
+  '<button class="k" data-b="cut" aria-label="قصّ">' + SV('<circle cx="6" cy="18" r="3"/><circle cx="18" cy="18" r="3"/><path d="M8.2 16L18 4M15.8 16L6 4"/>') + '</button>' +
+  '<button class="k" data-b="out" aria-label="أخرِج">' + SV('<path d="M4 12h15M13 6l6 6-6 6"/>') + '</button>' +
+  '<button class="k" data-b="in" aria-label="أدخِل">' + SV('<path d="M20 12H5M11 6l-6 6 6 6"/>') + '</button>' +
+  '<button class="k" data-b="up" aria-label="ضمّ التي فوقها">' + SV('<path d="M12 19V5M6 11l6-6 6 6"/>') + '</button>' +
+  '<button class="k" data-b="down" aria-label="ضمّ التي تحتها">' + SV('<path d="M12 5v14M6 13l6 6 6-6"/>') + '</button>' +
+  '<button class="k" data-b="undo" aria-label="تراجع">' + SV('<path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/>') + '</button></div>';
+$("#pSel").className = "keys selkeys"; $("#dSel").innerHTML = $("#pSel").innerHTML;
+$("#pSel").addEventListener("pointerdown", e => e.preventDefault());
+$("#pSel").addEventListener("click", e => {
+  const b = e.target.closest("[data-b]"); if (!b) return; const a = b.dataset.b;
+  if (a === "undo"){ bselUndo(); return; }
+  if (!BSEL.on) return;
+  if (a === "del") bselDelete(false); else if (a === "copy") bselCopy(false); else if (a === "cut") bselCopy(true);
+  else if (a === "in") bselShift(1); else if (a === "out") bselShift(-1);
+  else if (a === "up") bselStep(-1); else if (a === "down") bselStep(1);
+});
+
+/* ---- اللمس: ضغطة طويلة على النقطة، السحب على النقاط، الإمساك ثم النقل ---- */
+const TS = {mode:"", x:0, y:0, be:null, tm:0, moved:false, line:null, tgt:null, hov:null, hovT:0, opened:[], raf:0, ly:0, lx:0};
+const holdMs = () => +PREFS.holdMs || 500;
+function blkAtY(y){
+  let best = null, bd = Infinity;
+  for (const b of visBlks()){ const r = b.querySelector(":scope > .row").getBoundingClientRect(); if (!r.height) continue;
+    const d = y < r.top ? r.top - y : (y > r.bottom ? y - r.bottom : 0); if (d < bd){ bd = d; best = b; } if (d === 0) break; }
+  return best;
+}
+function dropAt(x, y){
+  const b = blkAtY(y); if (!b) return null;
+  const ban = TS.ban; let p = b; while (p){ if (ban.has(p)) return null; p = p.parentElement && p.parentElement.closest(".blk"); }
+  const row = b.querySelector(":scope > .row"), r = row.getBoundingClientRect(), rel = (y - r.top) / r.height, n = b._n;
+  let zone = rel < 0.3 ? "before" : rel > 0.7 ? "after" : "inside";
+  if (zone === "after" && n._open && n.kids.length) zone = "first";
+  return {b, n, row, r, zone};
+}
+function dropPaint(){
+  document.querySelectorAll(".row.dropin").forEach(r => r.classList.remove("dropin"));
+  if (!TS.line){ TS.line = el("div"); TS.line.id = "dropLine"; document.body.appendChild(TS.line); }
+  const t = TS.tgt, ln = TS.line; if (!t){ ln.style.display = "none"; return; }
+  if (t.zone === "inside"){ t.row.classList.add("dropin"); ln.style.display = "none"; return; }
+  const c = t.row.querySelector(":scope > .txt") || t.row, cr = c.getBoundingClientRect(), ind = t.zone === "first" ? 22 : 0;
+  ln.style.display = "block"; ln.style.top = ((t.zone === "before" ? t.r.top : t.r.bottom) - 1) + "px"; ln.style.left = cr.left + "px"; ln.style.width = Math.max(40, cr.width - ind) + "px";
+}
+function dropHover(){
+  const t = TS.tgt, cand = t && t.zone === "inside" && hasKids(t.n) && !t.n._open ? t.b : null;
+  if (cand === TS.hov) return; TS.hov = cand; clearTimeout(TS.hovT);
+  if (cand) TS.hovT = setTimeout(async () => { if (TS.hov !== cand || TS.mode !== "move") return;
+    const n = cand._n; TS.opened.push({n, was:!!n._open}); try { await openBlk(cand); } catch(e){} TS.tgt = dropAt(TS.lx, TS.ly); dropPaint(); }, 650);
+}
+function dropLoop(){
+  if (TS.mode !== "move" && TS.mode !== "ext") return;
+  const pr = pBody.getBoundingClientRect(), m = 56, y = TS.ly;
+  if (y < pr.top + m) pBody.scrollTop -= Math.ceil((pr.top + m - y) / 4); else if (y > pr.bottom - m) pBody.scrollTop += Math.ceil((y - pr.bottom + m) / 4);
+  if (y < pr.top + m || y > pr.bottom - m){ if (TS.mode === "move"){ TS.tgt = dropAt(TS.lx, TS.ly); dropPaint(); } else { const b = blkAtY(TS.ly); if (b) bselSet(BSEL.a, b); } }
+  TS.raf = requestAnimationFrame(dropLoop);
+}
+async function dropDo(){
+  const t = TS.tgt, items = bselRoots().map(b => b._n); TS.tgt = null; dropPaint();
+  const opened = TS.opened; TS.opened = [];
+  if (!t || !items.length){ for (const o of opened) o.n._open = o.was; redraw(); bselRefresh(); return; }
+  busy(true); const moves = [];
+  try {
+    let np, idx;
+    if (t.zone === "inside" || t.zone === "first"){ np = t.n; if (np.lazy || np.more){ while (np.lazy || np.more){ await loadKids(np); if (!np.more) break; } } idx = 0; np._open = true; }
+    else { np = t.n.pn; idx = t.n.order + (t.zone === "after" ? 1 : 0); }
+    for (const n of items){
+      let o = idx; if (n.pn === np && n.order < o) o--;            // الموضع بعد خروجها من مكانها
+      if (n.pn === np && n.order === o){ idx = o + 1; continue; }
+      moves.push({n, pn:n.pn, order:n.order}); await moveNode(n, np, o); idx = n.order + 1;
+    }
+    const keep = new Set(); let p = np; while (p){ keep.add(p); p = p.pn; }
+    for (const o of opened) if (!keep.has(o.n)) o.n._open = o.was;
+  } catch(e){ toast("تعذّر النقل: " + e.message, 3500); } finally { busy(false); }
+  if (moves.length) BSEL.undo.push({kind:"move", moves});
+  redraw(); bselRefresh();
+}
+pTree.addEventListener("touchstart", e => {
+  if (e.touches.length !== 1) { clearTimeout(TS.tm); TS.mode = ""; return; }
+  const t = e.target, x = e.touches[0].clientX, y = e.touches[0].clientY, be = t.closest(".blk"), bul = t.closest(".blk > .row > .bul");
+  TS.x = x; TS.y = y; TS.lx = x; TS.ly = y; TS.moved = false; TS.mode = ""; clearTimeout(TS.tm);
+  if (!be || !be._n || be._n.draft || LIVE && LIVE.be === be) return;
+  if (BSEL.on && BSEL.list.includes(be)){                     // على كتلة مظلّلة: سحب فوري يمدّ التظليل، وإمساك ثم سحب ينقل
+    TS.mode = "pending"; TS.be = be;
+    TS.tm = setTimeout(() => { if (TS.mode !== "pending") return; TS.mode = "move"; TS.ban = new Set(bselRoots()); if (navigator.vibrate) navigator.vibrate(25); document.body.classList.add("bdrag"); TS.raf = requestAnimationFrame(dropLoop); }, holdMs());
+    return;
+  }
+  if (bul){                                                    // ضغطة طويلة على النقطة: ادخل التظليل
+    TS.mode = "bulpend"; TS.be = be;
+    TS.tm = setTimeout(() => { if (TS.mode !== "bulpend") return; liveClose(); bselSet(be, be); TS.mode = "ext"; TS.fresh = true; if (navigator.vibrate) navigator.vibrate(20); TS.raf = requestAnimationFrame(dropLoop); }, 450);
+  }
+}, {passive:true});
+pTree.addEventListener("touchmove", e => {
+  if (!TS.mode) return; const x = e.touches[0].clientX, y = e.touches[0].clientY; TS.lx = x; TS.ly = y;
+  const far = Math.hypot(x - TS.x, y - TS.y) > 9;
+  if (TS.mode === "bulpend"){ if (far){ clearTimeout(TS.tm); TS.mode = ""; } return; }
+  if (TS.mode === "pending"){ if (!far) return; clearTimeout(TS.tm); TS.mode = "ext"; TS.raf = requestAnimationFrame(dropLoop); }
+  if (TS.mode === "ext"){ e.preventDefault(); TS.moved = true; const b = blkAtY(y); if (b) bselSet(BSEL.a, b); return; }
+  if (TS.mode === "move"){ e.preventDefault(); TS.moved = true; TS.tgt = dropAt(x, y); dropPaint(); dropHover(); }
+}, {passive:false});
+const tsEnd = () => {
+  clearTimeout(TS.tm); cancelAnimationFrame(TS.raf); const m = TS.mode; TS.mode = ""; document.body.classList.remove("bdrag"); clearTimeout(TS.hovT); TS.hov = null;
+  if (m === "move"){ if (TS.moved) dropDo(); else { TS.tgt = null; dropPaint(); } TS.swallow = Date.now(); }
+  else if (m === "ext"){ TS.swallow = Date.now(); }
+};
+pTree.addEventListener("touchend", tsEnd); pTree.addEventListener("touchcancel", tsEnd);
+pBody.addEventListener("click", e => {                         // في وضع التظليل: نقر نقطة يضمّ حتى كتلتها، والنقر في غير المظلّل يخرج
+  if (TS.swallow && Date.now() - TS.swallow < 450){ e.stopImmediatePropagation(); e.preventDefault(); TS.swallow = 0; return; }
+  if (!BSEL.on) return;
+  const bul = e.target.closest(".blk > .row > .bul"), be = e.target.closest(".blk");
+  e.stopImmediatePropagation(); e.preventDefault();
+  if (bul && be && pTree.contains(be)){ bselSet(BSEL.a, be); return; }
+  if (be && BSEL.list.includes(be)) return;
+  bselClear();
+}, true);
+document.addEventListener("selectionchange", () => {          // تظليل نصّ الكتلة كلّه: يصير تظليلاً للكتلة
+  const L = LIVE; if (!L || document.activeElement !== L.ta || L.busy) return;
+  const t = L.ta; if (!t.value.length || t.selectionStart !== 0 || t.selectionEnd !== t.value.length) return;
+  clearTimeout(L.selT); L.selT = setTimeout(() => {
+    if (LIVE !== L || t.selectionStart !== 0 || t.selectionEnd !== t.value.length || !t.value.length) return;
+    const u = L.n.uid; t.blur(); liveClose().then(() => { const be = pTree.querySelector('.blk[data-u="' + u + '"]'); if (be && !be._n.draft) bselSet(be, be); });
+  }, 450);
+});
 
 /* ============================================================
    حجم الخط والتباعد
@@ -2545,6 +3018,10 @@ function renderSettings(){
 
   h3("العرض");
   sel("الخط", [["","خط النظام"],["vazir","Vazirmatn"],["naskh","Noto Naskh Arabic"]], FONTS[PREFS.font] ? PREFS.font : "", v => { PREFS.font = v; savePrefs(); applyFont(); });
+  { const l = el("label", "f"), r = el("div", "btns"), v = el("b"), mi = el("button", "btn"), pl = el("button", "btn"); v.textContent = AR(PREFS.fs); v.style.cssText = "min-width:40px;text-align:center;align-self:center";
+    mi.textContent = "−"; pl.textContent = "+"; mi.onclick = e => { e.preventDefault(); setFs(PREFS.fs - 1, true); v.textContent = AR(PREFS.fs); }; pl.onclick = e => { e.preventDefault(); setFs(PREFS.fs + 1, true); v.textContent = AR(PREFS.fs); };
+    r.style.marginTop = "4px"; r.append(mi, v, pl); l.append("حجم الخط (ويتغيّر بالقرص بإصبعين على النص)", r); box.appendChild(l); }
+  sel("تباعد الأسطر", [["1.45","ضيّق"],["1.7","وسط"],["1.95","واسع"]], String(PREFS.lh || 1.7), v => { PREFS.lh = +v; savePrefs(); applyFont(); });
   { const ckm = el("label", "ck"), cbm = el("input"); cbm.type = "checkbox"; cbm.checked = SMODE === 2; cbm.onchange = () => { SMODE = cbm.checked ? 2 : 1; PREFS.smode = SMODE; savePrefs(); }; ckm.append(cbm, "البحث المجرّد: تجريد الكلمات من الزوائد، ووجودها كلها في الكتلة ولو متفرقة"); box.appendChild(ckm); }
   { const ckn = el("label", "ck"), cbn = el("input"); cbn.type = "checkbox"; cbn.checked = !!PREFS.ns; cbn.onchange = () => { PREFS.ns = cbn.checked; savePrefs(); pageCache.clear(); }; ckn.append(cbn, "اختصار أسماء الصفحات ذات / إلى جزئها الأخير، داخل النصوص فقط (كما في Roam)"); box.appendChild(ckn); }
   h3("الكتابة من المسودة");
@@ -2561,7 +3038,10 @@ function renderSettings(){
   cb.onchange = () => { PREFS.autoRefs = cb.checked; savePrefs(); };
   ck.append(cb, "جلب المراجع المرتبطة تلقائياً (للغراف غير المحمَّل)");
   box.appendChild(ck);
-  box.appendChild(el("div", "note", "حجم الخط والتباعد من زر <b>Aa</b> في شاشتي الكتابة والعرض."));
+  h3("التحرير");
+  sel("الطيّ والنشر من المساحة الخالية في الصفحة", [["long","ضغطة طويلة"],["dbl","نقرتان متتاليتان"],["off","معطّل"]], PREFS.foldG || "long", v => { PREFS.foldG = v; savePrefs(); });
+  sel("مدّة الإمساك قبل نقل الكتل المظلّلة", [["350","ثلث ثانية"],["500","نصف ثانية"],["700","ثلثا ثانية"],["900","قرابة ثانية"]], String(PREFS.holdMs || 500), v => { PREFS.holdMs = +v; savePrefs(); });
+  sel("وحدة الكتلة عند تحويل النص إلى Roam", [["para","الفقرة (الأسطر المتصلة بلا سطر فارغ بينها)"],["line","السطر"]], store.get("rq-unit") === "line" ? "line" : "para", v => store.set("rq-unit", v));
 
   h3("عن التطبيق");
   box.appendChild(el("div", "note", "الرمز والنسخة المحلية يُحفظان في متصفح هذا الجهاز وحده، بلا تشفير، ولا يُرسل شيء إلا إلى خادم Roam. ما تكتبه يظهر فوراً ويُرسل في الخلفية؛ وما لم يصل بعدُ يبقى معلَّماً ويُعاد إرساله تلقائياً."));
@@ -2633,17 +3113,20 @@ function graphForm(g){
 /* ============================================================
    المشاركة من تطبيقات أندرويد (share target)
    ============================================================ */
-function takeShared(){
-  const p = new URLSearchParams(location.search);
+function sharedText(p){                              // ما شاركه تطبيق آخر ← نص يُلصق في المسودة
   const text = (p.get("text") || "").trim(), url = (p.get("url") || "").trim(), title = (p.get("title") || "").trim();
-  if (!text && !url && !title) return;
-  let out = "";
+  if (!text && !url && !title) return "";
   const onlyUrl = /^https?:\/\/\S+$/.test(text) ? text : (!text ? url : "");
-  if (onlyUrl) out = title ? "["+title.replace(/[\[\]]/g,"")+"]("+onlyUrl+")" : onlyUrl;
-  else { out = text || title; if (url && !out.includes(url)) out += "\n" + url; }
-  const cur = ta.value.replace(/\s+$/,"");
-  ta.value = (cur ? cur + "\n" : "") + out; store.set("rqm-draft", ta.value);
-  history.replaceState(history.state, "", location.pathname + "#c");
+  if (onlyUrl) return title ? "["+title.replace(/[\[\]]/g,"")+"]("+onlyUrl+")" : onlyUrl;
+  let out = text || title; if (url && !out.includes(url)) out += "\n" + url; return out;
+}
+function takeShared(params){                          // يُفتح المحرر من قائمة المشاركة: النص يذهب إلى المسودة مباشرة
+  const out = sharedText(params || new URLSearchParams(location.search)); if (!out) return false;
+  ENG().then(w => { w.ENGAPI.insert(out); toast("أُضيف إلى المسودة", 1800); });
+  const i = TABS.findIndex(t => t.kind === "draft");
+  if (i >= 0 && i !== TABI) tabEnter(i);
+  history.replaceState(Object.assign({}, history.state, {tab:TABI}), "", location.pathname + "#c");
+  return true;
 }
 
 /* لوحة المفاتيح لا تغطي شريط الأزرار: اضبط ارتفاع الشاشة على المساحة الظاهرة */
@@ -2658,7 +3141,8 @@ if (window.visualViewport){
 loadCfg(); loadPrefs(); SMODE = PREFS.smode === 2 ? 2 : 1;
 if (PREFS.defGraph && graphs().some(g => g.name === PREFS.defGraph) && RAW.roam.current !== PREFS.defGraph){ RAW.roam.current = PREFS.defGraph; saveCfg(); }
 tabsLoad(); { const t = TABS[TABI]; if (t && graphs().length) RAW.roam.current = t.kind === "draft" ? DR.graph : t.graph; }
-loadPages(); initTarget(); loadQueue(); setGraphLocal(); takeShared(); route();
+$("#tTI").innerHTML = IC_PAGE; $("#pTI").innerHTML = IC_PAGE;
+loadPages(); initTarget(); loadQueue(); setGraphLocal(); ENG(); takeShared(); route();
 flush(); setTimeout(autoSync, 1500);
 </script>
 <script>if("serviceWorker" in navigator && location.protocol.indexOf("http")===0){ navigator.serviceWorker.register("sw.js").catch(function(){}); }</script>
