@@ -3226,7 +3226,7 @@ function markMatches(root, q){                        // ظلّل مواضع ا�
   return {W, rq, kidRange, foldStr, stems, markMatches, isLocal, SYNC, hooks, openLocal, setGraphLocal, loadQueue, flush, enqueue, autoSync, dropLocal,
     lPutRecs, lShift, lPutPage, lDelete, lMove,
     db:() => DB, loc:() => LOC, pending:() => QUEUE.length, pageTitle:g => PT.get(g) || "",
-    ROOTHL, diagnose, rootOfBlock, setLoc,
+    ROOTHL, diagnose, rootOfBlock, setLoc, roam,
     async sync(full, scope){ if (QUEUE.length){ await flush(); if (QUEUE.length){ toast("في الطابور تعديلات لم تُرسل بعد — تُزامَن بعد إرسالها"); return false; } } const r = await syncGraph(full, scope); hooks.onSync(); return r; },
     async search(q, opt){ await openLocal(); return Array.isArray(q) ? W("searchAll", Object.assign({terms:q}, opt)) : W("search", Object.assign({q}, opt)); }};
 })({store, toast:(...a) => toast(...a), newUid:() => newUid(), norm:x => norm(x), graph:() => curGraph()});
@@ -3634,8 +3634,12 @@ async function openDoc(spec, fromHistory){
       if (!tr || !b) throw new Error("الكتلة غير موجودة في النسخة المحلية — جرّب المزامنة");
       const n = mk((b.h ? "#".repeat(Math.min(3, b.h)) + " " : "") + (b.s || "")); n.uid = b.u; snap.set(b.u, {t:n.text, p:tr.p, i:0, lazy:false});
       n.children = await docKids(b.u, 0, bud, snap, true); nodes = [n];
-      const crumbs = []; { let p = tr.p, guard = 0;                 // المسار: الآباء من الأعلى إلى الأب المباشر
-        while (p && p !== b.g && guard++ < 60){ const pt = await RQ.rq(db.transaction("tree").objectStore("tree").get(p)), pb = await RQ.rq(db.transaction("blocks").objectStore("blocks").get(p)); if (!pt || !pb) break; crumbs.unshift({uid:p, s:(pb.s || "").replace(/^#{1,6}[ \t]+/, "")}); p = pt.p; } }
+      const crumbs = []; let pgU = b.g; { let p = tr.p, guard = 0;   // المسار: الآباء من الأعلى إلى الأب المباشر، وأعلاها الصفحة
+        while (p && guard++ < 60){ if (p === b.g && RQ.pageTitle(p)) break; const pt = await RQ.rq(db.transaction("tree").objectStore("tree").get(p)), pb = await RQ.rq(db.transaction("blocks").objectStore("blocks").get(p));
+          if (!pt || !pb || RQ.pageTitle(p)){ pgU = p; break; } crumbs.unshift({uid:p, s:(pb.s || "").replace(/^#{1,6}[ \t]+/, "")}); p = pt.p; } }
+      let pgT = RQ.pageTitle(pgU) || RQ.pageTitle(b.g);
+      if (!pgT){ const pr = await RQ.rq(db.transaction("pages").objectStore("pages").get(pgU)); if (pr) pgT = pr.t; }
+      if (!pgT && navigator.onLine){ try { const r = await RQ.roam("q", {query:"[:find ?t . :in $ ?u :where [?e :block/uid ?u] [?e :node/title ?t]]", args:[pgU]}); if (typeof r.result === "string") pgT = r.result; } catch(e){} }
       let hit = null;
       if (spec.reveal && spec.reveal !== b.u){                     // جئت من كتلة تحتها: انشر الطريق إليها وحدها، واطوِ ما سواه
         const path = []; { let p = spec.reveal, guard = 0; while (p && p !== b.u && guard++ < 60){ path.unshift(p); const pt = await RQ.rq(db.transaction("tree").objectStore("tree").get(p)); if (!pt) break; p = pt.p; } }
@@ -3647,7 +3651,7 @@ async function openDoc(spec, fromHistory){
         }
         if (cur.uid === spec.reveal){ hit = cur; if (cur.lazy){ cur.children = await docKids(cur.uid, 0, bud, snap, true); cur.lazy = false; const sn = snap.get(cur.uid); if (sn) sn.lazy = false; } cur.collapsed = false; }
       }
-      d = {kind:"block", title:RQ.pageTitle(b.g), pageUid:b.g, rootUid:tr.p, base:tr.o, snap, uid:b.u, q:spec.q, crumbs, hit};
+      d = {kind:"block", title:pgT || "", pageUid:b.g || pgU, rootUid:tr.p, base:tr.o, snap, uid:b.u, q:spec.q, crumbs, hit};
     }
     if (!fromHistory){ const st = {tab:TABS.cur.id, doc:spec.kind === "page" ? {kind:"page", title:spec.title} : {kind:"block", uid:spec.uid}}; if (history.state && history.state.doc) history.pushState(st, ""); else { history.replaceState({base:1}, ""); history.pushState(st, ""); } }
     DOC = d; activate("page"); model = nodes; editingId = null; HIST.past = []; HIST.future = []; HIST.mark = 0;
