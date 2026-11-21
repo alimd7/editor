@@ -222,7 +222,8 @@ body.docview #btnHdr{display:none}
 .sic.on{color:var(--accent)}
 #rpStar{display:none;width:28px;height:28px}#rpBox.tgt #rpStar.show{display:inline-grid}
 #rpStar.on{color:#e0a100}#rpStar.on svg{fill:currentColor}
-#rpSync[hidden],#btnSplit[hidden]{display:none}
+#rpSync[hidden],#btnSplit[hidden],#rpBox[hidden]{display:none}
+#rpBar{justify-content:flex-end}
 #rpTitle.bigt{display:block;font-size:1.55em;font-weight:700;line-height:1.35;margin:4px 0 8px;cursor:default}
 #rpCrumb{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 6px;font-size:.88em;color:var(--muted);margin:2px 0 10px;unicode-bidi:plaintext}
 #rpCrumb a{color:var(--link);cursor:pointer;text-decoration:none;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;unicode-bidi:plaintext}
@@ -289,6 +290,7 @@ body.embed{margin:0;padding:0;overscroll-behavior:contain;touch-action:pan-x pan
 body.embed #app{max-width:none;margin:0;padding:10px 10px 80px;border:0;box-shadow:none;min-height:100vh}
 body.embed .block>.row{min-height:calc(var(--fs) * 1.6)}
 body.embed .bullet{touch-action:none}
+#ePull{height:0;overflow:hidden;display:grid;place-items:center;color:var(--muted);font-size:13px;transition:height .15s}
 #dropLine{position:fixed;height:3px;border-radius:2px;background:var(--accent);pointer-events:none;z-index:60;display:none}
 body.bdrag,body.bdrag *{cursor:grabbing!important;user-select:none!important}
 </style>
@@ -299,7 +301,7 @@ body.bdrag,body.bdrag *{cursor:grabbing!important;user-select:none!important}
   <div id="tabs"></div>
   <div id="rpBar">
     <div id="rpBox"><span id="rpTI" title="وجهة الإرسال — اضغط لإلغائها والعودة إلى اليوم">▤</span>
-    <input id="rpQ" type="search" name="rq-find" dir="rtl" autocomplete="off" autocorrect="off" spellcheck="false" data-lpignore="true" data-1p-ignore placeholder="بحث" title="Ctrl+Shift+F">
+    <input id="rpQ" type="search" name="rq-find" dir="rtl" autocomplete="off" autocorrect="off" spellcheck="false" data-lpignore="true" data-1p-ignore placeholder="بحث" title="بحث (Ctrl+Shift+F)">
     <span id="rpTT"></span><small id="rpTG"></small><button id="rpStar" class="sic" title="ثبّت الصفحة للوصول السريع من شريط البحث، أو ألغِ تثبيتها"><svg viewBox="0 0 24 24"><path d="M12 3.5l2.6 5.4 5.9.8-4.3 4.1 1 5.8-5.2-2.8-5.2 2.8 1-5.8-4.3-4.1 5.9-.8z"/></svg></button></div>
     <span id="rpDot" class="ok"></span><button id="rpSync" class="sic" title="مزامنة (Alt+R)"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.6-5.9M20 4v5h-5"/></svg></button>
   </div>
@@ -344,12 +346,12 @@ body.bdrag,body.bdrag *{cursor:grabbing!important;user-select:none!important}
   <div id="obsWrap" hidden></div>
 
   <div class="actions">
-    <button class="send" id="btnSend" title="Ctrl+Enter">إرسال</button>
+    <button class="send" id="btnSend" title="إرسال (Ctrl+Enter أو Ctrl+S)">إرسال</button>
     <button class="ghost danger" id="btnClear" title="مسح كل ما كتبت">مسح</button>
     <span class="spacer"></span>
-    <button class="ghost sic" id="btnWide" title="عرض الصفحة كاملاً / عرض محدود"><svg viewBox="0 0 24 24"><path d="M4 5v14M20 5v14M8 12h8M10.5 9.5L8 12l2.5 2.5M13.5 9.5L16 12l-2.5 2.5"/></svg></button>
+    <button class="ghost sic" id="btnWide" title="عرض الصفحة كاملاً / عرض محدود (Alt+W)"><svg viewBox="0 0 24 24"><path d="M4 5v14M20 5v14M8 12h8M10.5 9.5L8 12l2.5 2.5M13.5 9.5L16 12l-2.5 2.5"/></svg></button>
     <button class="ghost sic" id="btnSettings" title="إعدادات"><svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg></button>
-    <button class="ghost sic" id="btnSplit" title="اعرض الصفحة بجانب المسودة، أو وحدها" hidden><svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="14" rx="2"/><path d="M12 5v14"/></svg></button>
+    <button class="ghost sic" id="btnSplit" title="اعرض الصفحة بجانب المسودة، أو وحدها (Alt+S)" hidden><svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="14" rx="2"/><path d="M12 5v14"/></svg></button>
   </div>
 
   <div id="settings"></div>
@@ -2059,7 +2061,7 @@ function renderSettings(){
     ["Alt+Shift+↑ / ↓","نقل السطر"],["Ctrl+A مرتين","تظليل كل النص"],["Ctrl+Shift+V","لصق بلا تحويل"],
     ["Esc","تظليل الكتلة (Roam) · ثانيةً: إلغاؤه"],["Shift+↑ / ↓ عند طرف الكتلة","تظليل الكتل"],["Shift+نقر","تظليل الكتل حتى هذه"],
     ["مع الكتل المظلّلة","Backspace حذف · Ctrl+C نسخ · Ctrl+X قصّ · Tab إزاحة · Enter تحرير"],["سحب النقطة","نقل الكتلة (أو المظلّلة) قبل كتلة أو بعدها أو داخلها"]];
-  if (CFG.dest==="roam") KEYS.push(["Alt+T","مهمة بتاريخ (ثم منجزة، ثم إزالة)"],["Alt+D","إدراج تاريخ"],["Alt+R","مزامنة الصفحة المعروضة من Roam"],["Ctrl+Shift+F","خانة البحث"],["Alt+M","البحث: مطابق / مجرّد"],["نقرة وسطى على لسان","إغلاقه"],["Alt+H","الكتابة تحت ترويسة التاريخ أو بدونها"]);
+  if (CFG.dest==="roam") KEYS.push(["Alt+S","الصفحة بجانب المسودة، أو وحدها"],["Alt+W","عرض الصفحة كاملاً / محدوداً"],["Alt+R في المسودة","مزامنة المسودة مع الأجهزة الأخرى"],["Alt+T","مهمة بتاريخ (ثم منجزة، ثم إزالة)"],["Alt+D","إدراج تاريخ"],["Alt+R","مزامنة الصفحة المعروضة من Roam"],["Ctrl+Shift+F","خانة البحث"],["Alt+M","البحث: مطابق / مجرّد"],["نقرة وسطى على لسان","إغلاقه"],["Alt+H","الكتابة تحت ترويسة التاريخ أو بدونها"]);
   KEYS.push(["F9", CFG.dest==="obsidian" ? "إعادة فهرسة الخزنة" : "تحديث صفحات الغراف"]);
   box.appendChild(h("details", {class:"keysbox"}, h("summary", {}, "الاختصارات"), h("div", {class:"keys"}, ...KEYS.map(k => h("div", {}, h("b", {dir:"ltr"}, k[0]), " — "+k[1])))));
 
@@ -3423,7 +3425,7 @@ function barMark(){                                  // الشريط: في ال�
   else if (gdoc){ const t = DOC.title || ""; $("#rpTT").textContent = t; $("#rpTG").textContent = "";
     const on = !!t && isDest({kind:"page", title:t, g:S.graph}); ti.style.color = on ? "" : "var(--muted)"; ti.title = on ? "وجهة الإرسال — اضغط لإلغائها" : "اجعلها وجهة الإرسال";
     const pg = DOC.kind === "page", pin = pg && pins(S.graph).includes(t); star.classList.toggle("show", pg); star.classList.toggle("on", pin); }
-  const sy = $("#rpSync"); if (sy){ sy.hidden = isOb() || !(draft || (TABS.cur && TABS.cur.kind === "graph")); sy.title = draft ? "زامن المسودة مع الأجهزة الأخرى" : "زامن هذه الصفحة من Roam (Alt+R)"; }
+  const sy = $("#rpSync"); if (sy){ sy.hidden = !(draft || (TABS.cur && TABS.cur.kind === "graph")) && !isOb(); sy.title = draft ? "زامن المسودة مع الأجهزة الأخرى (Alt+R)" : "زامن هذه الصفحة من Roam (Alt+R)"; }
 }
 const isDest = it => it.today ? !DR.set && (it.g || S.graph) === DR.graph : DR.set && DR.page.kind === "page" && DR.page.title === it.title && (it.g || S.graph) === DR.graph;
 function setTarget(it){                              // رمز الصفحة: اجعلها وجهة ما يُرسل من المسودة (ورمز الوجهة الحالية يلغيها)
@@ -3452,12 +3454,20 @@ function tabsInit(){
 }
 /* المسودة تُحفظ حتى تمسحها أنت */
 let draftT = 0;
-function draftTouch(){ if (isOb()) return; clearTimeout(draftT); draftT = setTimeout(draftSave, 500); }
-function draftSave(){ if (isOb()) return; const m = ACTIVE === "main" ? model : CTXS.main.model; if (m) store.set("rq-draft", JSON.stringify(m)); DSYNC.changed(); }
-function draftLoad(){
-  if (isOb()) return false;
-  try { const m = JSON.parse(store.get("rq-draft") || "null");
-    if (Array.isArray(m) && m.length && flat(m).some(n => n.text.trim() && !n.auto)){ (function fix(l){ for (const n of l){ n.id = nextId++; fix(n.children || (n.children = [])); } })(m); model = m; return true; } } catch(e){}
+function draftTouch(){ clearTimeout(draftT); draftT = setTimeout(draftSave, 500); }
+function draftSave(){ const m = ACTIVE === "main" ? model : CTXS.main.model; if (m) store.set("rq-draft", JSON.stringify({d:CFG.dest, m})); DSYNC.changed(); }
+function convertModel(nodes, from, to){              // كتل ⇄ أسطر (عند اختلاف نمط المسودة المحفوظة أو الواردة)
+  if (from === to) return nodes;
+  if (to === "obsidian"){ const body = (nodes.length === 1 && nodes[0].hdr) ? nodes[0].children : nodes; return splitUnits(toObsidian(prune(body, 6, true), true)).map(u => mk(u)); }
+  const lines = []; (function f(l){ for (const n of l){ lines.push(n.text); f(n.children); } })(nodes); return parseMarkdown(lines.join("\n"));
+}
+function draftLoad(){                                // مسودة واحدة للتطبيقين (Roam وObsidian)، تتحوّل إلى نمط التطبيق المفتوح
+  try { let o = JSON.parse(store.get("rq-draft") || "null"); if (Array.isArray(o)) o = {d:"roam", m:o};
+    let m = o && o.m;
+    if (Array.isArray(m) && m.length && flat(m).some(n => n.text.trim() && !n.auto)){
+      (function fix(l){ for (const n of l){ n.id = nextId++; fix(n.children || (n.children = [])); } })(m);
+      if ((o.d || "roam") !== CFG.dest){ m = convertModel(m, o.d || "roam", CFG.dest); if (CFG.dest === "roam" && S.header) m = [mkHeader(m)]; }
+      model = m; return true; } } catch(e){}
   return false;
 }
 function tabSettings(box){                           // الإعدادات: أسماء مختصرة للألسنة
@@ -3469,8 +3479,8 @@ function tabSettings(box){                           // الإعدادات: أس
 }
 
 function rpDot(){                                    // نقطة واحدة: خضراء = محفوظ ومُرسل · برتقالية = غير ذلك
-  const d = $("#rpDot"); if (!d) return; d.hidden = isOb();
-  if (TABS.cur && TABS.cur.kind === "draft"){ const s0 = DSYNC.state; d.className = s0 === "ok" ? "ok" : s0 === "err" ? "err" : s0 === "off" ? "off" : "warn";
+  const d = $("#rpDot"); if (!d) return; d.hidden = false;
+  if (isOb() || TABS.cur && TABS.cur.kind === "draft"){ const s0 = DSYNC.state; d.className = s0 === "ok" ? "ok" : s0 === "err" ? "err" : s0 === "off" ? "off" : "warn";
     d.title = s0 === "ok" ? "المسودة مُزامَنة" : s0 === "err" ? "تعذّرت مزامنة المسودة" : s0 === "off" ? "مزامنة المسودة معطّلة (لا غراف برمز)" : "المسودة في انتظار المزامنة"; return; }
   const run = RQ.SYNC.running, pend = RQ.pending();
   d.className = (RP.dirty || pend || run) ? "warn" : "ok";
@@ -3891,7 +3901,7 @@ function rpInit(){
     if (TABS.cur && TABS.cur.kind === "graph" && DOC){ const it = {kind:"page", title:DOC.title, g:S.graph}; if (isDest(it)){ clearTarget(); toast("وجهة الإرسال: اليوم"); } else { DR.graph = S.graph; DR.set = true; DR.page = {kind:"page", title:DOC.title}; saveDR(); toast("وجهة الإرسال: " + DOC.title); } barMark(); return; }
     if (DR.set){ clearTarget(); toast("وجهة الإرسال: اليوم"); } };
   $("#rpStar").onmousedown = e => { e.preventDefault(); e.stopPropagation(); if (!DOC || DOC.kind !== "page") return; const on = pinToggle(S.graph, DOC.title); barMark(); toast(on ? "ثُبّتت: تجدها في شريط البحث وهو فارغ" : "أُلغي التثبيت"); };
-  $("#rpSync").onclick = () => { if (TABS.cur && TABS.cur.kind === "draft") DSYNC.now(true); else syncDoc(); };
+  $("#rpSync").onclick = () => { if (isOb() || TABS.cur && TABS.cur.kind === "draft") DSYNC.now(true); else syncDoc(); };
   $("#btnSplit").onclick = () => { store.set("rq-split", isSplit() ? "" : "1"); layout(); if (DOC){ activate("page"); render(); } };
   $("#rpBox").onmousedown = e => { if (e.target.id === "rpQ" || e.target.closest("#rpStar")) return; e.preventDefault(); $("#rpBox").classList.remove("tgt"); $("#rpQ").focus(); };
   $("#rpQ").addEventListener("blur", () => setTimeout(barMark, 0));
@@ -3943,7 +3953,7 @@ async function brefFill(root){                       // أظهر نص الكتل
 }
 function rpMark(){ document.querySelectorAll("#rpRes .rpi").forEach((d, k) => { d.classList.toggle("sel", k === RP.sel); if (k === RP.sel) d.scrollIntoView({block:"nearest"}); }); }
 function rpGraph(){                                  // عند تغيّر إعدادات الغرافات أو الوجهة (Roam / Obsidian)
-  $("#rpBar").hidden = isOb(); $("#rpRes").hidden = true; rpDot(); ALLP = null;
+  $("#rpBar").hidden = false; $("#rpBox").hidden = isOb(); $("#rpRes").hidden = true; rpDot(); barMark(); ALLP = null;
   if (isOb()){ if (DOC){ saveDoc(); activate("main"); } layout(); return; }
   if (!TABS.cur){ layout(); return; }
   TABS.list = TABS.list.filter(t => t.kind === "draft" || t === TABS.cur || CFG.roam.graphs.some(g => g.name === t.graph));
@@ -4022,7 +4032,7 @@ const DSYNC = (function(){
   const mainModel = () => ACTIVE === "main" ? model : (CTXS.main.model || []);
   const body = m => (m.length === 1 && m[0].hdr) ? m[0].children : m;
   const local = () => ({v:1, dest:CFG.dest, m:ser(body(mainModel()))});
-  const enabled = () => !(isOb() && !EMBED) && !!graphName();
+  const enabled = () => !!graphName();
   function graphName(){
     if (EMBED){ const h = H(); return h.dsGraph ? h.dsGraph() : ""; }
     const want = store.get("rq-dsync-graph"); if (want === "-") return "";
@@ -4041,9 +4051,10 @@ const DSYNC = (function(){
     let nodes = de(o.m);
     if (o.dest !== CFG.dest){
       if (EMBED){ CFG.dest = o.dest === "obsidian" ? "obsidian" : "roam"; saveCfg(); applyDest(); const h = H(); h.mode && h.mode(); }
-      else { const lines = []; (function f(l){ for (const n of l){ lines.push(n.text); f(n.children); } })(nodes); nodes = parseMarkdown(lines.join("\n")); toast("المسودة كانت بنمط الأسطر في الجهاز الآخر؛ عُرضت هنا كتلاً"); }
+      else nodes = convertModel(nodes, o.dest === "obsidian" ? "obsidian" : "roam", CFG.dest);
     }
     const m = (!EMBED && S.header && !isOb()) ? [mkHeader(nodes.length ? nodes : [mk("")])] : (nodes.length ? nodes : [mk("")]);
+    if (isOb() && !EMBED) OBFD = obsFileDir();
     if (ACTIVE === "main"){ model = m; editingId = null; render(); } else CTXS.main.model = m;
     st.h = hash(JSON.stringify(local().m)); st.editT = o.t; save(); draftSave();
   }
@@ -4060,6 +4071,7 @@ const DSYNC = (function(){
     if (busy){ again = true; return; }
     if (!navigator.onLine){ setState("pend"); return; }
     busy = true; clearTimeout(timer); gname = graphName(); setState("busy");
+    if (gname !== st.g){ page = ""; copies = []; st.t = 0; st.h = ""; st.g = gname; save(); }   // تغيّر غراف المزامنة: صفحته وحالته غير التي قبله
     try {
       const pu = await ensurePageUid();
       const r = await call("q", {query:"[:find ?u ?s :in $ ?p :where [?pg :block/uid ?p] [?pg :block/children ?b] [?b :block/uid ?u] [?b :block/string ?s]]", args:[pu]});
@@ -4102,7 +4114,7 @@ const DSYNC = (function(){
   function drawNote(){
     let box = $("#dsNote");
     if (!box){ box = el("div"); box.id = "dsNote"; const o = $("#outline"); o.parentElement.insertBefore(box, o); }
-    box.hidden = !copies.length || (TABS.cur && TABS.cur.kind !== "draft" && !EMBED); box.innerHTML = ""; if (box.hidden) return;
+    box.hidden = !copies.length || (TABS.cur && TABS.cur.kind !== "draft" && !EMBED && !isOb()); box.innerHTML = ""; if (box.hidden) return;
     const c = copies[0], when = c.t ? new Date(c.t).toLocaleString("ar-EG", {dateStyle:"short", timeStyle:"short"}) : "";
     const t = el("span"); t.textContent = "توجد نسخة أخرى لم تُدمج" + (c.dev ? " (من " + c.dev + (when ? "، " + when : "") + ")" : "") + (copies.length > 1 ? " — وغيرها " + copies.length.toLocaleString("ar-EG") : "");
     const b = (label, fn) => { const x = el("button", "ghost"); x.textContent = label; x.onclick = fn; box.appendChild(x); };
@@ -4117,10 +4129,7 @@ const DSYNC = (function(){
   }
   async function append(c){
     let nodes = de(c.m);
-    if (c.dest !== CFG.dest){
-      if (CFG.dest === "obsidian"){ const md = toObsidian(prune(nodes, 6, true), true); nodes = splitUnits(md).map(u => mk(u)); }
-      else { const lines = []; (function f(l){ for (const n of l){ lines.push(n.text); f(n.children); } })(nodes); nodes = parseMarkdown(lines.join("\n")); }
-    }
+    if (c.dest !== CFG.dest) nodes = convertModel(nodes, c.dest === "obsidian" ? "obsidian" : "roam", CFG.dest);
     if (ACTIVE !== "main") activate("main");
     pushHist(); const host = (model.length === 1 && model[0].hdr) ? model[0].children : model;
     while (host.length && !host[host.length-1].text.trim() && !host[host.length-1].children.length) host.pop();
@@ -4222,6 +4231,13 @@ function embedTouch(){                                // اللمس: ضغطة ط
   const H = () => { try { return parent.ENGHOOK || {}; } catch(e){ return {}; } };
   const dist = e => Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
   const fakeEv = (x, y) => ({clientX:x, clientY:y, button:0, preventDefault(){}});
+  const pull = el("div"); pull.id = "ePull"; document.body.prepend(pull); let pl = null;   // السحب إلى أسفل من رأس المسودة: مزامنتها
+  document.addEventListener("touchstart", e => { pl = (e.touches.length === 1 && window.scrollY <= 0 && !document.querySelector("textarea.ed:focus")) ? {y:e.touches[0].clientY, h:0} : null; }, {passive:true});
+  document.addEventListener("touchmove", e => { if (!pl || T.m) return; if (e.touches.length !== 1){ pl = null; pull.style.height = "0"; return; }
+    const dy = e.touches[0].clientY - pl.y; if (dy <= 0 || window.scrollY > 0){ pull.style.height = "0"; pl.h = 0; return; }
+    pl.h = Math.min(70, dy / 2.2); pull.style.height = pl.h + "px"; pull.textContent = pl.h >= 52 ? "أفلت للمزامنة" : "اسحب للمزامنة"; }, {passive:true});
+  const pend = () => { if (!pl) return; const go = pl.h >= 52; pl = null; pull.style.height = "0"; if (go) DSYNC.now(true); };
+  document.addEventListener("touchend", pend); document.addEventListener("touchcancel", pend);
   document.addEventListener("touchstart", e => {
     if (e.touches.length === 2){ clearTimeout(T.tm); T.m = ""; const h = H(); pz = {d:dist(e), fs:h.fs ? h.fs() : VIEW.fs}; return; }
     if (e.touches.length !== 1 || isOb()) return;
@@ -4275,11 +4291,14 @@ init(); rpInit(); sideInit();
 if (draftLoad()) render();
 tabsInit();
 setTimeout(() => DSYNC.now(false), 2000);
-document.addEventListener("visibilitychange", () => { if (!document.hidden && TABS.cur && TABS.cur.kind === "draft") DSYNC.now(false); });
+document.addEventListener("visibilitychange", () => { if (!document.hidden && (isOb() || TABS.cur && TABS.cur.kind === "draft")) DSYNC.now(false); });
 }
 document.addEventListener("keydown", e => {
   if (!e.altKey || e.ctrlKey || e.shiftKey) return;
-  if (e.code === "KeyR" && DOC){ e.preventDefault(); syncDoc(); }
+  if (e.code === "KeyR" && (isOb() || TABS.cur && TABS.cur.kind === "draft")){ e.preventDefault(); DSYNC.now(true); }
+  else if (e.code === "KeyR" && DOC){ e.preventDefault(); syncDoc(); }
+  else if (e.code === "KeyS" && TABS.cur && TABS.cur.kind === "graph" && !isOb()){ e.preventDefault(); $("#btnSplit").click(); }
+  else if (e.code === "KeyW"){ e.preventDefault(); $("#btnWide").click(); }
   else if (e.code === "KeyH" && !isOb()){ e.preventDefault(); hdrSwitch(); }
   else if (e.code === "KeyM" && !isOb()){ e.preventDefault(); modeSwitch(); }
 });
