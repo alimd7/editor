@@ -273,7 +273,7 @@ textarea.live{flex:1;min-width:0;display:block;border:0;outline:0;resize:none;ov
 .pill:not(.tgt) .pin,.pill:not(.tgt) .pti,.pill:not(.tgt) .gl{display:none}
 .sdot{flex:none;width:10px;height:10px;border-radius:50%;background:#2ea44f;margin:0 2px}
 .sdot.warn{background:#e8912d}.sdot.err{background:var(--danger)}.sdot.off{background:var(--line)}
-#home .bar #tSync{width:34px}
+#home .bar .sdot{margin:0 4px}
 .ptitle{font-size:1.5em;font-weight:700;line-height:1.35;padding:6px 4px 10px 4px;word-break:break-word;unicode-bidi:plaintext;text-align:right}
 .ptitle:empty{display:none}
 .ptitle.crumb{font-size:.86em;font-weight:500;line-height:1.6;color:var(--mut);display:flex;flex-wrap:wrap;gap:2px 6px;align-items:baseline;padding:2px 4px 10px}
@@ -295,7 +295,7 @@ body.bdrag{user-select:none;-webkit-user-select:none}
 .selkeys{position:fixed;left:0;right:0;bottom:0;z-index:22}
 #engWrap{flex:1;min-height:0;position:relative}
 #engF{position:absolute;inset:0;width:100%;height:100%;border:0;background:var(--bg)}
-.k.mode{font-size:12px;font-weight:700;color:var(--acc);direction:rtl;min-width:52px}
+.k.mode{color:var(--acc)}
 .krow{display:flex;gap:6px}
 .krow input{flex:1;min-width:0}
 </style>
@@ -320,7 +320,6 @@ body.bdrag{user-select:none;-webkit-user-select:none}
       <input id="tq" dir="rtl" type="search" enterkeyhint="done" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="بحث">
       <span id="tTT" class="ptt"></span><span id="tTG" class="gl on"></span></div>
     <span id="tDot" class="sdot off" aria-label="حالة مزامنة المسودة"></span>
-    <button id="tSync" class="ic" aria-label="زامن المسودة"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.6-5.9M20 4v5h-5"/></svg></button>
     <button class="ic bSet" aria-label="الإعدادات"><svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg></button>
   </header>
   <div id="tList" class="list" hidden></div>
@@ -1431,7 +1430,7 @@ const KEYS_HTML = '<div class="ks">' +
   '<button class="k" data-k="plain" aria-label="لصق كنصّ">' + SV('<rect x="6" y="4" width="12" height="17" rx="2"/><path d="M9 4V3h6v1M9 10h6M9 14h6M9 18h3"/>') + '</button>' +
   '<button class="k" data-k="undo" aria-label="تراجع">' + SV('<path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/>') + '</button>' +
   '<button class="k" data-k="redo" aria-label="إعادة">' + SV('<path d="M15 14l5-5-5-5"/><path d="M20 9H10a6 6 0 0 0 0 12h3"/>') + '</button></div>';
-$("#keys").innerHTML = KEYS_HTML.replace('<div class="ks">', '<div class="ks"><button class="k mode" data-k="mode" id="kMode" aria-label="نمط المسودة">كتل</button>') + '<button class="send">إرسال</button>';
+$("#keys").innerHTML = KEYS_HTML.replace('<div class="ks">', '<div class="ks"><button class="k mode" data-k="mode" id="kMode" aria-label="نمط المسودة"></button>') + '<button class="send">إرسال</button>';
 $("#pkeys").innerHTML = KEYS_HTML.replace('</div>', '<button class="k dl" data-k="del" aria-label="احذف الكتلة">' + SV('<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/>') + '</button></div>') + '<button class="send">تم</button>';
 let ED = {ta:$("#ta"), sugg:$("#sugg")};             // مربع الكتابة النشط وشريط اقتراحه
 let plainNext = false;
@@ -1621,7 +1620,10 @@ const engKey = (k, o) => { if (ENGW) ENGW.ENGAPI.key(k, o); };
 function engView(){ if (!ENGW) return; ENGW.ENGAPI.view(PREFS.fs, PREFS.lh, PREFS.font);
   const cs = getComputedStyle(document.documentElement), v = n => cs.getPropertyValue(n).trim();
   ENGW.ENGAPI.theme({"--bg":v("--bg"), "--text":v("--fg"), "--muted":v("--mut"), "--line":v("--line"), "--accent":v("--acc"), "--link":v("--link"), "--panel":v("--card"), "--hover":v("--card"), "--code":v("--code"), "--mark":v("--mark"), "--bullet":v("--fg"), "--halo":v("--line")}); }
-function kModeMark(){ const b = $("#kMode"); if (b && ENGW) b.textContent = ENGW.ENGAPI.mode() === "obsidian" ? "أسطر" : "كتل"; }
+const IC_BLOCKS = SV('<circle cx="18" cy="6" r="1.4"/><path d="M14 6H4"/><circle cx="15" cy="12" r="1.4"/><path d="M11 12H4"/><circle cx="18" cy="18" r="1.4"/><path d="M14 18H4"/>'),
+      IC_LINES = SV('<path d="M20 6H5" stroke-width="3"/><path d="M20 11H4M20 15H4M20 19H9"/>');
+function kModeMark(){ const b = $("#kMode"); if (!b || !ENGW) return; const ob = ENGW.ENGAPI.mode() === "obsidian";
+  b.innerHTML = ob ? IC_LINES : IC_BLOCKS; b.setAttribute("aria-label", ob ? "المسودة: أسطر وعناوين — المس للتحويل إلى كتل" : "المسودة: كتل Roam — المس للتحويل إلى أسطر"); }
 window.ENGHOOK = {
   ready(w){
     ENGW = w; engDest(); engView(); w.ENGAPI.hold(+PREFS.holdMs || 500); kModeMark();
@@ -1641,7 +1643,6 @@ window.ENGHOOK = {
   fsDone(){ savePrefs(); }
 };
 $("#dSel").addEventListener("pointerdown", e => e.preventDefault());
-$("#tSync").onclick = () => ENG().then(w => w.ENGAPI.sync(true));
 document.addEventListener("visibilitychange", () => { if (!document.hidden && ROUTE.name === "home" && ENGW) ENGW.ENGAPI.sync(false); });
 $("#dSel").addEventListener("click", e => {
   const b = e.target.closest("[data-b]"); if (!b || !ENGW) return; const a = b.dataset.b, X = ENGW.ENGAPI;
