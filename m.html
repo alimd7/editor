@@ -272,9 +272,13 @@ textarea.live{flex:1;min-width:0;display:block;border:0;outline:0;resize:none;ov
 .pill .pin.on{color:#e0a100}.pill .pin.on svg{fill:currentColor}
 .pill:not(.tgt) .pin,.pill:not(.tgt) .pti,.pill:not(.tgt) .gl{display:none}
 .sdot{flex:none;width:10px;height:10px;border-radius:50%;background:#2ea44f;margin:0 2px}
-.sdot.warn{background:#e8912d}
+.sdot.warn{background:#e8912d}.sdot.err{background:var(--danger)}.sdot.off{background:var(--line)}
+#home .bar #tSync{width:34px}
 .ptitle{font-size:1.5em;font-weight:700;line-height:1.35;padding:6px 4px 10px 4px;word-break:break-word;unicode-bidi:plaintext;text-align:right}
 .ptitle:empty{display:none}
+.ptitle.crumb{font-size:.86em;font-weight:500;line-height:1.6;color:var(--mut);display:flex;flex-wrap:wrap;gap:2px 6px;align-items:baseline;padding:2px 4px 10px}
+.ptitle.crumb a{color:var(--link);text-decoration:none;unicode-bidi:plaintext}
+.ptitle.crumb .sep{opacity:.6}
 .it .pi.dst{width:40px;height:40px;margin:-10px -8px -10px 0;border-radius:20px}
 .it .pi.dst:active{background:var(--sel)}
 .it .pi.on{color:var(--acc)}
@@ -315,6 +319,8 @@ body.bdrag{user-select:none;-webkit-user-select:none}
     <div id="tBox" class="pill tgt"><span id="tTI" class="pti on" aria-label="وجهة الإرسال"></span>
       <input id="tq" dir="rtl" type="search" enterkeyhint="done" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="بحث">
       <span id="tTT" class="ptt"></span><span id="tTG" class="gl on"></span></div>
+    <span id="tDot" class="sdot off" aria-label="حالة مزامنة المسودة"></span>
+    <button id="tSync" class="ic" aria-label="زامن المسودة"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.6-5.9M20 4v5h-5"/></svg></button>
     <button class="ic bSet" aria-label="الإعدادات"><svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg></button>
   </header>
   <div id="tList" class="list" hidden></div>
@@ -1234,7 +1240,8 @@ function parseHash(){
   if (h === "set") return {name:"settings"};
   if (h.startsWith("p=")){ let t = h.slice(2); try { t = decodeURIComponent(t); } catch(e){} return {name:"page", kind:"page", title:t === "@today" ? dailyTitle() : t}; }
   if (h.startsWith("b=")){ const m = h.slice(2).split("&q="); let q = m[1] || ""; try { q = decodeURIComponent(q); } catch(e){}
-    const words = m[0].endsWith("&m=2"); return {name:"page", kind:"block", uid:words ? m[0].slice(0, -4) : m[0], q:words ? q.split(" ") : q}; }
+    const parts = m[0].split("&"), words = parts.includes("m=2"), r = (parts.find(x => x.startsWith("r=")) || "").slice(2);
+    return {name:"page", kind:"block", uid:parts[0], r, q:words ? q.split(" ") : q}; }
   return {name:""};
 }
 const depth = () => (history.state && history.state.d) || 0;
@@ -1252,8 +1259,8 @@ function route(){
     const need = ROUTE.name === "home" || ROUTE.name === "voice" ? "draft" : "graph", st = history.state && history.state.tab;
     let i = TABS[TABI] && TABS[TABI].kind === need ? TABI : -1;
     if (st != null && TABS[st] && TABS[st].kind === need) i = st;
-    if (i < 0) i = TABS.findIndex(t => t.kind === need);
-    if (i < 0){ i = 1 - TABI; TABS[i] = need === "draft" ? {kind:"draft"} : {kind:"graph", graph:RAW.roam.current}; }
+    if (i < 0) i = need === "graph" && TABS.LASTG ? TABS.LASTG : TABS.findIndex(t => t.kind === need);
+    if (i < 0) i = need === "draft" ? 0 : 1;
     if (i !== TABI) tabEnter(i);
     if (ROUTE.name !== "voice"){ TABS[TABI].hash = location.hash.slice(1); tabsSave(); }
   }
@@ -1281,10 +1288,14 @@ function fillGraphs(){}
 function tabsSave(){ store.set("rqm-tabs", JSON.stringify({cur:TABI, list:TABS.map(t => ({kind:t.kind, graph:t.graph || "", hash:t.hash || "", q:t.q || ""}))})); }
 function tabsLoad(){
   const sv = jget("rqm-tabs", null), ok = g => graphs().some(x => x.name === g), cur = RAW.roam.current || (graphs()[0] && graphs()[0].name) || "";
-  TABS = [];
-  if (sv && Array.isArray(sv.list)) for (const x of sv.list.slice(0, 2)) TABS.push(x.kind === "draft" ? {kind:"draft", hash:"c"} : {kind:"graph", graph:ok(x.graph) ? x.graph : cur, hash:ok(x.graph) ? x.hash : "", q:x.q || ""});
-  if (TABS.length < 2) TABS = [{kind:"graph", graph:cur}, {kind:"draft", hash:"c"}];
-  TABI = sv && sv.cur === 1 ? 1 : 0;
+  // ثلاثة ألسنة: المسودة ثابتة في الأول، ولسانا غراف بعدها
+  const gs = sv && Array.isArray(sv.list) ? sv.list.filter(x => x.kind === "graph").map(x => ({kind:"graph", graph:ok(x.graph) ? x.graph : cur, hash:ok(x.graph) ? x.hash : "", q:x.q || ""})) : [];
+  if (!gs.length) gs.push({kind:"graph", graph:cur});
+  const other = (graphs().find(g => g.name !== gs[0].graph) || {}).name || cur;
+  while (gs.length < 2) gs.push({kind:"graph", graph:other});
+  TABS = [{kind:"draft", hash:"c"}, gs[0], gs[1]];
+  const was = sv && sv.list && sv.list[sv.cur]; TABI = 0;
+  if (was && was.kind === "graph"){ const k = TABS.findIndex((t, i) => i > 0 && t.graph === was.graph); TABI = k > 0 ? k : 1; }
   if (!ok(DR.graph)) DR.graph = cur;
 }
 function tabsDraw(){
@@ -1293,11 +1304,11 @@ function tabsDraw(){
     b.onclick = () => { if (i === TABI) tabMenu(i); else tabGo(i); }; bar.appendChild(b); });
 }
 function tabMenuClose(){ const m = $("#tabMenu"); if (m) m.remove(); }
-function tabMenu(i){                                 // لمس اللسان الجاري: اختر ما يُفتح فيه
+function tabMenu(i){                                 // لمس اللسان الجاري: اختر الغراف الذي يُفتح فيه (لسان المسودة ثابت)
   if ($("#tabMenu")){ tabMenuClose(); return; }
+  if (TABS[i].kind === "draft") return;
   const m = el("div"); m.id = "tabMenu"; m.appendChild(el("div", "tmh", "افتح في هذا اللسان:"));
   const item = (label, fn) => { const d = el("div", "tmi"); d.textContent = label; d.onclick = () => { tabMenuClose(); fn(); }; m.appendChild(d); };
-  item("المسودة", () => tabSet(i, {kind:"draft", hash:"c"}));
   for (const g of graphs()) item(glabel(g.name) + (GLAB[g.name] ? "  ·  " + g.name : "") + (isLocal(g.name) ? "" : "  (غير محمَّل)"), () => tabSet(i, {kind:"graph", graph:g.name, hash:"s", q:""}));
   document.body.appendChild(m);
   setTimeout(() => document.addEventListener("click", function off(e){ if (!e.target.closest("#tabMenu")){ tabMenuClose(); document.removeEventListener("click", off); } }), 0);
@@ -1313,7 +1324,7 @@ function graphLite(name){                            // بدّل الغراف ا
   loadQueue(); setGraphLocal(); flush();
 }
 function tabEnter(i){                                // ادخل لساناً: استعد حاله (صفحاته المفتوحة تبقى في الذاكرة فلا تُجلب ثانية)
-  tabLeave(); TABI = i; const t = TABS[i];
+  tabLeave(); TABI = i; const t = TABS[i]; if (t.kind === "graph") TABS.LASTG = i;
   if (t.cache) t.cache.forEach((v, k) => pageCache.set(k, v)); BCACHE = t.bc || new Map(); t.cache = null; t.bc = null;
   graphLite(t.kind === "draft" ? DR.graph : t.graph);
   if (t.kind === "draft") TARGET = DR.set ? DR.page : {kind:"today"};
@@ -1322,7 +1333,7 @@ function tabEnter(i){                                // ادخل لساناً: �
 function tabGo(i){ liveClose().then(() => { tabEnter(i); const t = TABS[i]; history.pushState({d:depth()+1, tab:i}, "", "#" + (t.hash || (t.kind === "draft" ? "c" : "s"))); route(); }); }
 function tabSet(i, t){ liveClose().then(() => { if (i === TABI){ tabLeave(); } TABS[i] = t; TABI = -1; tabEnter(i); history.replaceState(Object.assign({}, history.state, {tab:i}), "", "#" + t.hash); route(); }); }
 function useGraph(name, quiet){                      // من الإعدادات: اجعل الغراف جارياً (في لسان غراف)
-  let i = TABS[TABI] && TABS[TABI].kind === "graph" ? TABI : TABS.findIndex(t => t.kind === "graph"); if (i < 0) i = 0;
+  let i = TABS[TABI] && TABS[TABI].kind === "graph" ? TABI : TABS.findIndex(t => t.kind === "graph"); if (i < 1) i = 1;
   if (i === TABI) tabLeave();
   TABS[i] = {kind:"graph", graph:name, hash:"s", q:""}; RAW.roam.current = name; saveCfg(); loadPages(); pageCache.clear(); loadQueue(); setGraphLocal(); tabsSave();
   if (!graphs().some(g => g.name === DR.graph)) DR.graph = name;
@@ -1396,12 +1407,13 @@ function swipeable(list, onSwipe){
   list.addEventListener("touchend", end); list.addEventListener("touchcancel", end);
 }
 function openAdjacent(g, title){                     // من المسودة: افتح الصفحة في اللسان الآخر، في غرافها
-  const i = 1 - TABI, t = TABS[i]; if (!(t && t.kind === "graph" && t.graph === g)) TABS[i] = {kind:"graph", graph:g, q:""};
+  let i = TABS.findIndex((t, k) => k > 0 && t.graph === g);               // لسان غرافها إن كان مفتوحاً، وإلا آخر لسان غراف زرته
+  if (i < 1){ i = TABS.LASTG && TABS.LASTG !== TABI ? TABS.LASTG : 1; TABS[i] = {kind:"graph", graph:g, q:""}; }
   TABS[i].hash = pageHash(title); $("#tList").hidden = true; tabGo(i);
 }
 function draftAdjacent(title){                       // من بحث الغراف: افتح المسودة في اللسان الآخر ووجهتها هذه الصفحة
   DR.graph = RAW.roam.current; DR.set = true; DR.page = title === "@today" ? {kind:"today", title:""} : {kind:"page", title}; saveDR();
-  const i = 1 - TABI; TABS[i] = {kind:"draft", hash:"c"}; tabGo(i);
+  tabGo(0);
 }
 
 
@@ -1594,7 +1606,7 @@ function setTarget(t){
 }
 function enterHome(){
   TARGET = DR.set ? DR.page : {kind:"today"}; $("#tList").hidden = true; $("#tq").value = ""; tMark();
-  ENG().then(w => { engDest(); kModeMark(); ED = {ta:w.document.querySelector("textarea.ed") || ta, sugg:$("#sugg"), eng:true, win:w}; updateSugg(); setTimeout(engFocus, 60); });
+  ENG().then(w => { engDest(); kModeMark(); ED = {ta:w.document.querySelector("textarea.ed") || ta, sugg:$("#sugg"), eng:true, win:w}; updateSugg(); setTimeout(engFocus, 60); w.ENGAPI.sync(false); });
 }
 /* ---- المسودة: محرّر الحاسوب نفسه (كتل Roam، أو أسطر وعناوين) داخل إطار ---- */
 let ENGW = null, ENGP = null;
@@ -1621,11 +1633,16 @@ window.ENGHOOK = {
   dates(){ showDates(); },
   mode(){ kModeMark(); },
   bs(on){ $("#dSel").hidden = !on; $("#keys").hidden = on; if (on) $("#sugg").hidden = true; },
+  dsGraph(){ const w = PREFS.dsGraph; if (w === "-") return ""; const ok = n => graphs().some(g => g.name === n && g.token); return ok(w) ? w : ok(PREFS.defGraph) ? PREFS.defGraph : ((graphs().find(g => g.token) || {}).name || ""); },
+  async dsCall(kind, body){ const g = graphs().find(x => x.name === ENGHOOK.dsGraph()); if (!g) throw new Error("لا غراف"); return await roam(kind, body, {graph:g, soft:true, timeout:30000}); },
+  dsState(st){ const d = $("#tDot"); d.className = "sdot " + (st === "ok" ? "" : st === "err" ? "err" : st === "off" ? "off" : "warn"); },
   fs(){ return +PREFS.fs || 17; },
   setFs(v){ setFs(v); },
   fsDone(){ savePrefs(); }
 };
 $("#dSel").addEventListener("pointerdown", e => e.preventDefault());
+$("#tSync").onclick = () => ENG().then(w => w.ENGAPI.sync(true));
+document.addEventListener("visibilitychange", () => { if (!document.hidden && ROUTE.name === "home" && ENGW) ENGW.ENGAPI.sync(false); });
 $("#dSel").addEventListener("click", e => {
   const b = e.target.closest("[data-b]"); if (!b || !ENGW) return; const a = b.dataset.b, X = ENGW.ENGAPI;
   if (a === "undo"){ X.undo(); return; }
@@ -2127,12 +2144,12 @@ function fillRefs(body, r){
 }
 function enterView(){
   $("#pAdd").hidden = ROUTE.kind !== "page"; pinMark();
-  if (ROUTE.kind === "block") return enterBlock(ROUTE.uid, ROUTE.q);
+  if (ROUTE.kind === "block") return enterBlock(ROUTE.uid, ROUTE.q, ROUTE.r);
   return enterPage(ROUTE.title);
 }
 async function enterPage(title){
   const key = cacheKey(title); let c = pageCache.get(key);
-  $("#pTitle").textContent = title; $("#pTitle").onclick = null;
+  $("#pTitle").className = "ptitle"; $("#pTitle").textContent = title; $("#pTitle").onclick = null;
   if (!c){ c = {kind:"page", title, root:null, refs:null, scroll:0, stale:false, missing:false}; pageCache.set(key, c); }
   CUR = c; addRecent(title); ROOTHL.set(title, pBody, PREFS.roots);
   if (c.root && !c.stale){ drawTree(); drawRefs(); pBody.scrollTop = c.scroll || 0; return; }
@@ -2198,41 +2215,56 @@ async function loadRefs(c, seq){
 
 /* ---- كتلة مع أبيها (نتيجة بحث نصي، أو مرجع كتلة) ---- */
 let HITS = [], hitI = 0;
-async function enterBlock(uid, q){
-  const bk = uid + "|" + JSON.stringify(q || ""), hit = BCACHE.get(bk);
+function crumbDraw(c){                               // المسار فوق الكتلة: الصفحة ثم الآباء، وكل جزء يُلمس
+  const tt = $("#pTitle"); tt.className = "ptitle crumb"; tt.innerHTML = ""; tt.onclick = null;
+  const a0 = el("a", "cp"); a0.textContent = c.title || "؟"; a0.dataset.p = c.title || ""; tt.appendChild(a0);
+  for (const x of c.crumbs || []){ const sp = el("span", "sep"); sp.textContent = "›"; const a = el("a", "ca"); a.dataset.u = x.uid;
+    a.innerHTML = inl(x.s.length > 90 ? x.s.slice(0, 90) + "…" : x.s); a.querySelectorAll("a,.bref").forEach(y => y.replaceWith(document.createTextNode(y.textContent))); tt.append(sp, a); }
+  tt.onclick = e => { const a = e.target.closest("a"); if (!a) return; e.preventDefault(); e.stopPropagation();
+    if (a.dataset.p != null && a.classList.contains("cp")){ if (a.dataset.p) liveClose().then(() => go(pageHash(a.dataset.p))); return; }
+    const qq = Array.isArray(c.q) ? c.q.join(" ") : (c.q || "");
+    liveClose().then(() => go("b=" + a.dataset.u + "&r=" + (c.hitU || c.uid) + (Array.isArray(c.q) ? "&m=2" : "") + "&q=" + encodeURIComponent(qq))); };
+  pinMark();
+}
+function showTarget(c, first){
+  const be = pTree.querySelector('.blk[data-u="' + (c.hitU || c.uid) + '"]'); if (!be) return;
+  be.querySelector(":scope > .row").classList.add("tgt");
+  HITS = (c.q && c.q.length) ? markMatches(be.querySelector(":scope > .row > .txt"), c.q) : []; hitI = 0;
+  if (first){ showHit(true); if (!HITS.length) be.scrollIntoView({block:"center"}); } else $("#hitNav").hidden = HITS.length < 2;
+}
+async function enterBlock(uid, q, reveal){
+  const bk = uid + "|" + (reveal || "") + "|" + JSON.stringify(q || ""), hit = BCACHE.get(bk);
   if (hit && hit.root){                               // عدنا إليها: اعرضها كما كانت، بلا قراءة من التخزين
     ++viewSeq; CUR = hit; ROOTHL.set(hit.rootT || "", pBody, !!PREFS.roots && !!hit.rootT);
-    const tt = $("#pTitle"); tt.textContent = hit.title; tt.onclick = () => { if (hit.title) go(pageHash(hit.title)); }; pinMark();
-    pRefs.innerHTML = ""; drawTree();
-    const be = pTree.querySelector('.blk[data-u="'+uid+'"]');
-    if (be){ be.querySelector(":scope > .row").classList.add("tgt"); HITS = (q && q.length) ? markMatches(be.querySelector(":scope > .row > .txt"), q) : []; hitI = 0; $("#hitNav").hidden = HITS.length < 2; }
+    crumbDraw(hit); pRefs.innerHTML = ""; drawTree(); showTarget(hit, false);
     pBody.scrollTop = hit.scroll || 0; return;
   }
-  const seq = ++viewSeq; CUR = {kind:"block", uid, title:"", root:null, refs:null}; ROOTHL.set("", null, false);
-  $("#pTitle").textContent = ""; pTree.innerHTML = '<div class="pmsg">…</div>'; pRefs.innerHTML = "";
+  const seq = ++viewSeq; CUR = {kind:"block", uid, title:"", root:null, refs:null, q, crumbs:[], hitU:null}; ROOTHL.set("", null, false);
+  $("#pTitle").className = "ptitle crumb"; $("#pTitle").textContent = ""; pTree.innerHTML = '<div class="pmsg">…</div>'; pRefs.innerHTML = "";
   try {
     if (!LOC) throw new Error("عرض الكتلة يحتاج النسخة المحلية للغراف");
     await openLocal();
     const [n] = await lNodes([uid], null); if (!n) throw new Error("الكتلة غير موجودة في النسخة المحلية — جرّب المزامنة");
     if (seq !== viewSeq) return;
-    const title = PT.get(n.g) || "", root = mkNode({uid:n.g, g:n.g, isPage:true, loc:true, partial:true});
-    n._open = false;
-    if (n.parent && n.parent !== n.g){
-      const [p] = await lNodes([n.parent], root);
-      if (p){ p.kids = [n]; p.lazy = false; p.loaded = true; p.partial = true; p._open = true; n.pn = p; root.kids = [p]; }
+    const title = PT.get(n.g) || "", top = n.parent && n.parent !== n.g, root = mkNode({uid:top ? n.parent : n.g, g:n.g, isPage:!top, loc:true, partial:true, loaded:true});
+    const crumbs = []; { let p = n.parent, guard = 0; while (p && p !== n.g && guard++ < 60){ const [pn] = await lNodes([p], null); if (!pn) break; crumbs.unshift({uid:p, s:pn.s || ""}); p = pn.parent; } }
+    n.pn = root; root.kids = [n];
+    if (hasKids(n)){ await loadAll(n); n._open = true; for (const k of n.kids) k._open = false; }
+    let hitU = null;
+    if (reveal && reveal !== uid){                     // جئت من كتلة تحتها: انشر الطريق إليها وحدها، واطوِ ما سواه
+      const path = []; { let p = reveal, guard = 0; while (p && p !== uid && guard++ < 60){ path.unshift(p); const [x] = await lNodes([p], null); if (!x) break; p = x.parent; } }
+      let cur = n;
+      for (const u of path){ const nx = cur.kids.find(k => k.uid === u); if (!nx) break; for (const k of cur.kids) k._open = false; cur._open = true;
+        if (hasKids(nx)){ await loadAll(nx); for (const k of nx.kids) k._open = false; } nx._open = hasKids(nx); cur = nx; }
+      if (cur.uid === reveal) hitU = reveal;
     }
-    if (!root.kids.length){ n.pn = root; root.kids = [n]; }
     if (seq !== viewSeq) return;
-    CUR.root = root; CUR.title = title; BCACHE.set(bk, CUR); const me = CUR;
+    Object.assign(CUR, {root, title, crumbs, hitU}); BCACHE.set(bk, CUR); const me = CUR;
     if (PREFS.roots) rootOfBlock(uid).then(rt => { me.rootT = rt; if (seq === viewSeq) ROOTHL.set(rt, pBody, true); });
-    const tt = $("#pTitle"); tt.textContent = title; tt.onclick = () => { if (title) go(pageHash(title)); }; pinMark();
-    drawTree();
-    const be = pTree.querySelector('.blk[data-u="'+uid+'"]'); if (!be) return;
-    be.querySelector(":scope > .row").classList.add("tgt");
-    HITS = (q && q.length) ? markMatches(be.querySelector(":scope > .row > .txt"), q) : []; hitI = 0;
-    showHit(true); if (!HITS.length) be.scrollIntoView({block:"center"});
+    crumbDraw(CUR); drawTree(); showTarget(CUR, true);
   } catch(e){ if (seq === viewSeq){ pTree.innerHTML = ""; const m = el("div", "pmsg"); m.textContent = e.message; pTree.appendChild(m); } }
 }
+async function loadAll(n){ let guard = 0; while ((n.lazy || n.more || !n.loaded) && guard++ < 40){ await loadKids(n); if (!n.more) break; } }
 function markMatches(root, q){                        // ظلّل مواضع العبارة (أو الكلمات) داخل نص الكتلة، بتجاهل التشكيل
   const terms = (Array.isArray(q) ? q : [q.trim()]).map(foldStr).filter(t => t.length); if (!terms.length) return [];
   const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT), nodes = [], offs = [], bytes = []; let t;
@@ -3025,6 +3057,7 @@ function renderSettings(){
   { const ckm = el("label", "ck"), cbm = el("input"); cbm.type = "checkbox"; cbm.checked = SMODE === 2; cbm.onchange = () => { SMODE = cbm.checked ? 2 : 1; PREFS.smode = SMODE; savePrefs(); }; ckm.append(cbm, "البحث المجرّد: تجريد الكلمات من الزوائد، ووجودها كلها في الكتلة ولو متفرقة"); box.appendChild(ckm); }
   { const ckn = el("label", "ck"), cbn = el("input"); cbn.type = "checkbox"; cbn.checked = !!PREFS.ns; cbn.onchange = () => { PREFS.ns = cbn.checked; savePrefs(); pageCache.clear(); }; ckn.append(cbn, "اختصار أسماء الصفحات ذات / إلى جزئها الأخير، داخل النصوص فقط (كما في Roam)"); box.appendChild(ckn); }
   h3("الكتابة من المسودة");
+  sel("مزامنة المسودة مع الأجهزة الأخرى (صفحة «المحرر/المسودة» في الغراف)", [["","الغراف الافتراضي"],["-","بلا مزامنة"]].concat(graphs().filter(g => g.token).map(g => [g.name, g.name])), PREFS.dsGraph || "", v => { PREFS.dsGraph = v; savePrefs(); if (ENGW) ENGW.ENGAPI.sync(true); });
   { const ckh = el("label", "ck"), cbh = el("input"); cbh.type = "checkbox"; cbh.checked = graphs().length > 0 && graphs().every(g => g.header !== false);
     cbh.onchange = () => { graphs().forEach(g => { g.header = cbh.checked; }); saveCfg(); }; ckh.append(cbh, "ترويسة التاريخ والوقت فوق كل ما يُرسل من المسودة"); box.appendChild(ckh); }
   voiceSettings(box, h3);
