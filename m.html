@@ -2246,8 +2246,11 @@ async function enterBlock(uid, q, reveal){
     await openLocal();
     const [n] = await lNodes([uid], null); if (!n) throw new Error("الكتلة غير موجودة في النسخة المحلية — جرّب المزامنة");
     if (seq !== viewSeq) return;
-    const title = PT.get(n.g) || "", top = n.parent && n.parent !== n.g, root = mkNode({uid:top ? n.parent : n.g, g:n.g, isPage:!top, loc:true, partial:true, loaded:true});
-    const crumbs = []; { let p = n.parent, guard = 0; while (p && p !== n.g && guard++ < 60){ const [pn] = await lNodes([p], null); if (!pn) break; crumbs.unshift({uid:p, s:pn.s || ""}); p = pn.parent; } }
+    const top = n.parent && n.parent !== n.g, root = mkNode({uid:top ? n.parent : n.g, g:n.g, isPage:!top, loc:true, partial:true, loaded:true});
+    const crumbs = []; let pgU = n.g; { let p = n.parent, guard = 0;   // المسار: الآباء إلى أعلاها، وأعلاها الصفحة
+      while (p && guard++ < 60){ if (PT.get(p)){ pgU = p; break; } const [pn] = await lNodes([p], null); if (!pn){ pgU = p; break; } crumbs.unshift({uid:p, s:pn.s || ""}); p = pn.parent; } }
+    let title = PT.get(pgU) || PT.get(n.g) || "";
+    if (!title && navigator.onLine){ try { const r = await roam("q", {query:"[:find ?t . :in $ ?u :where [?e :block/uid ?u] [?e :node/title ?t]]", args:[pgU]}, {timeout:9000}); if (typeof r.result === "string") title = r.result; } catch(e){} }
     n.pn = root; root.kids = [n];
     if (hasKids(n)){ await loadAll(n); n._open = true; for (const k of n.kids) k._open = false; }
     let hitU = null;
