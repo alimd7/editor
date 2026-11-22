@@ -148,7 +148,11 @@ body.rpopen{padding-left:var(--spw,46vw)}
 #rpBox:focus-within{border-color:var(--accent)}
 #rpQ{flex:1;min-width:0;height:100%;border:0;padding:0;background:transparent;color:var(--text);font:inherit;outline:0}
 #rpTI,#rpTT,#rpTG{display:none}
-#rpBox.tgt #rpQ{display:none}
+#rpBox.tgt #rpQ,#rpBox.tgt #rpX{display:none}
+#rpQ::-webkit-search-cancel-button{display:none}
+.qx{flex:none;width:24px;height:24px;margin-inline-end:-6px;border:0;border-radius:50%;background:transparent;color:var(--muted);display:grid;place-items:center;cursor:pointer;padding:0}
+.qx[hidden]{display:none}.qx:hover{background:var(--line);color:var(--text)}
+.qx svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round}
 #rpBox.tgt #rpTI{display:inline;flex:none;color:var(--accent);cursor:pointer}
 #rpBox.tgt #rpTT{display:block;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;unicode-bidi:plaintext;text-align:right}
 #rpBox.tgt #rpTG:not(:empty){display:inline-block;flex:none}
@@ -286,13 +290,19 @@ body.resz{user-select:none;cursor:col-resize}
 .block.bsel>.row ::selection{background:transparent}
 .row.dropin{outline:2px solid var(--accent);outline-offset:1px;border-radius:5px}
 body.embed #destbar,body.embed #tabs,body.embed #rpBar,body.embed #rpRes,body.embed #roamBox,body.embed #obsBox,body.embed .actions,body.embed #settings,body.embed #rp,body.embed #rpSep,body.embed #docSlot,body.embed #out,body.embed #toast{display:none!important}
-body.embed{margin:0;padding:0;overscroll-behavior:contain;touch-action:pan-x pan-y}
+body.embed{margin:0;padding:0;overscroll-behavior:contain;touch-action:pan-y}
 body.embed #app{max-width:none;margin:0;padding:10px 10px 80px;border:0;box-shadow:none;min-height:100vh}
 body.embed .block>.row{min-height:calc(var(--fs) * 1.6)}
 body.embed .bullet{touch-action:none}
-#ePull{height:0;overflow:hidden;display:grid;place-items:center;color:var(--muted);font-size:13px;transition:height .15s}
+#ePull{height:0;overflow:hidden;display:grid;place-items:center;color:var(--muted);font-size:13px}#ePull.rel{transition:height .2s}
+#outline.ce{outline:0;caret-color:transparent}
+#outline.ce textarea.ed{caret-color:auto}
+body.embed #outline.plain{padding-inline-start:22px}
+body.embed #outline.plain .row.hastg .tg{width:28px;inset-inline-start:-28px;font-size:21px;opacity:.75;line-height:inherit;text-align:center}
+body.embed #outline.plain .row.col .tg{opacity:1}
 #dropLine{position:fixed;height:3px;border-radius:2px;background:var(--accent);pointer-events:none;z-index:60;display:none}
 body.bdrag,body.bdrag *{cursor:grabbing!important;user-select:none!important}
+html,body{overscroll-behavior-x:none}
 </style>
 </head>
 <body>
@@ -301,7 +311,7 @@ body.bdrag,body.bdrag *{cursor:grabbing!important;user-select:none!important}
   <div id="tabs"></div>
   <div id="rpBar">
     <div id="rpBox"><span id="rpTI" title="وجهة الإرسال — اضغط لإلغائها والعودة إلى اليوم">▤</span>
-    <input id="rpQ" type="search" name="rq-find" dir="rtl" autocomplete="off" autocorrect="off" spellcheck="false" data-lpignore="true" data-1p-ignore placeholder="بحث" title="بحث (Ctrl+Shift+F)">
+    <input id="rpQ" type="search" name="rq-find" dir="rtl" autocomplete="off" autocorrect="off" spellcheck="false" data-lpignore="true" data-1p-ignore placeholder="بحث" title="بحث (Ctrl+Shift+F)"><button id="rpX" class="qx" title="امسح البحث" hidden><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     <span id="rpTT"></span><small id="rpTG"></small><button id="rpStar" class="sic" title="ثبّت الصفحة للوصول السريع من شريط البحث، أو ألغِ تثبيتها"><svg viewBox="0 0 24 24"><path d="M12 3.5l2.6 5.4 5.9.8-4.3 4.1 1 5.8-5.2-2.8-5.2 2.8 1-5.8-4.3-4.1 5.9-.8z"/></svg></button></div>
     <span id="rpDot" class="ok"></span><button id="rpSync" class="sic" title="مزامنة (Alt+R)"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.6-5.9M20 4v5h-5"/></svg></button>
   </div>
@@ -1630,12 +1640,13 @@ function selInfo(){                                  // تظليل المتصف�
   if (!A || !B) return null;
   return {A:A.n, sa:A.o, B:B.n, eb:B.o};
 }
-function xselApply(ins){                             // احذف المظلّل (وادمج ما بقي من الكتلتين) ثم اكتب ins مكانه
+function xselApply(ins, noEdit){                     // احذف المظلّل (وادمج ما بقي من الكتلتين) ثم اكتب ins مكانه
   const S0 = selInfo(); if (!S0) return false;
   const {A, sa, B, eb} = S0;
   pushHist();
   window.getSelection().removeAllRanges();
-  if (A === B){ A.text = A.text.slice(0, sa) + ins + A.text.slice(Math.max(sa, eb)); startEdit(A.id, sa + ins.length); return true; }
+  const done = c => { if (noEdit){ editingId = null; render(); } else startEdit(A.id, c); return true; };
+  if (A === B){ A.text = A.text.slice(0, sa) + ins + A.text.slice(Math.max(sa, eb)); return done(sa + ins.length); }
   const vis = visible(), iA = vis.findIndex(x => x.id === A.id), iB = vis.findIndex(x => x.id === B.id);
   if (iA < 0 || iB < 0 || iB < iA) return false;
   const D = new Set(vis.slice(iA+1, iB+1).map(x => x.id)), after = new Set(vis.slice(iB+1).map(x => x.id));
@@ -1646,7 +1657,7 @@ function xselApply(ins){                             // احذف المظلّل 
     const keep = L.node.children.filter(c => after.has(c.id));   // ما بعد التظليل من أبنائها يُرفع مكانها
     L.list.splice(L.index, 1, ...keep);
   }
-  startEdit(A.id, sa + ins.length); return true;
+  return done(sa + ins.length);
 }
 function xselKey(e){
   if (isOb() || editingId != null || BS.ids.length) return false;
@@ -3939,7 +3950,11 @@ function rpInit(){
   document.addEventListener("mousedown", e => { if (!e.target.closest("#rpRes,#rpBox")) $("#rpRes").hidden = true; });
   setInterval(rpDot, 2000);
   const q = $("#rpQ");
-  q.oninput = () => { RP.sel = 0; rpDraw(); };
+  const qxMark = () => { $("#rpX").hidden = !q.value; };
+  q.oninput = () => { RP.sel = 0; qxMark(); rpDraw(); };
+  $("#rpX").onmousedown = e => { e.preventDefault(); e.stopPropagation(); };
+  $("#rpX").onclick = e => { e.stopPropagation(); q.value = ""; qxMark(); $("#rpBox").classList.remove("tgt"); q.focus(); RP.sel = 0; rpDraw(); };   // امسح وأظهر القائمة الافتراضية
+  q.addEventListener("focus", qxMark); setInterval(() => { if ($("#rpX").hidden === !!q.value) qxMark(); }, 500);
   q.addEventListener("search", () => { if (!q.value) barMark(); });
   q.onfocus = () => { barMark(); rpDraw(); };
   q.onclick = () => { if ($("#rpRes").hidden) rpDraw(); };
@@ -4142,18 +4157,33 @@ const DSYNC = (function(){
     clearTimeout(timer); timer = setTimeout(() => now(false), 3000);
   }
   /* ---- النسخ التي لم تُدمج ---- */
+  const lcopies = () => { try { return JSON.parse(store.get("rq-dcopies") || "[]") || []; } catch(e){ return []; } };     // نسخ محفوظة على الجهاز (حين لا مزامنة)
+  const lsave = L => store.set("rq-dcopies", JSON.stringify(L));
+  const isL = c => String(c.u).startsWith("L:");
+  const allc = () => copies.concat(lcopies()).sort((a, b) => (b.t || 0) - (a.t || 0));
+  async function stash(){                            // احفظ المسودة الحالية «نسخة لم تُدمج» (في الغراف، أو على الجهاز إن تعذّر)
+    const loc = local(); if (!JSON.stringify(loc.m).replace(/"x":""/g, "").match(/"x":/)) return true;
+    const o = Object.assign({}, loc, {t:Date.now(), dev:EMBED ? "الهاتف" : "الحاسوب", copy:1});
+    if (enabled() && navigator.onLine && !busy){ try { gname = graphName(); const pu = await ensurePageUid(), cu = newUid();
+      const w = await call("write", {action:"create-block", location:{"parent-uid":pu, order:"last"}, block:{uid:cu, string:wrap(o)}});
+      if (w.ok){ copies.unshift(Object.assign({u:cu}, o)); drawNote(); return true; } } catch(e){} }
+    const L = lcopies(); L.unshift(Object.assign({u:"L:" + Date.now()}, o)); lsave(L); drawNote(); return true;
+  }
   function drawNote(){
+    const copies = allc();
     let box = $("#dsNote");
     if (!box){ box = el("div"); box.id = "dsNote"; const o = $("#outline"); o.parentElement.insertBefore(box, o); }
     box.hidden = !copies.length || (TABS.cur && TABS.cur.kind !== "draft" && !EMBED && !isOb()); box.innerHTML = ""; if (box.hidden) return;
     const c = copies[0], when = c.t ? new Date(c.t).toLocaleString("ar-EG", {dateStyle:"short", timeStyle:"short"}) : "";
-    const t = el("span"); t.textContent = "توجد نسخة أخرى لم تُدمج" + (c.dev ? " (من " + c.dev + (when ? "، " + when : "") + ")" : "") + (copies.length > 1 ? " — وغيرها " + copies.length.toLocaleString("ar-EG") : "");
+    const t = el("span"); t.textContent = "توجد نسخة أخرى لم تُدمج" + (c.dev ? " (من " + c.dev + (when ? "، " + when : "") + ")" : "") + (copies.length > 1 ? " — وغيرها " + (copies.length - 1).toLocaleString("ar-EG") : "");
     const b = (label, fn) => { const x = el("button", "ghost"); x.textContent = label; x.onclick = fn; box.appendChild(x); };
     box.appendChild(t); b("اعرضها", () => view(c)); b("اجعلها المسوّدة", () => swap(c)); b("ألحقها", () => append(c)); b("احذفها", () => drop(c));
   }
   function view(c){
     const ov = el("div"); ov.id = "dsView";
-    const head = el("div", "dsvh"), x = el("button", "ghost"); head.textContent = "نسخة لم تُدمج" + (c.dev ? " — من " + c.dev : ""); x.textContent = "رجوع"; x.onclick = () => ov.remove(); head.appendChild(x); ov.appendChild(head);
+    const HK = () => { try { return parent !== window && parent.ENGHOOK || {}; } catch(e){ return {}; } };
+    const head = el("div", "dsvh"), x = el("button", "ghost"); head.textContent = "نسخة لم تُدمج" + (c.dev ? " — من " + c.dev : ""); x.textContent = "رجوع"; x.onclick = () => { ov.remove(); const h = HK(); h.ovDone && h.ovDone(); }; head.appendChild(x); ov.appendChild(head);
+    { const h = HK(); h.ovOpen && h.ovOpen(() => ov.remove()); }                  // زر الرجوع في الهاتف يغلق العرض أولاً
     const bodyEl = el("div", "dsvb");
     (function f(list, host){ const ul = el("ul"); for (const o of list){ const li = el("li"); li.innerHTML = c.dest === "obsidian" ? renderObsInline(o.x || "") : renderInline(o.x || ""); if (o.k) f(o.k, li); ul.appendChild(li); } host.appendChild(ul); })(c.m, bodyEl);
     ov.appendChild(bodyEl); document.body.appendChild(ov);
@@ -4175,20 +4205,24 @@ const DSYNC = (function(){
       gname = graphName(); const loc = local();
       const empty = !JSON.stringify(loc.m).replace(/"x":""/g, "").match(/"x":/);
       const mine = Object.assign({}, loc, {t:st.editT || Date.now(), dev:EMBED ? "الهاتف" : "الحاسوب", copy:1});
-      const w = empty ? await call("write", {action:"delete-block", block:{uid:c.u}})
-                      : await call("write", {action:"update-block", block:{uid:c.u, string:wrap(mine)}});
-      if (!w.ok) throw new Error("Roam (" + w.status + ")");
-      copies = copies.filter(x => x !== c); if (!empty) copies.unshift(Object.assign({u:c.u}, mine));
+      if (isL(c)){ const L = lcopies().filter(x => x.u !== c.u); if (!empty) L.unshift(Object.assign({u:c.u}, mine)); lsave(L); }
+      else {
+        const w = empty ? await call("write", {action:"delete-block", block:{uid:c.u}})
+                        : await call("write", {action:"update-block", block:{uid:c.u, string:wrap(mine)}});
+        if (!w.ok) throw new Error("Roam (" + w.status + ")");
+        copies = copies.filter(x => x.u !== c.u); if (!empty) copies.unshift(Object.assign({u:c.u}, mine));
+      }
       if (ACTIVE === "main") pushHist();
       apply(Object.assign({}, c, {t:Date.now()})); st.h = ""; save();     // تُرفع إلى المسودة المشتركة في المزامنة التالية
       drawNote(); toast(empty ? "صارت المسودة" : "صارت المسودة، وحُفظت مسودتك السابقة نسخةً"); now(true);
     } catch(e){ toast("تعذّر: " + e.message); }
   }
   async function drop(c, quiet){
-    try { gname = graphName(); const w = await call("write", {action:"delete-block", block:{uid:c.u}}); if (!w.ok) throw new Error("Roam (" + w.status + ")"); copies = copies.filter(x => x !== c); drawNote(); if (!quiet) toast("حُذفت النسخة"); }
+    if (isL(c)){ lsave(lcopies().filter(x => x.u !== c.u)); drawNote(); if (!quiet) toast("حُذفت النسخة"); return; }
+    try { gname = graphName(); const w = await call("write", {action:"delete-block", block:{uid:c.u}}); if (!w.ok) throw new Error("Roam (" + w.status + ")"); copies = copies.filter(x => x.u !== c.u); drawNote(); if (!quiet) toast("حُذفت النسخة"); }
     catch(e){ toast("تعذّر الحذف: " + e.message); }
   }
-  return {now, changed, get state(){ return state; }, drawNote, enabled};
+  return {now, changed, get state(){ return state; }, drawNote, enabled, stash};
 })();
 
 /* ============================================================
@@ -4197,6 +4231,7 @@ const DSYNC = (function(){
 function embedInit(){
   document.body.classList.add("embed");
   const H = () => { try { return parent.ENGHOOK || {}; } catch(e){ return {}; } };
+  toast = function(m){ const h = H(); if (h.toast) h.toast(m); };                 // رسائل المسودة تظهر في الهاتف نفسه
   draftSave = function(){ store.set("rq-draft:" + CFG.dest, JSON.stringify(ACTIVE === "main" ? model : CTXS.main.model)); DSYNC.changed(); };
   draftTouch = function(){ clearTimeout(draftT); draftT = setTimeout(draftSave, 400); };
   draftLoad = function(){
@@ -4213,6 +4248,7 @@ function embedInit(){
   document.addEventListener("focusin", e => { if (e.target.classList && e.target.classList.contains("ed")) { const h = H(); h.focus && h.focus(e.target); } });
   document.addEventListener("selectionchange", () => { const a = document.activeElement; if (a && a.classList && a.classList.contains("ed")){ const h = H(); h.sugg && h.sugg(); } });
   embedTouch();
+  setTimeout(() => DSYNC.drawNote(), 0);
   window.ENGAPI = ENGAPI;
   const h = H(); h.ready && h.ready(window);
 }
@@ -4265,8 +4301,45 @@ const ENGAPI = {
   undo(){ BS.ids = []; undo(); },
   bsClear(){ bsClear(); },
   sync(force){ return DSYNC.now(force); },
-  dsState(){ return DSYNC.state; }
+  dsState(){ return DSYNC.state; },
+  tselOn(){ return !!tselInfo(); },
+  tsel(a, arg){ return tselDo(a, arg); },
+  async share(text, html, how){                     // نصّ مشارك والمسودة غير فارغة: يُلحق، أو يصير المسودة وتُحفظ السابقة نسخة
+    if (how === "replace"){ await DSYNC.stash(); pushHist(); BS.ids = []; model = []; freshModel(); render(); }
+    ENGAPI.insert(text, html);
+  }
 };
+/* ---- تظليل نصّ معروض (بلا كتابة): حذف ونسخ وقصّ ولصق وإزاحة وتنسيق ---- */
+function tselInfo(){ if (editingId != null || BS.ids.length) return null; try { return selInfo(); } catch(e){ return null; } }
+function tselDo(a, arg){
+  const S0 = tselInfo(); if (!S0) return false;
+  if (a === "copy" || a === "cut"){ const t = window.getSelection().toString(); return copyText(t).then(ok => { if (ok && a === "cut"){ xselApply("", true); draftSave(); } return ok; }); }
+  if (a === "del"){ xselApply("", true); draftSave(); return true; }
+  if (a === "paste"){ if (!arg || !(arg.text || arg.html)) return false; xselApply("", false);
+    const t = document.querySelector("textarea.ed"); if (!t) return false; t.focus();
+    const dt = new DataTransfer(); if (arg.text) dt.setData("text/plain", arg.text); if (arg.html) dt.setData("text/html", arg.html);
+    let ev = null; try { ev = new ClipboardEvent("paste", {clipboardData:dt, bubbles:true, cancelable:true}); } catch(e){}
+    if (ev) t.dispatchEvent(ev); if (!ev || !ev.defaultPrevented){ const tt = document.querySelector("textarea.ed") || t; tt.focus(); document.execCommand("insertText", false, arg.text || ""); }
+    draftSave(); return true; }
+  if (a === "in" || a === "out"){ if (isOb()) return "ob"; window.getSelection().removeAllRanges(); bsSet(S0.A.id, S0.B.id); bsShift(a === "out"); bsClear(); draftSave(); return true; }
+  if (a === "wrap"){ if (S0.A !== S0.B) return "multi"; pushHist(); const t = S0.A.text, x = Math.min(S0.sa, S0.eb), y = Math.max(S0.sa, S0.eb);
+    S0.A.text = t.slice(0, x) + arg[0] + t.slice(x, y) + arg[1] + t.slice(y); window.getSelection().removeAllRanges(); render(); draftSave(); return true; }
+  return false;
+}
+function gbarFix(on){                                  // منطقة العرض «قابلة للتحرير» في نظر المتصفح (بلا لوحة مفاتيح): فلا يظهر بحث جوجل عند التظليل
+  const o = $("#outline"); if (!o) return;
+  if (on){ o.setAttribute("contenteditable", "true"); o.setAttribute("inputmode", "none"); o.setAttribute("virtualkeyboardpolicy", "manual"); o.spellcheck = false; o.classList.add("ce"); }
+  else { o.removeAttribute("contenteditable"); o.removeAttribute("inputmode"); o.removeAttribute("virtualkeyboardpolicy"); o.classList.remove("ce"); }
+  if (o._gb) return; o._gb = true;
+  const inTa = t => !!(t && t.closest && t.closest("textarea"));
+  o.addEventListener("beforeinput", e => { if (o.isContentEditable && !inTa(e.target)) e.preventDefault(); });   // لا يتغيّر شيء إلا بأزرارنا
+  o.addEventListener("drop", e => { if (o.isContentEditable && !inTa(e.target)) e.preventDefault(); });
+  o.addEventListener("cut", e => { if (!o.isContentEditable || inTa(e.target)) return; e.preventDefault(); if (!tselInfo()) return;
+    try { e.clipboardData.setData("text/plain", window.getSelection().toString()); } catch(err){} xselApply("", true); draftSave(); });
+  o.addEventListener("paste", e => { if (!o.isContentEditable || inTa(e.target)) return; e.preventDefault(); const cd = e.clipboardData; if (!cd) return;
+    tselDo("paste", {text:cd.getData("text/plain"), html:cd.getData("text/html")}); });
+  o.addEventListener("click", e => { const a = e.target.closest && e.target.closest("a.ext[href]"); if (a && o.isContentEditable){ e.preventDefault(); window.open(a.href, "_blank", "noopener"); } }, true);
+}
 function looksDoc(txt, html){                        // نصّ فيه عناوين وفقرات بلا نقاط قوائم: وثيقة (نمط الأسطر)
   if (html && !/<li\b/i.test(html) && /<h[1-6]\b/i.test(html)) return true;
   return /^#{1,6}\s/m.test(txt) && !/^\s*[-*•]\s/m.test(txt);
@@ -4277,13 +4350,38 @@ function embedTouch(){                                // اللمس: ضغطة ط
   const H = () => { try { return parent.ENGHOOK || {}; } catch(e){ return {}; } };
   const dist = e => Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
   const fakeEv = (x, y) => ({clientX:x, clientY:y, button:0, preventDefault(){}});
-  const pull = el("div"); pull.id = "ePull"; document.body.prepend(pull); let pl = null;   // السحب إلى أسفل من رأس المسودة: مزامنتها
-  document.addEventListener("touchstart", e => { pl = (e.touches.length === 1 && window.scrollY <= 0 && !document.querySelector("textarea.ed:focus")) ? {y:e.touches[0].clientY, h:0} : null; }, {passive:true});
-  document.addEventListener("touchmove", e => { if (!pl || T.m) return; if (e.touches.length !== 1){ pl = null; pull.style.height = "0"; return; }
-    const dy = e.touches[0].clientY - pl.y; if (dy <= 0 || window.scrollY > 0){ pull.style.height = "0"; pl.h = 0; return; }
-    pl.h = Math.min(70, dy / 2.2); pull.style.height = pl.h + "px"; pull.textContent = pl.h >= 52 ? "أفلت للمزامنة" : "اسحب للمزامنة"; }, {passive:true});
-  const pend = () => { if (!pl) return; const go = pl.h >= 52; pl = null; pull.style.height = "0"; if (go) DSYNC.now(true); };
-  document.addEventListener("touchend", pend); document.addEventListener("touchcancel", pend);
+  const pull = el("div"); pull.id = "ePull"; document.body.prepend(pull); let pl = null, sw = null; const PLIM = 72;   // السحب إلى أسفل من رأس المسودة: مزامنتها
+  const buzz = () => { try { if (navigator.vibrate) navigator.vibrate(15); } catch(e){} };
+  const rub = d => d <= PLIM ? d : PLIM + (d - PLIM) * 0.35;
+  const prel = () => { pull.classList.add("rel"); pull.style.height = "0"; };
+  const txSel = () => { const s0 = window.getSelection(); return !!(s0 && !s0.isCollapsed && String(s0).trim()); };
+  const editingTa = () => !!document.querySelector("textarea.ed:focus");
+  document.addEventListener("touchstart", e => { const t0 = e.touches[0];
+    pl = (e.touches.length === 1 && window.scrollY <= 0) ? {x:t0.clientX, y:t0.clientY, on:false, go:false} : null;
+    const h = H(); sw = (e.touches.length === 1 && !editingTa() && !BS.ids.length && !txSel() && t0.screenX > 24 && t0.screenX < screen.width - 24
+      && !(e.target.closest && e.target.closest(".bullet,textarea,#dsView,#dsNote")) && h.swOK && h.swOK()) ? {x:t0.screenX, y:t0.screenY, on:false} : null; }, {passive:true});
+  document.addEventListener("touchmove", e => {
+    if (e.touches.length !== 1){ if (pl){ pl = null; prel(); } if (sw && sw.on){ const h = H(); h.swEnd && h.swEnd(0); } sw = null; return; }
+    const t0 = e.touches[0];
+    if (sw){                                        // سحب أفقي: إلى اللسان المجاور
+      if (T.m && T.m !== "bpend"){ if (sw.on){ const h = H(); h.swEnd && h.swEnd(0); } sw = null; }
+      else { const dx = t0.screenX - sw.x, dy = t0.screenY - sw.y;
+        if (!sw.on){ if (Math.abs(dx) >= 14 || Math.abs(dy) >= 14){ if (Math.abs(dx) < Math.abs(dy) * 1.6 || txSel()) sw = null; else { sw.on = true; sw.x = t0.screenX; sw.t = Date.now(); sw.dx = 0; if (T.m === "bpend"){ clearTimeout(T.tm); T.m = ""; } if (pl){ pl = null; prel(); } } } }
+        else { e.preventDefault(); sw.dx = t0.screenX - sw.x; const h = H(); h.swMove && h.swMove(sw.dx); return; } }
+    }
+    if (!pl) return;
+    if (T.m === "move" || T.m === "ext" || T.m === "pend"){ pl = null; prel(); return; }
+    const dx = t0.clientX - pl.x, dy = t0.clientY - pl.y;
+    if (!pl.on){ if (dy < 8){ if (dy < -4 || Math.abs(dx) > 12) pl = null; return; }
+      if (Math.abs(dx) > dy || window.scrollY > 0 || txSel()){ pl = null; return; }
+      if (T.m === "bpend"){ clearTimeout(T.tm); T.m = ""; } pl.on = true; pull.classList.remove("rel"); }
+    const hgt = Math.min(140, rub(Math.max(0, dy))); pull.style.height = hgt + "px";
+    const go = hgt >= PLIM; if (go !== pl.go){ pl.go = go; if (go) buzz(); } pull.textContent = go ? "أفلت للمزامنة" : "اسحب للمزامنة"; }, {passive:false});
+  const pend = () => { if (sw && sw.on){ const h = H(); h.swEnd && h.swEnd(sw.dx || 0, Date.now() - sw.t < 260); } sw = null;
+    if (!pl) return; const go = pl.on && pl.go; pl = null; prel(); if (go) DSYNC.now(true); };
+  document.addEventListener("touchend", pend); document.addEventListener("touchcancel", () => { if (sw && sw.on){ const h = H(); h.swEnd && h.swEnd(0); } sw = null; if (pl){ pl = null; prel(); } });
+  document.addEventListener("selectionchange", () => { const h = H(); if (!h.tsel) return; const on = !!tselInfo(); if (on !== EMB.ts){ EMB.ts = on; h.tsel(on); } });
+  { const h = H(); gbarFix(!h.gbar || h.gbar()); }
   document.addEventListener("touchstart", e => {
     if (e.touches.length === 2){ clearTimeout(T.tm); T.m = ""; const h = H(); pz = {d:dist(e), fs:h.fs ? h.fs() : VIEW.fs}; return; }
     if (e.touches.length !== 1 || isOb()) return;

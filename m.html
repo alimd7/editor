@@ -54,6 +54,9 @@ select.chip{max-width:24vw;padding:0 8px}
 .sg.new{border-style:dashed;color:var(--mut)}
 .keys{flex:none;display:flex;align-items:stretch;border-top:1px solid var(--line);background:var(--card);padding-bottom:env(safe-area-inset-bottom);user-select:none;-webkit-user-select:none}
 .keys .ks{flex:1;min-width:0;display:flex;overflow-x:auto;scrollbar-width:none}
+#pTree.ce,#pRefs.ce{outline:0;caret-color:transparent}#pTree.ce textarea,#pRefs.ce textarea{caret-color:auto}
+.keys .k.ts{display:none}.keys.tsel .k.ts{display:grid;color:var(--acc)}
+.keys.disp .k[data-k=tag],.keys.disp .k[data-k=todo],.keys.disp .k[data-k=plain],.keys.disp .k[data-k=redo],.keys.disp .k[data-k=del],.keys.disp .k[data-k=mode]{display:none}
 .k{flex:none;min-width:46px;height:48px;padding:0 10px;display:grid;place-items:center;font-size:16px;font-weight:600;color:var(--fg);border-inline-end:1px solid var(--line);direction:ltr}
 .k.w{font-size:13px;font-weight:500;direction:rtl}
 .send{flex:none;min-width:86px;height:48px;background:var(--acc);color:var(--accfg);font-weight:700;font-size:15px}
@@ -193,6 +196,19 @@ textarea.live{flex:1;min-width:0;display:block;border:0;outline:0;resize:none;ov
 .k.dl{color:var(--danger)}
 #tabs{position:fixed;left:0;right:0;top:var(--vvt,0px);height:38px;display:flex;align-items:flex-end;gap:4px;padding:calc(env(safe-area-inset-top)) 8px 0;background:var(--card);border-bottom:1px solid var(--line);z-index:30;user-select:none;-webkit-user-select:none;box-sizing:content-box}
 #tabs[hidden]{display:none}
+#tabW{flex:2 1 0;min-width:0;display:flex;align-items:flex-end;gap:3px;height:33px;align-self:flex-end}
+#tabSc{flex:1 1 0;min-width:0;display:flex;gap:4px;height:100%;overflow-x:auto;overflow-y:visible;scroll-snap-type:x mandatory;scrollbar-width:none;align-items:flex-end}
+#tabSc::-webkit-scrollbar{display:none}
+#tabSc .tab{flex:1 1 0;scroll-snap-align:start}
+#tabSc.many .tab{flex:0 0 calc(50% - 2px)}
+.tab.two .tw{display:flex;flex-direction:column;min-width:0;line-height:1.1;align-items:center}.tab.two .tw span{font-size:13px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.tab.two small{font-size:10px;color:var(--mut);font-weight:400}
+.tab.drg{transition:none;z-index:2}.tab.bye{color:#c0392b}
+.tab:not(.drg){transition:transform .18s,opacity .18s}
+.tmore{flex:none;align-self:center;margin-top:2px;height:20px;min-width:22px;padding:0 5px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--acc);font-size:11px;font-weight:700;z-index:3;box-shadow:0 1px 4px rgba(0,0,0,.12)}
+.tmore[hidden]{display:none}
+.tadd{flex:none;width:30px;height:30px;margin-bottom:2px;display:grid;place-items:center;border:0;background:none;color:var(--mut);border-radius:8px}
+.tadd:active{background:var(--line)}
+#tabMenu .tmi.cls{color:#c0392b;border-top:1px solid var(--line);margin-top:4px}
 .tab{flex:1 1 0;min-width:0;height:32px;display:flex;align-items:center;justify-content:center;gap:6px;padding:0 10px;border:1px solid transparent;border-bottom:0;border-radius:10px 10px 0 0;color:var(--mut);font-size:14px;position:relative;top:1px}
 .tab.on{background:var(--bg);color:var(--fg);border-color:var(--line);font-weight:700;box-shadow:inset 0 2px 0 var(--acc)}
 .tab span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -205,6 +221,11 @@ textarea.live{flex:1;min-width:0;display:block;border:0;outline:0;resize:none;ov
 #tq{flex:1;min-width:0;height:38px;border:1px solid var(--line);border-radius:19px;padding:0 14px;background:var(--bg);outline:0;font-size:15px}
 #tq.tgt::placeholder{color:var(--acc);opacity:1;font-weight:700}
 #tq::-webkit-search-cancel-button,#sq::-webkit-search-cancel-button{display:none}
+.qx{flex:none;width:34px;height:34px;border:0;border-radius:50%;background:transparent;color:var(--mut);display:grid;place-items:center;padding:0}
+.qx[hidden]{display:none}.qx:active{background:var(--line)}
+.qx svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round}
+.sqw{flex:1;min-width:0;position:relative;display:flex}.sqw #sq{flex:1;padding-inline-end:40px}.sqw .qx{position:absolute;inset-inline-end:4px;top:3px}
+#tBox.tgt #tqX{display:none}
 #tPen.on{color:var(--acc)}
 #tList{position:absolute;left:0;right:0;top:51px;max-height:52%;z-index:12;background:var(--bg);border-bottom:1px solid var(--line);box-shadow:0 8px 18px rgba(0,0,0,.15);flex:none}
 .it .gl{flex:none;font-size:11px;color:var(--mut);border:1px solid var(--line);border-radius:9px;padding:1px 7px}
@@ -282,7 +303,13 @@ textarea.live{flex:1;min-width:0;display:block;border:0;outline:0;resize:none;ov
 .it .pi.dst{width:40px;height:40px;margin:-10px -8px -10px 0;border-radius:20px}
 .it .pi.dst:active{background:var(--sel)}
 .it .pi.on{color:var(--acc)}
-#pPull{height:0;overflow:hidden;display:grid;place-items:center;color:var(--mut);font-size:13px;transition:height .15s}
+#pPull{height:0;overflow:hidden;display:grid;place-items:center;color:var(--mut);font-size:13px}#pPull.rel{transition:height .2s}
+#shareAsk{position:fixed;inset:0;z-index:70;background:rgba(0,0,0,.35);display:flex;align-items:flex-end;justify-content:center}
+#shareAsk .sabox{background:var(--bg);width:100%;max-width:520px;border-radius:16px 16px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:9px}
+#shareAsk .sah{font-weight:700;font-size:16px}#shareAsk .sapv{color:var(--mut);font-size:13px;max-height:5.5em;overflow:hidden;border-inline-start:3px solid var(--line);padding-inline-start:8px;white-space:pre-wrap}
+#shareAsk .btn{width:100%;height:auto;padding:12px;font-size:15px}
+#closeTip{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 18px);transform:translateX(-50%);z-index:60;background:var(--fg);color:var(--bg);padding:7px 14px;border-radius:16px;font-size:13px;opacity:.85;pointer-events:none}
+#closeTip.go{background:#c0392b;color:#fff;opacity:1}#closeTip[hidden]{display:none}
 #fsBadge{position:fixed;top:40%;left:50%;transform:translate(-50%,-50%);background:var(--fg);color:var(--bg);font-size:20px;font-weight:700;padding:10px 20px;border-radius:14px;opacity:0;pointer-events:none;transition:opacity .25s;z-index:70}
 #fsBadge.show{opacity:.92}
 #foldPop{position:fixed;z-index:65;display:flex;gap:6px;background:var(--fg);color:var(--bg);padding:6px;border-radius:14px;box-shadow:0 6px 22px rgba(0,0,0,.3)}
@@ -298,6 +325,8 @@ body.bdrag{user-select:none;-webkit-user-select:none}
 .k.mode{color:var(--acc)}
 .krow{display:flex;gap:6px}
 .krow input{flex:1;min-width:0}
+html,body{overscroll-behavior-x:none}
+#pBody,#sList{touch-action:pan-y}
 </style>
 
 <body>
@@ -306,7 +335,7 @@ body.bdrag{user-select:none;-webkit-user-select:none}
 <nav id="tabs"></nav>
 <div id="search" class="scr" hidden>
   <header class="bar">
-    <input id="sq" dir="rtl" type="search" enterkeyhint="search" placeholder="بحث" autocomplete="off" autocapitalize="off" spellcheck="false">
+    <div class="sqw"><input id="sq" dir="rtl" type="search" enterkeyhint="search" placeholder="بحث" autocomplete="off" autocapitalize="off" spellcheck="false"><button id="sqX" class="qx" aria-label="امسح البحث" hidden><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
     <button class="ic bSet" aria-label="الإعدادات"><svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg></button>
   </header>
   <div id="sInfo" class="hint" hidden><span id="sMsg"></span></div>
@@ -317,7 +346,7 @@ body.bdrag{user-select:none;-webkit-user-select:none}
 <div id="home" class="scr" hidden>
   <header class="bar">
     <div id="tBox" class="pill tgt"><span id="tTI" class="pti on" aria-label="وجهة الإرسال"></span>
-      <input id="tq" dir="rtl" type="search" enterkeyhint="done" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="بحث">
+      <input id="tq" dir="rtl" type="search" enterkeyhint="done" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="بحث"><button id="tqX" class="qx" aria-label="امسح البحث" hidden><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
       <span id="tTT" class="ptt"></span><span id="tTG" class="gl on"></span></div>
     <span id="tDot" class="sdot off" aria-label="حالة مزامنة المسودة"></span>
     <button class="ic bSet" aria-label="الإعدادات"><svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg></button>
@@ -1266,8 +1295,8 @@ function parseHash(){
   return {name:""};
 }
 const depth = () => (history.state && history.state.d) || 0;
-function go(h){ if (location.hash.slice(1) !== h) history.pushState({d:depth()+1, tab:TABI}, "", "#"+h); route(); }
-function goReplace(h){ history.replaceState(Object.assign({}, history.state, {tab:TABI}), "", (h ? "#"+h : location.pathname + location.search)); route(); }
+function go(h){ if (location.hash.slice(1) !== h) history.pushState(Object.assign({d:depth()+1}, hst(TABI)), "", "#"+h); route(); }
+function goReplace(h){ history.replaceState(Object.assign({}, history.state, hst(TABI)), "", (h ? "#"+h : location.pathname + location.search)); route(); }
 function back(){ if (depth() > 0) history.back(); else goReplace(startHash()); }
 const pageHash = t => "p="+encodeURIComponent(t);
 function route(){
@@ -1277,11 +1306,15 @@ function route(){
   if (!G() && ROUTE.name !== "settings"){ goReplace("set"); return; }
   if (!ROUTE.name){ goReplace(startHash()); return; }
   if (ROUTE.name !== "settings"){                    // كل شاشة تخص نوعاً من الألسنة: المسودة للكتابة، والغراف للبحث والعرض
-    const need = ROUTE.name === "home" || ROUTE.name === "voice" ? "draft" : "graph", st = history.state && history.state.tab;
+    const need = ROUTE.name === "home" || ROUTE.name === "voice" ? "draft" : "graph", hs = history.state || {};
     let i = TABS[TABI] && TABS[TABI].kind === need ? TABI : -1;
-    if (st != null && TABS[st] && TABS[st].kind === need) i = st;
-    if (i < 0) i = need === "graph" && TABS.LASTG ? TABS.LASTG : TABS.findIndex(t => t.kind === need);
+    let si = hs.tid ? TABS.findIndex(t => t.id === hs.tid) : (hs.tab != null ? hs.tab : -1);          // لسان هذه الخطوة (بمعرّفه، فلا يضلّ إن أُغلق غيره)
+    if (si < 0 && need === "graph" && hs.g) si = TABS.findIndex(t => t.kind === "graph" && t.graph === hs.g);
+    if (si >= 0 && TABS[si] && TABS[si].kind === need) i = si;
+    if (i < 0) i = need === "graph" && TABS.LASTG && TABS[TABS.LASTG] ? TABS.LASTG : TABS.findIndex(t => t.kind === need);
     if (i < 0) i = need === "draft" ? 0 : 1;
+    if (need === "graph" && hs.g && TABS[i].graph !== hs.g && graphs().some(x => x.name === hs.g)){   // الرجوع يستعيد غراف الخطوة مع صفحتها
+      if (i === TABI){ tabLeave(); TABI = -1; } TABS[i].graph = hs.g; TABS[i].cache = null; TABS[i].bc = null; }
     if (i !== TABI) tabEnter(i);
     if (ROUTE.name !== "voice"){ TABS[TABI].hash = location.hash.slice(1); tabsSave(); }
   }
@@ -1294,7 +1327,11 @@ function route(){
   else if (ROUTE.name === "page") enterView();
   else if (ROUTE.name === "settings") renderSettings();
 }
-window.addEventListener("popstate", route);
+/* نافذة فوق الشاشة (عرض نسخة، سؤال المشاركة): الرجوع يغلقها أولاً */
+let OVL = null, OVSKIP = false;
+function ovOpen(close){ OVL = close; history.pushState(Object.assign({}, history.state, {d:depth()+1, ov:1}), "", location.hash); }
+function ovDone(){ if (!OVL) return; OVL = null; OVSKIP = true; history.back(); }
+window.addEventListener("popstate", () => { if (OVSKIP){ OVSKIP = false; return; } if (OVL){ const f = OVL; OVL = null; f(); return; } route(); });
 document.querySelectorAll(".back").forEach(b => b.onclick = back);
 document.querySelectorAll(".bSet").forEach(b => b.onclick = () => go("set"));
 
@@ -1306,33 +1343,91 @@ let TABS = [], TABI = 0;
 const DR = Object.assign({graph:"", set:false, page:{kind:"today", title:""}}, jget("rqm-dtarget", {}));   // وجهة إرسال المسودة
 const saveDR = () => store.set("rqm-dtarget", JSON.stringify(DR));
 function fillGraphs(){}
-function tabsSave(){ store.set("rqm-tabs", JSON.stringify({cur:TABI, list:TABS.map(t => ({kind:t.kind, graph:t.graph || "", hash:t.hash || "", q:t.q || ""}))})); }
+const MAXG = 5;                                       // أقصى عدد لألسنة الغرافات (والمسودة ثابتة فوقها)
+let TID = +(store.get("rqm-tid") || 1);
+const tid = t => { if (!t.id){ t.id = TID++; store.set("rqm-tid", String(TID)); } return t.id; };
+const hst = i => { const t = TABS[i] || {}; return {tab:i, tid:t.id || 0, g:t.graph || ""}; };   // كل خطوة في مسار الرجوع تحفظ لسانها وغرافه
+function tabsSave(){ store.set("rqm-tabs", JSON.stringify({cur:TABI, list:TABS.map(t => ({kind:t.kind, graph:t.graph || "", hash:t.hash || "", q:t.q || "", id:t.id || 0}))})); }
 function tabsLoad(){
   const sv = jget("rqm-tabs", null), ok = g => graphs().some(x => x.name === g), cur = RAW.roam.current || (graphs()[0] && graphs()[0].name) || "";
-  // ثلاثة ألسنة: المسودة ثابتة في الأول، ولسانا غراف بعدها
-  const gs = sv && Array.isArray(sv.list) ? sv.list.filter(x => x.kind === "graph").map(x => ({kind:"graph", graph:ok(x.graph) ? x.graph : cur, hash:ok(x.graph) ? x.hash : "", q:x.q || ""})) : [];
+  const gs = sv && Array.isArray(sv.list) ? sv.list.filter(x => x.kind === "graph").slice(0, MAXG).map(x => ({kind:"graph", graph:ok(x.graph) ? x.graph : cur, hash:ok(x.graph) ? x.hash : "", q:x.q || "", id:x.id || 0})) : [];
   if (!gs.length) gs.push({kind:"graph", graph:cur});
-  const other = (graphs().find(g => g.name !== gs[0].graph) || {}).name || cur;
-  while (gs.length < 2) gs.push({kind:"graph", graph:other});
-  TABS = [{kind:"draft", hash:"c"}, gs[0], gs[1]];
-  const was = sv && sv.list && sv.list[sv.cur]; TABI = 0;
-  if (was && was.kind === "graph"){ const k = TABS.findIndex((t, i) => i > 0 && t.graph === was.graph); TABI = k > 0 ? k : 1; }
+  TABS = [{kind:"draft", hash:"c", id:(sv && sv.list && sv.list[0] && sv.list[0].kind === "draft" && sv.list[0].id) || 0}].concat(gs); TABS.forEach(tid);
+  TABI = 0;
+  const was = sv && sv.list && sv.list[sv.cur];
+  if (was && was.kind === "graph"){ const k = TABS.findIndex((t, i) => i > 0 && (was.id ? t.id === was.id : t.graph === was.graph)); TABI = k > 0 ? k : 1; }
   if (!ok(DR.graph)) DR.graph = cur;
 }
+const tabLabel = t => t.kind === "draft" ? "المسودة" : glabel(t.graph);
 function tabsDraw(){
   const bar = $("#tabs"); bar.innerHTML = "";
-  TABS.forEach((t, i) => { const b = el("button", "tab" + (i === TABI ? " on" : "")), sp = el("span"); sp.textContent = t.kind === "draft" ? "المسودة" : glabel(t.graph); b.appendChild(sp);
-    b.onclick = () => { if (i === TABI) tabMenu(i); else tabGo(i); }; bar.appendChild(b); });
+  const mk = i => { const t = TABS[i], b = el("button", "tab" + (i === TABI ? " on" : "")), sp = el("span"), pt = t.kind === "graph" ? tabTitle(t) : "";
+    const pg = pt && pt !== "بحث" && pt !== "كتلة";   // لسان على صفحة: اسمها، وتحته غرافها
+    sp.textContent = pg ? pt : tabLabel(t); if (pg){ b.classList.add("two"); const w = el("span", "tw"); w.appendChild(sp); const g = el("small"); g.textContent = glabel(t.graph); w.appendChild(g); b.appendChild(w); } else b.appendChild(sp); b.dataset.i = i;
+    b.onclick = () => { if (b._drag) return; if (i === TABI) tabMenu(i); else tabGo(i); }; if (t.kind === "graph") tabDragClose(b, i); return b; };
+  bar.appendChild(mk(0));
+  const w = el("div"); w.id = "tabW"; const sc = el("div"); sc.id = "tabSc"; w.appendChild(sc);
+  const n = TABS.length - 1; sc.classList.toggle("many", n > 2);
+  for (let i = 1; i < TABS.length; i++) sc.appendChild(mk(i));
+  const mR = el("button", "tmore r"), mL = el("button", "tmore l"); w.prepend(mR); w.appendChild(mL); bar.appendChild(w);
+  const add = el("button", "tadd"); add.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>'; add.title = "لسان جديد"; add.onclick = tabAdd; bar.appendChild(add);
+  const marks = () => {                              // علامة بعدد الألسنة الخفية في كل جهة
+    const r = sc.getBoundingClientRect(); let left = 0, right = 0, firstL = null, firstR = null;
+    for (const b of sc.children){ const x = b.getBoundingClientRect(); if (x.right <= r.left + 4){ left++; if (!firstL || x.right > firstL.getBoundingClientRect().right) firstL = b; } else if (x.left >= r.right - 4){ right++; if (!firstR || x.left < firstR.getBoundingClientRect().left) firstR = b; } }
+    mL.hidden = !left; mL.textContent = AR(left) + "+"; mL.onclick = () => firstL && firstL.scrollIntoView({inline:"nearest", block:"nearest", behavior:"smooth"});
+    mR.hidden = !right; mR.textContent = AR(right) + "+"; mR.onclick = () => firstR && firstR.scrollIntoView({inline:"nearest", block:"nearest", behavior:"smooth"});
+  };
+  sc.addEventListener("scroll", () => { clearTimeout(sc._t); sc._t = setTimeout(marks, 60); }, {passive:true});
+  const on = sc.querySelector(".tab.on"); if (on) on.scrollIntoView({inline:"nearest", block:"nearest"});
+  requestAnimationFrame(marks);
 }
-function tabMenuClose(){ const m = $("#tabMenu"); if (m) m.remove(); }
-function tabMenu(i){                                 // لمس اللسان الجاري: اختر الغراف الذي يُفتح فيه (لسان المسودة ثابت)
-  if ($("#tabMenu")){ tabMenuClose(); return; }
-  if (TABS[i].kind === "draft") return;
-  const m = el("div"); m.id = "tabMenu"; m.appendChild(el("div", "tmh", "افتح في هذا اللسان:"));
-  const item = (label, fn) => { const d = el("div", "tmi"); d.textContent = label; d.onclick = () => { tabMenuClose(); fn(); }; m.appendChild(d); };
-  for (const g of graphs()) item(glabel(g.name) + (GLAB[g.name] ? "  ·  " + g.name : "") + (isLocal(g.name) ? "" : "  (غير محمَّل)"), () => tabSet(i, {kind:"graph", graph:g.name, hash:"s", q:""}));
+function tabDragClose(b, i){                         // اسحب اللسان إلى أسفل لإغلاقه (يرجع إن لم تبلغ المسافة)
+  let st = null; const LIM = 46;
+  b.addEventListener("touchstart", e => { if (e.touches.length !== 1){ st = null; return; } st = {x:e.touches[0].clientX, y:e.touches[0].clientY, on:false, go:false}; b._drag = false; }, {passive:true});
+  b.addEventListener("touchmove", e => { if (!st) return; const dx = e.touches[0].clientX - st.x, dy = e.touches[0].clientY - st.y;
+    if (!st.on){ if (Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(dy)){ st = null; return; } if (dy < 10) return; st.on = true; b._drag = true; b.classList.add("drg"); }
+    const h = Math.max(0, dy); b.style.transform = "translateY(" + Math.min(h, 80) + "px)"; b.style.opacity = String(Math.max(.25, 1 - h / 110));
+    const go = h >= LIM; if (go !== st.go){ st.go = go; b.classList.toggle("bye", go); if (go && navigator.vibrate) navigator.vibrate(15); } }, {passive:true});
+  const end = () => { if (!st) return; const go = st.on && st.go; st = null; b.classList.remove("drg", "bye"); b.style.transform = ""; b.style.opacity = "";
+    setTimeout(() => { b._drag = false; }, 300); if (go) tabClose(+b.dataset.i); };
+  b.addEventListener("touchend", end); b.addEventListener("touchcancel", end);
+}
+function tabClose(i, then){                          // أغلق لسان غراف (لا يُغلق آخرها، ولا المسودة)
+  if (!TABS[i] || TABS[i].kind !== "graph") return;
+  if (TABS.filter(t => t.kind === "graph").length <= 1){ toast("هذا آخر لسان غراف"); return; }
+  liveClose().then(() => {
+    const cur = i === TABI; if (cur) tabLeave();
+    TABS.splice(i, 1); TABS.LASTG = 0;
+    if (cur){ const j = Math.min(i, TABS.length - 1); TABI = -1; tabEnter(j); tabsSave();
+      if (!then){ history.replaceState(Object.assign({}, history.state, hst(j)), "", "#" + (TABS[j].hash || (TABS[j].kind === "draft" ? "c" : "s"))); route(); } }
+    else { if (i < TABI) TABI--; tabsSave(); tabsDraw(); }
+    toast("أُغلق اللسان", 1200);
+    if (then) then();
+  });
+}
+function tabPick(title, onPick){                     // قائمة صغيرة تحت الألسنة
+  tabMenuClose(); const m = el("div"); m.id = "tabMenu"; m.appendChild(el("div", "tmh", title));
+  onPick(m, (label, fn) => { const d = el("div", "tmi"); d.textContent = label; d.onclick = () => { tabMenuClose(); fn(); }; m.appendChild(d); return d; });
   document.body.appendChild(m);
   setTimeout(() => document.addEventListener("click", function off(e){ if (!e.target.closest("#tabMenu")){ tabMenuClose(); document.removeEventListener("click", off); } }), 0);
+}
+const gItem = g => glabel(g.name) + (GLAB[g.name] ? "  ·  " + g.name : "") + (isLocal(g.name) ? "" : "  (غير محمَّل)");
+function tabAdd(){ if ($("#tabMenu")){ tabMenuClose(); return; } tabPick("لسان جديد على:", (m, item) => { for (const g of graphs()) item(gItem(g), () => tabNew(g.name, "s")); }); }
+function tabTitle(t){ const h = t.hash || ""; if (h.startsWith("p=")){ try { return decodeURIComponent(h.slice(2)); } catch(e){ return h.slice(2); } } return h.startsWith("b=") ? "كتلة" : "بحث"; }
+function tabNew(g, hash){                            // لسان جديد؛ فإن امتلأت الألسنة فاختر ما يُغلق
+  const n = TABS.filter(t => t.kind === "graph").length;
+  if (n >= MAXG){ tabPick("الألسنة ممتلئة (" + AR(MAXG) + ") — اختر لساناً تغلقه:", (m, item) => {
+      TABS.forEach((t, i) => { if (t.kind === "graph") item(glabel(t.graph) + "  ·  " + tabTitle(t), () => tabClose(i, () => tabNew(g, hash))); }); }); return; }
+  const t = {kind:"graph", graph:g, hash, q:""}; tid(t); TABS.push(t); tabGo(TABS.length - 1);
+}
+function tabMenuClose(){ const m = $("#tabMenu"); if (m) m.remove(); }
+function tabMenu(i){                                 // لمس اللسان الجاري: اختر الغراف الذي يُفتح فيه، أو أغلقه (لسان المسودة ثابت)
+  if ($("#tabMenu")){ tabMenuClose(); return; }
+  if (TABS[i].kind === "draft") return;
+  tabPick("افتح في هذا اللسان:", (m, item) => {
+    for (const g of graphs()) item(gItem(g), () => tabSet(i, {kind:"graph", graph:g.name, hash:"s", q:""}));
+    if (TABS.filter(t => t.kind === "graph").length > 1) item("✕  أغلق هذا اللسان", () => tabClose(i)).classList.add("cls");
+  });
 }
 function tabLeave(){                                 // احفظ حال اللسان الجاري قبل مغادرته
   const t = TABS[TABI]; if (!t) return;
@@ -1351,12 +1446,12 @@ function tabEnter(i){                                // ادخل لساناً: �
   if (t.kind === "draft") TARGET = DR.set ? DR.page : {kind:"today"};
   LASTQ = t.q || ""; NOBLK = true;
 }
-function tabGo(i){ liveClose().then(() => { tabEnter(i); const t = TABS[i]; history.pushState({d:depth()+1, tab:i}, "", "#" + (t.hash || (t.kind === "draft" ? "c" : "s"))); route(); }); }
-function tabSet(i, t){ liveClose().then(() => { if (i === TABI){ tabLeave(); } TABS[i] = t; TABI = -1; tabEnter(i); history.replaceState(Object.assign({}, history.state, {tab:i}), "", "#" + t.hash); route(); }); }
+function tabGo(i){ liveClose().then(() => { tabEnter(i); const t = TABS[i]; history.pushState(Object.assign({d:depth()+1}, hst(i)), "", "#" + (t.hash || (t.kind === "draft" ? "c" : "s"))); route(); }); }
+function tabSet(i, t){ liveClose().then(() => { if (i === TABI){ tabLeave(); } t.id = TABS[i].id; TABS[i] = t; TABI = -1; tabEnter(i); history.pushState(Object.assign({d:depth()+1}, hst(i)), "", "#" + t.hash); route(); }); }
 function useGraph(name, quiet){                      // من الإعدادات: اجعل الغراف جارياً (في لسان غراف)
   let i = TABS[TABI] && TABS[TABI].kind === "graph" ? TABI : TABS.findIndex(t => t.kind === "graph"); if (i < 1) i = 1;
   if (i === TABI) tabLeave();
-  TABS[i] = {kind:"graph", graph:name, hash:"s", q:""}; RAW.roam.current = name; saveCfg(); loadPages(); pageCache.clear(); loadQueue(); setGraphLocal(); tabsSave();
+  TABS[i] = {kind:"graph", graph:name, hash:"s", q:"", id:TABS[i] && TABS[i].id}; tid(TABS[i]); RAW.roam.current = name; saveCfg(); loadPages(); pageCache.clear(); loadQueue(); setGraphLocal(); tabsSave();
   if (!graphs().some(g => g.name === DR.graph)) DR.graph = name;
   if (!quiet){ toast("الغراف: " + glabel(name)); route(); }
   flush(); autoSync();
@@ -1369,6 +1464,7 @@ function allPages(){
 }
 function tMark(){                                    // شريط المسودة: رمز الصفحة، عنوان الوجهة، كبسولة غرافها — ما دام غير مفتوح للبحث
   const q = $("#tq"), show = document.activeElement !== q && !q.value;
+  $("#tqX").hidden = !q.value;
   $("#tBox").classList.toggle("tgt", show);
   $("#tTT").textContent = DR.set && DR.page.kind === "page" ? DR.page.title : "اليوم";
   $("#tTG").textContent = graphs().length > 1 ? glabel(DR.graph) : "";
@@ -1427,10 +1523,11 @@ function swipeable(list, onSwipe){
   };
   list.addEventListener("touchend", end); list.addEventListener("touchcancel", end);
 }
-function openAdjacent(g, title){                     // من المسودة: افتح الصفحة في اللسان الآخر، في غرافها
-  let i = TABS.findIndex((t, k) => k > 0 && t.graph === g);               // لسان غرافها إن كان مفتوحاً، وإلا آخر لسان غراف زرته
-  if (i < 1){ i = TABS.LASTG && TABS.LASTG !== TABI ? TABS.LASTG : 1; TABS[i] = {kind:"graph", graph:g, q:""}; }
-  TABS[i].hash = pageHash(title); $("#tList").hidden = true; tabGo(i);
+function openAdjacent(g, title){                     // من المسودة: افتح الصفحة في لسان جديد بغرافها (أو في لسانها إن كانت مفتوحة)
+  const h = pageHash(title); $("#tList").hidden = true;
+  const i = TABS.findIndex((t, k) => k > 0 && t.graph === g && t.hash === h);
+  if (i > 0){ tabGo(i); return; }
+  tabNew(g, h);
 }
 function draftAdjacent(title){                       // من بحث الغراف: افتح المسودة في اللسان الآخر ووجهتها هذه الصفحة
   DR.graph = RAW.roam.current; DR.set = true; DR.page = title === "@today" ? {kind:"today", title:""} : {kind:"page", title}; saveDR();
@@ -1443,6 +1540,10 @@ function draftAdjacent(title){                       // من بحث الغراف
    ============================================================ */
 const SV = d => '<svg viewBox="0 0 24 24">' + d + '</svg>';
 const KEYS_HTML = '<div class="ks">' +
+  '<button class="k ts" data-k="tdel" aria-label="احذف المظلّل">' + SV('<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/>') + '</button>' +
+  '<button class="k ts" data-k="tcopy" aria-label="انسخ المظلّل">' + SV('<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/>') + '</button>' +
+  '<button class="k ts" data-k="tcut" aria-label="قصّ المظلّل">' + SV('<circle cx="6" cy="18" r="3"/><circle cx="18" cy="18" r="3"/><path d="M8.2 16L18 4M15.8 16L6 4"/>') + '</button>' +
+  '<button class="k ts" data-k="tpaste" aria-label="الصق مكان المظلّل">' + SV('<rect x="6" y="5" width="12" height="16" rx="2"/><path d="M9 5V3h6v2"/>') + '</button>' +
   '<button class="k" data-k="page">[[ ]]</button><button class="k" data-k="ref">(( ))</button>' +
   '<button class="k" data-k="out" aria-label="أخرِج">' + SV('<path d="M4 12h15M13 6l6 6-6 6"/>') + '</button>' +
   '<button class="k" data-k="in" aria-label="أدخِل">' + SV('<path d="M20 12H5M11 6l-6 6 6 6"/>') + '</button>' +
@@ -1494,7 +1595,7 @@ const KEYS = {
   out(){ if (LIVE) liveShift(-1); else if (ED.eng) engKey("Tab", {shiftKey:true}); else shiftLines(-1); },
   mode(){ ENG().then(w => { w.ENGAPI.setMode(w.ENGAPI.mode() === "obsidian" ? "roam" : "obsidian"); kModeMark(); toast(w.ENGAPI.mode() === "obsidian" ? "المسودة: أسطر وعناوين" : "المسودة: كتل Roam", 1600); }); },
   del(){ liveDelete(); },
-  undo(){ if (ED.eng){ engKey("z", {ctrlKey:true}); return; } ED.ta.focus(); document.execCommand("undo"); },
+  undo(){ if (ROUTE.name === "home" && ENGW && !edActive()){ ENGW.ENGAPI.undo(); return; } if (ED.eng){ engKey("z", {ctrlKey:true}); return; } ED.ta.focus(); document.execCommand("undo"); },
   redo(){ if (ED.eng){ engKey("z", {ctrlKey:true, shiftKey:true}); return; } ED.ta.focus(); document.execCommand("redo"); },
   async plain(){                                      // لصق كنصّ خام: بلا تحويل إلى كتل
     let t = null; try { t = await navigator.clipboard.readText(); } catch(e){}
@@ -1505,8 +1606,10 @@ const KEYS = {
 document.querySelectorAll(".keys, .sugg").forEach(k => k.addEventListener("mousedown", e => e.preventDefault()));   // لا تسحب التركيز من مربع الكتابة
 document.querySelectorAll(".keys").forEach(k => k.addEventListener("click", e => {
   const b = e.target.closest("[data-k]");
+  if (b){ const tk = b.dataset.k, f = tsMode() ? TSK_DISP[tk] : tsEditSel() ? TSK_ED[tk] : null; if (f){ f(); return; }
+    if (tsMode() && !TSK_DISP[tk] && tk !== "mode"){ toast("هذا يعمل والمؤشّر داخل الكتلة", 1600); return; } }
   if (b && KEYS[b.dataset.k]){ if (b.dataset.k !== "todo") DATEMODE = false; KEYS[b.dataset.k](); if (!/^(close|del|in|out)$/.test(b.dataset.k) || !LIVE) updateSugg(); return; }
-  if (e.target.closest(".send")){ if (k.id === "keys") send(); else if (LIVE) liveClose(); else compSend(); }
+  if (e.target.closest(".send")){ if (k.id === "keys") send(); else if (k.id === "pkeys" && tsMode() === "page"){ getSelection().removeAllRanges(); TSD.page = false; tsUpdate(); } else if (LIVE) liveClose(); else compSend(); }
 }));
 const edActive = () => { const t = ED.ta; if (!t || !t.isConnected) return false; return t.ownerDocument === document ? document.activeElement === t : document.activeElement === $("#engF") && t.ownerDocument.activeElement === t; };
 function caretCtx(){
@@ -1653,7 +1756,7 @@ window.ENGHOOK = {
     if (ENG._res) ENG._res(w); else ENGP = Promise.resolve(w);
   },
   focus(t){ ED = {ta:t, sugg:$("#sugg"), eng:true, win:ENGW}; $("#tList").hidden = true; if ($("#tq").value){ $("#tq").value = ""; } tMark(); updateSugg(); },
-  sugg(){ if (!DATEMODE) updateSugg(); },
+  sugg(){ if (!DATEMODE) updateSugg(); tsUpdate(); },
   dates(){ showDates(); },
   mode(){ kModeMark(); },
   bs(on){ $("#dSel").hidden = !on; $("#keys").hidden = on; if (on) $("#sugg").hidden = true; },
@@ -1662,7 +1765,15 @@ window.ENGHOOK = {
   dsState(st){ const d = $("#tDot"); d.className = "sdot " + (st === "ok" ? "" : st === "err" ? "err" : st === "off" ? "off" : "warn"); },
   fs(){ return +PREFS.fs || 17; },
   setFs(v){ setFs(v); },
-  fsDone(){ savePrefs(); }
+  fsDone(){ savePrefs(); },
+  toast(m){ toast(m); },
+  gbar(){ return PREFS.gbar !== false; },
+  tsel(on){ TSD.draft = on; tsUpdate(); },
+  swOK(){ return PREFS.tabSwipe !== false && ROUTE.name === "home" && !$("#tabMenu") && !OVL; },
+  swMove(dx){ TSW.move(dx); },
+  swEnd(dx, fast){ TSW.end(dx, fast); },
+  ovOpen(close){ ovOpen(close); },
+  ovDone(){ ovDone(); }
 };
 $("#dSel").addEventListener("pointerdown", e => e.preventDefault());
 document.addEventListener("visibilitychange", () => { if (!document.hidden && ROUTE.name === "home" && ENGW) ENGW.ENGAPI.sync(false); });
@@ -1672,7 +1783,9 @@ $("#dSel").addEventListener("click", e => {
   if (a === "del") X.bsDel(); else if (a === "copy") X.bsCopy(false).then(ok => toast(ok ? "نُسخت الكتل" : "تعذّر النسخ", 1500)); else if (a === "cut") X.bsCopy(true);
   else if (a === "in") X.bsShift(false); else if (a === "out") X.bsShift(true); else if (a === "up") X.bsStep(-1); else if (a === "down") X.bsStep(1);
 });
-$("#tq").addEventListener("input", () => { tDraw(); });
+$("#tq").addEventListener("input", () => { $("#tqX").hidden = !$("#tq").value; tDraw(); });
+$("#tqX").addEventListener("pointerdown", e => e.preventDefault());
+$("#tqX").addEventListener("click", e => { e.stopPropagation(); const q = $("#tq"); q.value = ""; $("#tqX").hidden = true; $("#tBox").classList.remove("tgt"); q.focus(); tDraw(); });
 swipeable($("#tList"), r => openAdjacent(r.dataset.g, r.dataset.k === "today" ? dailyTitle() : r.dataset.title));
 $("#tq").addEventListener("focus", () => { tMark(); tDraw(); });
 $("#tq").addEventListener("blur", () => setTimeout(() => { tMark(); if (document.activeElement !== $("#tq") && !$("#tq").value) $("#tList").hidden = true; }, 200));
@@ -1740,7 +1853,7 @@ function stem(w){                                    // تجريد خفيف: ي�
 const stems = q => [...new Set(q.split(/\s+/).map(stem).filter(t => t.length >= 2))];
 
 function enterSearch(){
-  sq.value = LASTQ; drawSearch();
+  sq.value = LASTQ; $("#sqX").hidden = !sq.value; drawSearch();
   setTimeout(() => { sq.focus(); sq.select(); }, 50);
   if (!PAGES.length && G() && G().token && !refreshing && !LOC) refreshPages(true);
 }
@@ -1796,7 +1909,9 @@ function drawSearch(){
     } catch(e){ if (seq === sSeq){ bb.innerHTML = ""; const m = el("div", "pmsg"); m.textContent = "بحث النصوص: " + e.message; bb.appendChild(m); } }
   }, 140);
 }
-sq.addEventListener("input", () => { NOBLK = false; drawSearch(); });
+sq.addEventListener("input", () => { NOBLK = false; $("#sqX").hidden = !sq.value; drawSearch(); });
+$("#sqX").addEventListener("pointerdown", e => e.preventDefault());
+$("#sqX").onclick = () => { sq.value = ""; $("#sqX").hidden = true; sq.focus(); NOBLK = false; drawSearch(); };     // امسح وأظهر القائمة الافتراضية
 /* ============================================================
    التدوين الصوتي: قالب ← تسجيل ← نص ← إرسال. الصوت الأصلي يُحفظ في الجهاز.
    محرّك التحويل قابل للتبديل: VENG[PREFS.vEngine] (الافتراضي: المدمج في كروم)
@@ -2425,14 +2540,59 @@ function attachPinch(node){
   node.addEventListener("touchend", end); node.addEventListener("touchcancel", end);
 }
 attachPinch(pBody); attachPinch($("#home")); attachPinch($("#sList"));
+/* ---- السحب: للتحديث من أعلى الصفحة، وللإغلاق من آخرها، وللتنقّل بين الألسنة أفقياً ---- */
+const buzz = ms => { try { if (navigator.vibrate) navigator.vibrate(ms || 15); } catch(e){} };
+const rubber = (d, lim) => d <= lim ? d : lim + (d - lim) * 0.35;                       // يتبع الإصبع كما هو، ثم يلين قرب النهاية
+const editingNow = () => { const a = document.activeElement; return !!a && (a.tagName === "TEXTAREA" || (a.tagName === "INPUT" && a.type !== "checkbox")); };
+const hasSel = () => { const s = getSelection(); return BSEL.on || !!(s && !s.isCollapsed && String(s).trim()); };
 (function pullToRefresh(){
-  let p = null; const bar = $("#pPull");
-  pBody.addEventListener("touchstart", e => { p = (e.touches.length === 1 && pBody.scrollTop <= 0 && !LIVE) ? {y:e.touches[0].clientY, h:0} : null; }, {passive:true});
-  pBody.addEventListener("touchmove", e => { if (!p) return; if (e.touches.length !== 1){ p = null; bar.style.height = "0"; return; }
-    const dy = e.touches[0].clientY - p.y; if (dy <= 0 || pBody.scrollTop > 0){ bar.style.height = "0"; p.h = 0; return; }
-    p.h = Math.min(70, dy / 2.2); bar.style.height = p.h + "px"; bar.textContent = p.h >= 52 ? "أفلت للتحديث" : "اسحب للتحديث"; }, {passive:true});
-  const end = () => { if (!p) return; const go = p.h >= 52; p = null; bar.style.height = "0"; if (go) pageReload(); };
+  let p = null; const bar = $("#pPull"), LIM = 72;
+  const reset = () => { bar.classList.add("rel"); bar.style.height = "0"; };
+  pBody.addEventListener("touchstart", e => { p = (e.touches.length === 1 && pBody.scrollTop <= 0) ? {x:e.touches[0].clientX, y:e.touches[0].clientY, on:false, go:false} : null; }, {passive:true});
+  pBody.addEventListener("touchmove", e => { if (!p) return; if (e.touches.length !== 1){ p = null; reset(); return; }
+    const dx = e.touches[0].clientX - p.x, dy = e.touches[0].clientY - p.y;
+    if (!p.on){ if (dy < 8){ if (dy < -4 || Math.abs(dx) > 12) p = null; return; } if (Math.abs(dx) > dy || pBody.scrollTop > 0){ p = null; return; } p.on = true; bar.classList.remove("rel"); }
+    const h = Math.min(140, rubber(Math.max(0, dy), LIM)); bar.style.height = h + "px";
+    const go = h >= LIM; if (go !== p.go){ p.go = go; if (go) buzz(); } bar.textContent = go ? "أفلت للتحديث" : "اسحب للتحديث"; }, {passive:true});
+  const end = () => { if (!p) return; const go = p.on && p.go; p = null; reset(); if (go) pageReload(); };
   pBody.addEventListener("touchend", end); pBody.addEventListener("touchcancel", end);
+})();
+const closeTip = el("div"); closeTip.id = "closeTip"; closeTip.hidden = true; document.body.appendChild(closeTip);
+function pullClose(sc){                               // من آخر الصفحة: اسحب إلى أعلى ليرتفع اللسان كله، فأفلته ليُغلق
+  let p = null; const LIM = 96, scr = () => $("#" + ROUTE.name);
+  const can = () => TABS[TABI] && TABS[TABI].kind === "graph" && TABS.filter(t => t.kind === "graph").length > 1 && !editingNow() && !hasSel();
+  const atEnd = () => sc.scrollTop + sc.clientHeight >= sc.scrollHeight - 2;
+  sc.addEventListener("touchstart", e => { p = (e.touches.length === 1 && atEnd() && can()) ? {x:e.touches[0].clientX, y:e.touches[0].clientY, on:false, go:false} : null; }, {passive:true});
+  sc.addEventListener("touchmove", e => { if (!p) return; const dx = e.touches[0].clientX - p.x, dy = p.y - e.touches[0].clientY;
+    if (e.touches.length !== 1){ end(true); return; }
+    if (!p.on){ if (dy < 8){ if (dy < -4 || Math.abs(dx) > 12) p = null; return; } if (Math.abs(dx) > dy || !atEnd()){ p = null; return; } p.on = true; const s = scr(); if (s) s.style.transition = "none"; closeTip.hidden = false; }
+    const h = Math.min(170, rubber(Math.max(0, dy), LIM)), s = scr(); if (s){ s.style.transform = "translateY(" + (-h) + "px)"; s.style.opacity = String(Math.max(.4, 1 - h / 320)); }
+    const go = h >= LIM; if (go !== p.go){ p.go = go; if (go) buzz(); } closeTip.textContent = go ? "أفلت لإغلاق اللسان" : "اسحب لإغلاق اللسان"; closeTip.classList.toggle("go", go); }, {passive:true});
+  const end = cancel => { if (!p) return; const go = p.on && p.go && cancel !== true; const on = p.on; p = null; closeTip.hidden = true; if (!on) return;
+    const s = scr(); if (s){ s.style.transition = "transform .2s, opacity .2s"; s.style.transform = ""; s.style.opacity = ""; setTimeout(() => { s.style.transition = ""; }, 220); }
+    if (go) tabClose(TABI); };
+  sc.addEventListener("touchend", () => end()); sc.addEventListener("touchcancel", () => end(true));
+}
+pullClose(pBody); pullClose($("#sList"));
+/* التنقّل بين الألسنة بسحب أفقي (اتجاهه يتبع الإصبع: السحب يميناً يأتي باللسان الذي عن اليسار) */
+const TSW = {
+  ok(x){ return PREFS.tabSwipe !== false && x > 24 && x < innerWidth - 24 && !editingNow() && !hasSel() && !$("#tabMenu"); },
+  move(dx){ const s = $("#" + ROUTE.name); if (!s) return; const i = TABI + (dx > 0 ? 1 : -1), has = i >= 0 && i < TABS.length;
+    s.style.transition = "none"; s.style.transform = "translateX(" + (has ? dx : dx * 0.2) + "px)"; },
+  end(dx, fast){ const s = $("#" + ROUTE.name); if (!s) return; const i = TABI + (dx > 0 ? 1 : -1), go = (Math.abs(dx) > innerWidth * 0.3 || (fast && Math.abs(dx) > 40)) && i >= 0 && i < TABS.length;
+    s.style.transition = "transform .18s"; s.style.transform = go ? "translateX(" + (dx > 0 ? innerWidth : -innerWidth) + "px)" : "";
+    setTimeout(() => { s.style.transition = ""; s.style.transform = ""; if (go) tabGo(i); }, 185); }
+};
+(function tabSwipe(){
+  let p = null;
+  document.addEventListener("touchstart", e => { const t = e.target, x = e.touches[0] && e.touches[0].clientX;
+    p = (e.touches.length === 1 && (ROUTE.name === "page" || ROUTE.name === "search") && TSW.ok(x) && !(t.closest && t.closest("#tabs,#tabMenu,.it,textarea,input,button,#keys,#pSel,#dSel,#foldPop"))) ? {x, y:e.touches[0].clientY, t:Date.now(), on:false} : null; }, {passive:true});
+  document.addEventListener("touchmove", e => { if (!p) return; if (e.touches.length !== 1){ if (p.on) TSW.end(0); p = null; return; }
+    const dx = e.touches[0].clientX - p.x, dy = e.touches[0].clientY - p.y;
+    if (!p.on){ if (Math.abs(dx) < 14 && Math.abs(dy) < 14) return; if (Math.abs(dx) < Math.abs(dy) * 1.6 || hasSel()){ p = null; return; } p.on = true; p.x = e.touches[0].clientX; p.t = Date.now(); return; }
+    e.preventDefault(); p.dx = e.touches[0].clientX - p.x; TSW.move(p.dx); }, {passive:false});
+  const end = () => { if (!p) return; const q = p; p = null; if (!q.on) return; const dx = q.dx != null ? q.dx : 0; const dt = Date.now() - q.t; TSW.end(dx, dt < 260); };
+  document.addEventListener("touchend", end); document.addEventListener("touchcancel", () => { if (p && p.on) TSW.end(0); p = null; });
 })();
 function foldPop(x, y, refs){
   const old = $("#foldPop"); if (old) old.remove();
@@ -2885,6 +3045,7 @@ async function bselUndo(){
   busy(true);
   try {
     if (u.kind === "del"){ for (const s0 of u.snaps) await restoreTree(s0.pn, s0.order, s0.tree); }
+    else if (u.kind === "ops") await opsUndo(u.ops);
     else if (u.kind === "move"){ for (const m of [...u.moves].reverse()) await moveNode(m.n, m.pn, m.order); for (const p of u.opened || []) p._open = p._was; }
   } catch(e){ toast("تعذّر التراجع: " + e.message, 3500); } finally { busy(false); }
   bselClear(); redraw(); toast("تُراجع", 1200);
@@ -2928,6 +3089,128 @@ $("#pSel").addEventListener("click", e => {
   else if (a === "in") bselShift(1); else if (a === "out") bselShift(-1);
   else if (a === "up") bselStep(-1); else if (a === "down") bselStep(1);
 });
+
+/* ---- تظليل النص: صفّ الكتابة نفسه، ومعه حذف ونسخ وقصّ ولصق ----
+   في المسودة: يعالجه محرّكها · في الصفحة (بلا كتابة): نعالجه هنا ونرسله إلى Roam · داخل مربع الكتابة: على المظلّل فيه */
+const TSD = {draft:false, page:false};
+function tsEditSel(){ const t = ED.ta; try { return !!t && edActive() && t.selectionStart !== t.selectionEnd; } catch(e){ return false; } }
+function tsMode(){ if (ROUTE.name === "home" && TSD.draft) return "draft"; if (ROUTE.name === "page" && TSD.page && !LIVE && !COMP) return "page"; return ""; }
+function tsUpdate(){
+  const m = tsMode(), ed = tsEditSel(), k = $("#keys"), pk = $("#pkeys");
+  k.classList.toggle("tsel", ROUTE.name === "home" && (m === "draft" || ed)); k.classList.toggle("disp", m === "draft");
+  pk.classList.toggle("tsel", m === "page" || (ROUTE.name === "page" && ed)); pk.classList.toggle("disp", m === "page");
+  if (m === "page"){ $("#pEdit").hidden = false; $("#pAdd").hidden = true; $("#hitNav").hidden = true; pk._disp = true; $("#pkeys .send").textContent = "تم"; }
+  else if (pk._disp){ pk._disp = false; if (!LIVE && !COMP){ $("#pEdit").hidden = true; $("#pAdd").hidden = !(CUR && CUR.kind === "page" && ROUTE.name === "page"); } }
+}
+document.addEventListener("selectionchange", () => {
+  const s0 = getSelection(); let on = false;
+  if (ROUTE.name === "page" && !LIVE && s0 && !s0.isCollapsed && s0.rangeCount && String(s0).trim()){ const c = s0.getRangeAt(0).commonAncestorContainer; on = pTree.contains(c) || $("#pRefs").contains(c); }
+  if (on !== TSD.page || tsEditSel() !== !!tsUpdate._ed){ TSD.page = on; tsUpdate._ed = tsEditSel(); tsUpdate(); }
+});
+async function clipWrite(t){ let ok = false; try { await navigator.clipboard.writeText(t); ok = true; } catch(e){}
+  if (!ok){ const x = el("textarea"); x.value = t; x.style.cssText = "position:fixed;opacity:0"; document.body.appendChild(x); x.select(); try { ok = document.execCommand("copy"); } catch(e){} x.remove(); } return ok; }
+async function clipRead(){ try { return await navigator.clipboard.readText(); } catch(e){ toast("تعذّر الوصول إلى الحافظة — الصق من قائمة الضغط الطويل", 2800); return null; } }
+function pasteInto(ta, text){                         // لصق في مربع كتابة كما يُلصق باليد (فيتحوّل إلى كتل إن لزم)
+  const W0 = ta.ownerDocument.defaultView; ta.focus(); let ev = null;
+  try { const dt = new W0.DataTransfer(); dt.setData("text/plain", text); ev = new W0.ClipboardEvent("paste", {clipboardData:dt, bubbles:true, cancelable:true}); } catch(e){}
+  if (ev) ta.dispatchEvent(ev); if (!ev || !ev.defaultPrevented) ins(text);
+}
+async function tsDo(a, arg){
+  if (tsMode() === "draft"){ if (!ENGW) return; const r = await ENGW.ENGAPI.tsel(a, arg);
+    if (r === "multi") toast("التنسيق لكتلة واحدة", 1600); else if (r === "ob") toast("الإزاحة في نمط الكتل", 1600);
+    else if (a === "copy") toast(r ? "نُسخ" : "تعذّر النسخ", 1300); TSD.draft = !!ENGW.ENGAPI.tselOn(); tsUpdate(); return; }
+  if (tsMode() === "page") await pageTs(a, arg);
+}
+const TSK_DISP = {
+  tdel(){ tsDo("del"); }, tcopy(){ tsDo("copy"); }, tcut(){ tsDo("cut"); },
+  async tpaste(){ const t = await clipRead(); if (t != null) tsDo("paste", {text:t}); },
+  in(){ tsDo("in"); }, out(){ tsDo("out"); },
+  page(){ tsDo("wrap", ["[[", "]]"]); }, ref(){ tsDo("wrap", ["((", "))"]); }, bold(){ tsDo("wrap", ["**", "**"]); }, hl(){ tsDo("wrap", ["^^", "^^"]); },
+  undo(){ if (tsMode() === "draft"){ ENGW && ENGW.ENGAPI.undo(); } else bselUndo(); }
+};
+const TSK_ED = {                                     // داخل مربع الكتابة: على المظلّل فيه
+  tdel(){ ins(""); tsUpdate(); },
+  async tcopy(){ const t = ED.ta; toast((await clipWrite(t.value.slice(t.selectionStart, t.selectionEnd))) ? "نُسخ" : "تعذّر النسخ", 1300); },
+  async tcut(){ const t = ED.ta; if (await clipWrite(t.value.slice(t.selectionStart, t.selectionEnd))){ ins(""); tsUpdate(); } },
+  async tpaste(){ const ta = ED.ta, t = await clipRead(); if (t != null) pasteInto(ta, t); tsUpdate(); }
+};
+function pSelInfo(){                                  // تظليل في الصفحة ← {Ae, sa, Be, eb} بمواضع في النص الخام
+  const s0 = getSelection(); if (!s0 || s0.isCollapsed || !s0.rangeCount) return null;
+  const r = s0.getRangeAt(0);
+  const at = (node, off, end) => {
+    const e0 = node.nodeType === 1 ? node : node.parentElement; let be = e0 && e0.closest(".blk");
+    if (!be || !be._n || be._n.draft) return null;
+    const txt = be.querySelector(":scope > .row > .txt"); if (!txt) return null;
+    const tr = document.createRange(); tr.selectNodeContents(txt); let shown;
+    const cmp = tr.comparePoint(node, off);
+    if (cmp < 0) shown = 0; else if (cmp > 0) shown = (txt.textContent || "").length;
+    else { const rr = document.createRange(); rr.selectNodeContents(txt); rr.setEnd(node, off); shown = rr.toString().length; }
+    return {be, o:rawOffset(be._n.s, txt.textContent || "", shown)};
+  };
+  const A = at(r.startContainer, r.startOffset, false), B = at(r.endContainer, r.endOffset, true); if (!A || !B) return null;
+  return {Ae:A.be, sa:A.o, Be:B.be, eb:B.o};
+}
+const findNode = uid => { let hit = null; (function w(n){ if (!n || hit) return; if (n.uid === uid){ hit = n; return; } for (const k of n.kids || []) w(k); })(CUR && CUR.root); return hit; };
+async function pageMerge(S0, ins){                    // احذف المظلّل وادمج ما بقي من الكتلتين (كما في محرر الحاسوب)
+  const {Ae, sa, Be, eb} = S0, A = Ae._n, B = Be._n;
+  if (A === B){ const old = A.s; A.s = A.s.slice(0, sa) + ins + A.s.slice(Math.max(sa, eb)); await updateNode(A); BSEL.undo.push({kind:"ops", ops:[{t:"txt", u:A.uid, s:old}]}); return A; }
+  const vis = visBlks(), iA = vis.indexOf(Ae), iB = vis.indexOf(Be); if (iA < 0 || iB < iA) return null;
+  const Dels = vis.slice(iA + 1, iB + 1).map(b => b._n), D = new Set(Dels), ops = [{t:"txt", u:A.uid, s:A.s}];
+  busy(true);
+  try {
+    A.s = A.s.slice(0, sa) + ins + B.s.slice(eb); await updateNode(A);
+    while (B.lazy || B.more){ await loadKids(B); if (!B.more) break; }
+    for (const k of [...B.kids]){ if (D.has(k)) continue; const order = A.kids.length ? A.kids[A.kids.length - 1].order + 1 : 0; ops.push({t:"mv", n:k, pu:B.uid, order:k.order}); await moveNode(k, A, order); A._open = true; }
+    for (const x of [...Dels].reverse()){
+      if (!x.pn) continue;
+      if (x._open) for (const k of [...x.kids].reverse()){ if (D.has(k)) continue; ops.push({t:"mv", n:k, pu:x.uid, order:k.order}); await moveNode(k, x.pn, x.order + 1); }
+      await loadDeep(x, {n:3000}); ops.push({t:"del", pu:x.pn.isPage ? "" : x.pn.uid, order:x.order, tree:snapTree(x)});
+      const be = pTree.querySelector('.blk[data-u="' + x.uid + '"]') || Object.assign(el("div"), {_n:x});
+      if (!be.parentElement){ const h = el("div"); h.appendChild(be); }
+      await deleteBlk(be, true);
+    }
+    BSEL.undo.push({kind:"ops", ops});
+  } catch(e){ toast("تعذّر: " + e.message, 3000); } finally { busy(false); }
+  return A;
+}
+async function opsUndo(ops){
+  for (const o of [...ops].reverse()){
+    if (o.t === "txt"){ const n = findNode(o.u); if (n){ n.s = o.s; await updateNode(n); } }
+    else if (o.t === "mv"){ const pn = findNode(o.pu); if (pn) await moveNode(findNode(o.n.uid) || o.n, pn, o.order); }
+    else if (o.t === "del"){ const pn = o.pu ? findNode(o.pu) : CUR.root; if (pn) await restoreTree(pn, o.order, o.tree); }
+  }
+}
+function gbarPages(on){                              // صفحات الغراف «قابلة للتحرير» في نظر المتصفح بلا لوحة مفاتيح: فلا يظهر بحث جوجل عند التظليل
+  for (const o of [pTree, $("#pRefs")]){
+    if (on){ o.setAttribute("contenteditable", "true"); o.setAttribute("inputmode", "none"); o.setAttribute("virtualkeyboardpolicy", "manual"); o.spellcheck = false; o.classList.add("ce"); }
+    else { o.removeAttribute("contenteditable"); o.removeAttribute("inputmode"); o.removeAttribute("virtualkeyboardpolicy"); o.classList.remove("ce"); }
+    if (o._gb) continue; o._gb = true;
+    const inTa = t => !!(t && t.closest && t.closest("textarea"));
+    o.addEventListener("beforeinput", e => { if (o.isContentEditable && !inTa(e.target)) e.preventDefault(); });
+    o.addEventListener("drop", e => { if (o.isContentEditable && !inTa(e.target)) e.preventDefault(); });
+    o.addEventListener("cut", e => { if (!o.isContentEditable || inTa(e.target)) return; e.preventDefault(); const S0 = pSelInfo(); if (!S0) return;
+      try { e.clipboardData.setData("text/plain", String(getSelection())); } catch(err){} pageTs("del"); });
+    o.addEventListener("paste", e => { if (!o.isContentEditable || inTa(e.target)) return; e.preventDefault(); const t = e.clipboardData && e.clipboardData.getData("text/plain"); if (t && pSelInfo()) pageTs("paste", {text:t}); });
+    o.addEventListener("click", e => { const a = e.target.closest && e.target.closest("a.ext[href]"); if (a && o.isContentEditable){ e.preventDefault(); window.open(a.href, "_blank", "noopener"); } }, true);
+  }
+}
+async function pageTs(a, arg){
+  const S0 = pSelInfo(); if (!S0){ TSD.page = false; tsUpdate(); return; }
+  const sel = String(getSelection());
+  if (a === "copy"){ toast((await clipWrite(sel)) ? "نُسخ" : "تعذّر النسخ", 1300); return; }
+  if (a === "cut"){ if (!(await clipWrite(sel))){ toast("تعذّر النسخ، فلم يُقصّ شيء", 2200); return; } a = "del"; }
+  if (a === "del" || a === "paste"){
+    getSelection().removeAllRanges(); const A = await pageMerge(S0, ""); redraw(); TSD.page = false; tsUpdate();
+    if (a === "paste" && A && arg && arg.text){ const c = S0.Ae._n === A ? Math.min(S0.sa, S0.eb) : S0.sa; await liveOpen(A, c); if (LIVE) pasteInto(LIVE.ta, arg.text); }
+    else toast(a === "del" ? "حُذف — التراجع من الصف" : "", 1500);
+    return;
+  }
+  if (a === "in" || a === "out"){ getSelection().removeAllRanges(); bselSet(S0.Ae, S0.Be); await bselShift(a === "in" ? 1 : -1); bselClear(); TSD.page = false; tsUpdate(); return; }
+  if (a === "wrap"){ if (S0.Ae !== S0.Be){ toast("التنسيق لكتلة واحدة", 1600); return; }
+    const n = S0.Ae._n, x = Math.min(S0.sa, S0.eb), y = Math.max(S0.sa, S0.eb), old = n.s;
+    n.s = n.s.slice(0, x) + arg[0] + n.s.slice(x, y) + arg[1] + n.s.slice(y); await updateNode(n); BSEL.undo.push({kind:"ops", ops:[{t:"txt", u:n.uid, s:old}]});
+    getSelection().removeAllRanges(); redraw(); TSD.page = false; tsUpdate(); }
+}
 
 /* ---- اللمس: ضغطة طويلة على النقطة، السحب على النقاط، الإمساك ثم النقل ---- */
 const TS = {mode:"", x:0, y:0, be:null, tm:0, moved:false, line:null, tgt:null, hov:null, hovT:0, opened:[], raf:0, ly:0, lx:0};
@@ -3103,6 +3386,8 @@ function renderSettings(){
   ck.append(cb, "جلب المراجع المرتبطة تلقائياً (للغراف غير المحمَّل)");
   box.appendChild(ck);
   h3("التحرير");
+  { const c1 = el("label", "ck"), b1 = el("input"); b1.type = "checkbox"; b1.checked = PREFS.gbar !== false; b1.onchange = () => { PREFS.gbar = b1.checked; savePrefs(); gbarPages(b1.checked); if (ENGW) ENGW.gbarFix(b1.checked); }; c1.append(b1, "منع شريط بحث جوجل عند تظليل النص (أطفئه إن ظهرت مشكلة في اللمس)"); box.appendChild(c1); }
+  { const c2 = el("label", "ck"), b2 = el("input"); b2.type = "checkbox"; b2.checked = PREFS.tabSwipe !== false; b2.onchange = () => { PREFS.tabSwipe = b2.checked; savePrefs(); }; c2.append(b2, "التنقّل بين الألسنة بسحب الإصبع أفقياً"); box.appendChild(c2); }
   sel("الطيّ والنشر من المساحة الخالية في الصفحة", [["long","ضغطة طويلة"],["dbl","نقرتان متتاليتان"],["off","معطّل"]], PREFS.foldG || "long", v => { PREFS.foldG = v; savePrefs(); });
   sel("مدّة الإمساك قبل نقل الكتل المظلّلة", [["350","ثلث ثانية"],["500","نصف ثانية"],["700","ثلثا ثانية"],["900","قرابة ثانية"]], String(PREFS.holdMs || 500), v => { PREFS.holdMs = +v; savePrefs(); });
   sel("وحدة الكتلة عند تحويل النص إلى Roam", [["para","الفقرة (الأسطر المتصلة بلا سطر فارغ بينها)"],["line","السطر"]], store.get("rq-unit") === "line" ? "line" : "para", v => store.set("rq-unit", v));
@@ -3184,12 +3469,25 @@ function sharedText(p){                              // ما شاركه تطبي
   if (onlyUrl) return title ? "["+title.replace(/[\[\]]/g,"")+"]("+onlyUrl+")" : onlyUrl;
   let out = text || title; if (url && !out.includes(url)) out += "\n" + url; return out;
 }
+function shareAsk(w, out){                            // المسودة فيها نصّ: ماذا نفعل بالنص المشارك؟
+  const old = $("#shareAsk"); if (old) old.remove();
+  const ov = el("div"); ov.id = "shareAsk"; const box = el("div", "sabox");
+  const pv = el("div", "sapv"); pv.textContent = out.length > 160 ? out.slice(0, 160) + "…" : out;
+  box.append(el("div", "sah", "وصلك نصّ، وفي المسودة نصّ آخر"), pv);
+  const close = () => ov.remove();
+  const b = (label, cls, fn) => { const x = el("button", "btn" + (cls ? " " + cls : "")); x.textContent = label; x.onclick = () => { close(); ovDone(); fn(); }; box.appendChild(x); };
+  b("ألحقه بالمسودة", "p", () => { w.ENGAPI.share(out, "", "append"); toast("أُلحق بالمسودة", 1800); });
+  b("اجعله المسودة (وتُحفظ السابقة نسخة)", "", () => { w.ENGAPI.share(out, "", "replace").then(() => toast("صار المسودة، والسابقة محفوظة نسخةً لم تُدمج", 2600)); });
+  b("إلغاء", "", () => toast("أُلغي النص المشارك", 1500));
+  ov.appendChild(box); ov.onclick = e => { if (e.target === ov){ close(); ovDone(); } };
+  document.body.appendChild(ov); ovOpen(close);
+}
 function takeShared(params){                          // يُفتح المحرر من قائمة المشاركة: النص يذهب إلى المسودة مباشرة
   const out = sharedText(params || new URLSearchParams(location.search)); if (!out) return false;
-  ENG().then(w => { w.ENGAPI.insert(out); toast("أُضيف إلى المسودة", 1800); });
+  ENG().then(w => { if (w.ENGAPI.empty()){ w.ENGAPI.insert(out); toast("أُضيف إلى المسودة", 1800); } else shareAsk(w, out); });
   const i = TABS.findIndex(t => t.kind === "draft");
   if (i >= 0 && i !== TABI) tabEnter(i);
-  history.replaceState(Object.assign({}, history.state, {tab:TABI}), "", location.pathname + "#c");
+  history.replaceState(Object.assign({}, history.state, hst(TABI)), "", location.pathname + "#c");
   return true;
 }
 
@@ -3206,7 +3504,7 @@ loadCfg(); loadPrefs(); SMODE = PREFS.smode === 2 ? 2 : 1;
 if (PREFS.defGraph && graphs().some(g => g.name === PREFS.defGraph) && RAW.roam.current !== PREFS.defGraph){ RAW.roam.current = PREFS.defGraph; saveCfg(); }
 tabsLoad(); { const t = TABS[TABI]; if (t && graphs().length) RAW.roam.current = t.kind === "draft" ? DR.graph : t.graph; }
 $("#tTI").innerHTML = IC_PAGE; $("#pTI").innerHTML = IC_PAGE;
-loadPages(); initTarget(); loadQueue(); setGraphLocal(); ENG(); takeShared(); route();
+loadPages(); initTarget(); loadQueue(); setGraphLocal(); ENG(); gbarPages(PREFS.gbar !== false); takeShared(); route();
 flush(); setTimeout(autoSync, 1500);
 </script>
 <script>if("serviceWorker" in navigator && location.protocol.indexOf("http")===0){ navigator.serviceWorker.register("sw.js").catch(function(){}); }</script>
