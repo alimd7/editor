@@ -1886,6 +1886,9 @@ async function sendToRoam(payload){
       if (!c.ok) throw new Error("إنشاء الصفحة فشل ("+c.status+"): "+c.text.slice(0,150));
     }
   }
+  payload.pageUid = pageUid;
+  try { const ti = payload.page.kind==="today" ? payload.page.daily : payload.page.title;     // سجّل الصفحة محلياً: لا تظهر فارغة ولا تُنسب كتلها إلى «؟»
+    if (RQ.loc() && payload.graph === S.graph && !RQ.pageTitle(pageUid)){ await RQ.lPutPage(pageUid, ti); if (!S.pages.includes(ti)){ S.pages.push(ti); S.pagesN.push(norm(ti)); store.set("rq-pages:"+S.graph, S.pages.join("\n")); } } } catch(e){}
   const acts = flattenActions(payload.blocks, pageUid, []);
   const btn = $("#btnSend");
   let i = 0, size = 50;                              // دفعات أصغر: Roam يرفض الدفعات الكبيرة
@@ -2922,6 +2925,18 @@ async function lShift(p, from, by){                  // أزح إخوة المو
   await txDone(t);
   if (recs.length) await W("move", {rows:recs.map(r => [r.u, r.p, r.o])});
 }
+async function fixPages(recs){                 // كتل بلا صفحة معروفة: اصعد إلى جذرها واجلب عنوانه من Roam
+  const bad = recs.filter(b => b && !PT.has(b.g)); if (!bad.length) return 0;
+  await openLocal(); const roots = await W("gof", {uids:bad.map(b => b.u)});
+  const unk = [...new Set(roots.filter(y => y && !PT.has(y)))];
+  if (unk.length && navigator.onLine){
+    try { const r = await roam("q", {query:Q_TITLES, args:[unk.slice(0, 200)]});
+      for (const x of (r && r.result) || []) if (x[0] && x[1]){ await lPutPage(x[0], x[1]); addPageTitle(x[1]); } } catch(e){}
+  }
+  const fix = []; bad.forEach((b, k) => { if (PT.has(roots[k])){ b.g = roots[k]; fix.push(b); } });
+  if (fix.length){ const t = DB.transaction("blocks", "readwrite"), B = t.objectStore("blocks"); for (const b of fix) B.put(b); await txDone(t); }
+  return fix.length;
+}
 async function lPutPage(uid, title){
   PT.set(uid, title); const t = DB.transaction("pages", "readwrite"); t.objectStore("pages").put({u:uid, t:title}); await txDone(t);
 }
@@ -3008,6 +3023,7 @@ const SYNC = {running:false, stop:false, msg:""};
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 function syncMsg(m){ SYNC.msg = m; const e = $("#syncMsg"); if (e) e.textContent = m; }
 const Q_PAGES = "[:find ?u ?t :where [?p :node/title ?t] [?p :block/uid ?u]]";
+const Q_TITLES = "[:find ?u ?t :in $ [?u ...] :where [?p :block/uid ?u] [?p :node/title ?t]]";
 const Q_MAN = "[:find ?u ?n ?pu ?o :where [?b :block/string ?s] [?b :block/uid ?u] [(count ?s) ?n] [?par :block/children ?b] [?par :block/uid ?pu] [?b :block/order ?o]]";
 const Q_MAN2 = "[:find ?u ?pu ?o :where [?b :block/string] [?b :block/uid ?u] [?par :block/children ?b] [?par :block/uid ?pu] [?b :block/order ?o]]";
 const Q_CHECK = "[:find ?u ?n ?pu ?o :in $ [?u ...] :where [?b :block/uid ?u] [?b :block/string ?s] [(count ?s) ?n] [?par :block/children ?b] [?par :block/uid ?pu] [?b :block/order ?o]]";
@@ -3047,6 +3063,10 @@ async function syncGraph(full, scope){               // scope: معرّف صفح
       let rows, only = null;
       if (scope){                                    // صفحة واحدة: تحقّق مما عندنا منها (حُذف؟ نُقل؟ تغيّر طوله؟)
         syncMsg("يزامن الصفحة…"); only = await W("pageUids", {g:scope}); rows = [];
+        if (!PT.has(scope)){                         // صفحة جديدة (كصفحة اليوم): اجلب عنوانها وإلا ظهرت فارغة وكتلها تحت «؟»
+          r = await paced(Q_TITLES, [[scope]]);
+          if (r.ok) for (const x of parse(r)) if (x[0] && x[1]){ await lPutPage(x[0], x[1]); addPageTitle(x[1]); }
+        }
         for (let k = 0; k < only.length; k += 800){ r = await paced(Q_CHECK, [only.slice(k, k + 800)]); if (!r.ok) throw new Error("مزامنة الصفحة فشلت ("+r.status+")"); rows = rows.concat(parse(r)); }
       } else {
         syncMsg("يجلب فهرس الكتل…");
@@ -3084,7 +3104,11 @@ async function syncGraph(full, scope){               // scope: معرّف صفح
       for (const x of recs){ let y = x.p, k = 0;
         while (!PT.has(y) && k++ < 500){ const nx = pmap && pmap.has(y) ? pmap.get(y) : local.get(y); if (nx === undefined) break; y = nx; }
         if (PT.has(y)) x.g = y; else { x._y = y; ask.push(x); } }
-      if (ask.length){ const res = await W("gof", {uids:ask.map(x => x._y)}); ask.forEach((x, k) => { x.g = PT.has(res[k]) ? res[k] : ""; delete x._y; }); }
+      if (ask.length){ const res = await W("gof", {uids:ask.map(x => x._y)});
+        const unk = [...new Set(res.filter(y => y && !PT.has(y)))];      // جذر لا نعرف عنوانه: صفحة أُنشئت بعد آخر جلب للأسماء
+        if (unk.length){ const t = await paced(Q_TITLES, [unk.slice(0, 800)]);
+          if (t.ok) for (const x of parse(t)) if (x[0] && x[1]){ await lPutPage(x[0], x[1]); addPageTitle(x[1]); } }
+        ask.forEach((x, k) => { x.g = PT.has(res[k]) ? res[k] : ""; delete x._y; }); }
     };
     while (queue.length){
       if (SYNC.stop) throw new Error("أُوقف — يُستأنف من حيث توقف عند الطلب التالي");
@@ -3226,7 +3250,7 @@ function markMatches(root, q){                        // ظلّل مواضع ا�
     await txDone(t); await W("move", {rows});
   }
   return {W, rq, kidRange, foldStr, stems, markMatches, isLocal, SYNC, hooks, openLocal, setGraphLocal, loadQueue, flush, enqueue, autoSync, dropLocal,
-    lPutRecs, lShift, lPutPage, lDelete, lMove,
+    lPutRecs, lShift, lPutPage, lDelete, lMove, fixPages,
     db:() => DB, loc:() => LOC, pending:() => QUEUE.length, pageTitle:g => PT.get(g) || "",
     ROOTHL, diagnose, rootOfBlock, setLoc, roam,
     async sync(full, scope){ if (QUEUE.length){ await flush(); if (QUEUE.length){ toast("في الطابور تعديلات لم تُرسل بعد — تُزامَن بعد إرسالها"); return false; } } const r = await syncGraph(full, scope); hooks.onSync(); return r; },
@@ -3634,7 +3658,13 @@ async function openDoc(spec, fromHistory){
     if (spec.kind === "page"){
       const pr = await RQ.rq(db.transaction("pages").objectStore("pages").index("t").get(spec.title));
       let uid = pr && pr.u, missing = !pr;
-      if (missing) uid = dailyUidOf(spec.title) || newUid();
+      if (missing && navigator.onLine){              // ليست في فهرسنا: ربما أُنشئت بعد آخر مزامنة (كصفحة اليوم من الإرسال)
+        try { const r = await RQ.roam("q", {query:"[:find ?u . :in $ ?t :where [?e :node/title ?t] [?e :block/uid ?u]]", args:[spec.title]}, {timeout:8000});
+          if (typeof r.result === "string" && r.result){ uid = r.result; missing = false; await RQ.lPutPage(uid, spec.title); } } catch(e){}
+      }
+      if (missing){ const du = dailyUidOf(spec.title);
+        if (du && await RQ.rq(db.transaction("tree").objectStore("tree").index("po").count(RQ.kidRange(du)))){ uid = du; missing = false; await RQ.lPutPage(uid, spec.title); }
+        else uid = du || newUid(); }
       const total = missing ? 0 : await RQ.rq(db.transaction("tree").objectStore("tree").index("po").count(RQ.kidRange(uid)));
       nodes = missing ? [] : await docKids(uid, DOC_TOP, bud, snap);
       if (!missing) recentPush(S.graph, spec.title);
@@ -3740,6 +3770,7 @@ async function drawRefs(d){
     h.onclick = () => { body.hidden = !body.hidden; h.textContent = (body.hidden ? "◂ " : "▾ ") + h.textContent.slice(2); };
     body.hidden = !few && pageModel().some(n => n.text.trim()); if (!body.hidden) h.textContent = "▾ " + h.textContent.slice(2);
     box.append(h, body);
+    if (bl.some(b => !RQ.pageTitle(b.g))){ await RQ.fixPages(bl); if (DOC !== d) return; }
     const by = new Map(); for (const b of bl){ const t = RQ.pageTitle(b.g) || "؟"; if (!by.has(t)) by.set(t, []); by.get(t).push(b); }
     for (const [t, list] of [...by.entries()].sort((a, b) => norm(a[0]) < norm(b[0]) ? -1 : 1)){
       const g = el("div", "rfg"), hd = el("div", "rft"); hd.textContent = t; hd.onclick = () => openDoc({kind:"page", title:t}); g.appendChild(hd);
@@ -4118,7 +4149,7 @@ const DSYNC = (function(){
     const c = copies[0], when = c.t ? new Date(c.t).toLocaleString("ar-EG", {dateStyle:"short", timeStyle:"short"}) : "";
     const t = el("span"); t.textContent = "توجد نسخة أخرى لم تُدمج" + (c.dev ? " (من " + c.dev + (when ? "، " + when : "") + ")" : "") + (copies.length > 1 ? " — وغيرها " + copies.length.toLocaleString("ar-EG") : "");
     const b = (label, fn) => { const x = el("button", "ghost"); x.textContent = label; x.onclick = fn; box.appendChild(x); };
-    box.appendChild(t); b("اعرضها", () => view(c)); b("ألحقها", () => append(c)); b("احذفها", () => drop(c));
+    box.appendChild(t); b("اعرضها", () => view(c)); b("اجعلها المسوّدة", () => swap(c)); b("ألحقها", () => append(c)); b("احذفها", () => drop(c));
   }
   function view(c){
     const ov = el("div"); ov.id = "dsView";
@@ -4137,6 +4168,21 @@ const DSYNC = (function(){
     const add = nodes.filter(n => !have.has(key(n)) && (n.text.trim() || n.children.length));
     if (!add.length) toast("ليس فيها ما ليس في مسودتك");
     host.push(...add); editingId = null; render(); draftSave(); await drop(c, true);
+  }
+  async function swap(c){                            // النسخة تحلّ محلّ المسودة، والمسودة الحالية تُحفظ نسخةً مكانها
+    if (busy){ toast("تجري مزامنة — أعد بعد لحظة"); return; }
+    try {
+      gname = graphName(); const loc = local();
+      const empty = !JSON.stringify(loc.m).replace(/"x":""/g, "").match(/"x":/);
+      const mine = Object.assign({}, loc, {t:st.editT || Date.now(), dev:EMBED ? "الهاتف" : "الحاسوب", copy:1});
+      const w = empty ? await call("write", {action:"delete-block", block:{uid:c.u}})
+                      : await call("write", {action:"update-block", block:{uid:c.u, string:wrap(mine)}});
+      if (!w.ok) throw new Error("Roam (" + w.status + ")");
+      copies = copies.filter(x => x !== c); if (!empty) copies.unshift(Object.assign({u:c.u}, mine));
+      if (ACTIVE === "main") pushHist();
+      apply(Object.assign({}, c, {t:Date.now()})); st.h = ""; save();     // تُرفع إلى المسودة المشتركة في المزامنة التالية
+      drawNote(); toast(empty ? "صارت المسودة" : "صارت المسودة، وحُفظت مسودتك السابقة نسخةً"); now(true);
+    } catch(e){ toast("تعذّر: " + e.message); }
   }
   async function drop(c, quiet){
     try { gname = graphName(); const w = await call("write", {action:"delete-block", block:{uid:c.u}}); if (!w.ok) throw new Error("Roam (" + w.status + ")"); copies = copies.filter(x => x !== c); drawNote(); if (!quiet) toast("حُذفت النسخة"); }
