@@ -63,7 +63,16 @@ body{margin:0;background:var(--bg);color:var(--text);
 .view,textarea.ed{width:100%;min-height:var(--lhp,26px);padding:0 2px;margin:0;font:inherit;line-height:var(--lhp,26px);word-break:break-word;white-space:pre-wrap;cursor:text}
 textarea.ed{display:block;border:0;outline:0;background:transparent;color:var(--text);resize:none;overflow:hidden;line-height:var(--lhp,26px)}
 .view .ph{display:inline-block;min-width:1px}
-.children{margin-inline-start:9px;padding-inline-start:12px;border-inline-start:1px solid var(--line)}
+.children{margin-inline-start:28px;padding-inline-start:3px;border-inline-start:1px solid var(--line)}
+body.embed .children{margin-inline-start:9px;padding-inline-start:12px}
+.tab.tdrag{opacity:.45}.tab.tbefore{box-shadow:inset -3px 0 0 var(--accent)}.tab.tafter{box-shadow:inset 3px 0 0 var(--accent)}
+[dir=ltr] .tab.tbefore{box-shadow:inset 3px 0 0 var(--accent)}[dir=ltr] .tab.tafter{box-shadow:inset -3px 0 0 var(--accent)}
+body.pview .block.leaf>.row>.bullet{opacity:0;transition:opacity .12s}
+body.pview .block.leaf>.row:hover>.bullet,body.pview .block.leaf.bsel>.row>.bullet,body.bdrag .block.leaf>.row>.bullet{opacity:.45}
+body.pview .block:not(.leaf)>.row>.tg{opacity:.75}
+.pgn{color:var(--pgn,#c2410c);font-weight:600}
+.todo{cursor:pointer;display:inline-block;min-width:1.1em}.todo:hover{color:var(--accent)}
+.calq{display:flex;gap:4px;margin-bottom:6px}.calq span{flex:1;text-align:center;padding:3px 4px;border:1px solid var(--line);border-radius:6px;cursor:pointer;font-size:.85em}.calq span:hover{background:var(--accent);color:var(--accent-ink)}
 .link{color:var(--link);unicode-bidi:isolate}
 .link .br{color:var(--muted)}
 .ext{color:var(--link);text-decoration:underline}
@@ -117,8 +126,9 @@ button{font:inherit;cursor:pointer}
 #outbox .bar{display:flex;gap:8px;align-items:center}
 
 .view.h4{font-size:1.05em;font-weight:700}.view.h5{font-size:1em;font-weight:700}.view.h6{font-size:.95em;font-weight:700;color:var(--muted)}
-#destbar{display:flex;gap:0;border:1px solid var(--line);border-radius:6px;overflow:hidden}
-#destbar button{flex:1;border:0;background:var(--bg);color:var(--muted);padding:7px 10px}
+#destbar{display:flex;gap:0;border:1px solid var(--line);border-radius:6px;overflow:hidden;flex:none;margin:6px 0}
+#destbar[hidden],#sdHead[hidden]{display:none}#rp #obsBox{flex:none;max-height:40vh;overflow:auto}
+#destbar button{flex:1;border:0;background:var(--bg);color:var(--muted);padding:4px 10px;font-size:.88em}
 #destbar button.on{background:var(--accent);color:var(--accent-ink)}
 .box{display:flex;flex-direction:column;gap:10px}
 .box[hidden]{display:none}
@@ -228,6 +238,7 @@ body.docview #btnHdr{display:none}
 #rpStar.on{color:#e0a100}#rpStar.on svg{fill:currentColor}
 #rpSync[hidden],#btnSplit[hidden],#rpBox[hidden]{display:none}
 #rpBar{justify-content:flex-end}
+#rpTitle.ted{outline:2px solid var(--accent);outline-offset:3px;border-radius:4px;cursor:text!important}
 #rpTitle.bigt{display:block;font-size:1.55em;font-weight:700;line-height:1.35;margin:4px 0 8px;cursor:default}
 #rpCrumb{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 6px;font-size:.88em;color:var(--muted);margin:2px 0 10px;unicode-bidi:plaintext}
 #rpCrumb a{color:var(--link);cursor:pointer;text-decoration:none;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;unicode-bidi:plaintext}
@@ -307,7 +318,6 @@ html,body{overscroll-behavior-x:none}
 </head>
 <body>
 <div id="app">
-  <div id="destbar"><button data-dest="roam">Roam Research</button><button data-dest="obsidian">Obsidian</button></div>
   <div id="tabs"></div>
   <div id="rpBar">
     <div id="rpBox"><span id="rpTI" title="وجهة الإرسال — اضغط لإلغائها والعودة إلى اليوم">▤</span>
@@ -317,6 +327,7 @@ html,body{overscroll-behavior-x:none}
   </div>
   <div id="rpRes" hidden></div>
 
+  <div id="destbar"><button data-dest="roam">Roam</button><button data-dest="obsidian">Obsidian</button></div>
   <div id="roamBox" class="box">
     <div class="field">
       <label for="graph">الغراف:</label>
@@ -360,6 +371,7 @@ html,body{overscroll-behavior-x:none}
     <button class="ghost danger" id="btnClear" title="مسح كل ما كتبت">مسح</button>
     <span class="spacer"></span>
     <button class="ghost sic" id="btnWide" title="عرض الصفحة كاملاً / عرض محدود (Alt+W)"><svg viewBox="0 0 24 24"><path d="M4 5v14M20 5v14M8 12h8M10.5 9.5L8 12l2.5 2.5M13.5 9.5L16 12l-2.5 2.5"/></svg></button>
+    <button class="ghost sic" id="btnPara" title="عرض الكتل التي لا أبناء لها فقراتٍ بلا نقاط، والنسخ يتبع العرض · انسخ فقراتٍ في أي عرض: Alt+C (ومع الأبناء كلهم: Alt+Shift+C)"></button>
     <button class="ghost sic" id="btnSettings" title="إعدادات"><svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg></button>
     <button class="ghost sic" id="btnSplit" title="اعرض الصفحة بجانب المسودة، أو وحدها (Alt+S)" hidden><svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="14" rx="2"/><path d="M12 5v14"/></svg></button>
   </div>
@@ -505,7 +517,6 @@ async function refreshPages(){
   finally { btn.disabled = false; btn.textContent = "↻"; }
 }
 function loadPages(){
-  if (CFG.dest==="obsidian"){ S.pages = OBS.names; S.pagesN = S.pages.map(norm); return; }
   const raw = store.get("rq-pages:"+S.graph);
   S.pages = raw ? raw.split("\n").filter(Boolean) : CONFIG.demoPages.slice();
   S.pagesN = S.pages.map(norm);
@@ -604,7 +615,8 @@ function renderInline(text){
   }
   let h = esc(text);
   h = h.replace(/`([^`\n]+)`/g, "<code>$1</code>");
-  h = h.replace(/\{\{(?:\[\[)?TODO(?:\]\])?\}\}/g, "☐").replace(/\{\{(?:\[\[)?DONE(?:\]\])?\}\}/g, "☑");
+  if (VIEW.pgn !== false) h = h.replace(/\|([0-9\u0660-\u0669\u06F0-\u06F9]{1,5})\|/g, '|<span class="pgn">$1</span>|');
+  h = h.replace(/\{\{(?:\[\[)?TODO(?:\]\])?\}\}/g, '<span class="todo" title="اضغط لإنجازها">☐</span>').replace(/\{\{(?:\[\[)?DONE(?:\]\])?\}\}/g, '<span class="todo" title="اضغط لإعادتها">☑</span>');
   h = h.replace(/\[([^\[\]\n]+)\]\((https?:[^)\s]+)\)/g, '<span class="ext" data-h="$2">$1</span>');
   h = h.replace(/\[\[([^\[\]\n]+)\]\]/g, (m, t) => { const k = VIEW.ns ? t.lastIndexOf("/") : -1, sh = k >= 0 && k < t.length - 1;
     return '<span class="link" dir="auto" data-t="' + t + '"' + (sh ? ' title="' + t + '"' : '') + '><span class="br">[[</span>' + (sh ? t.slice(k + 1) : t) + '<span class="br">]]</span></span>'; });
@@ -623,16 +635,15 @@ function renderInline(text){
 /* ============================================================
    Obsidian: محرر حيّ — كل سطر كتلة بلا نقاط، والجدول وكتلة الكود كتلة واحدة
    ============================================================ */
-const isOb = () => CFG.dest==="obsidian";
+const obDest = () => CFG.dest==="obsidian";            // وجهة المسودة
+const isOb = () => obDest() && ACTIVE === "main";      // السياق الجاري مسودة Obsidian (صفحات الغراف تبقى بتنسيق Roam)
+const inDraft = () => typeof TABS === "undefined" || !TABS.cur || TABS.cur.kind === "draft";
+const obDraft = () => obDest() && inDraft();           // المسودة بوجهة Obsidian تملأ الصفحة
 let OBFD = "rtl";                                    // جهة الملف: بأول حرف مكتوب فيه
-function obsFileDir(){
-  for (const n of model){ const m = n.text.match(/[A-Za-z؀-ۿ]/); if (m) return /[A-Za-z]/.test(m[0]) ? "ltr" : "rtl"; }
-  return "rtl";
-}
-function obsBlockDir(text){
+function obsFileDir(){ return "rtl"; }               // يبدأ من اليمين دائماً؛ والفقرة تُقلب إلى اليسار يدوياً (Alt+L)
+function obsBlockDir(text, n){
   if (/^\s*```/.test(text)) return "ltr";
-  if (OBFD==="ltr") return "auto";
-  return /[؀-ۿ]/.test(text) ? "rtl" : (/[A-Za-z]/.test(text) ? "ltr" : "rtl");
+  return n && n.ltr ? "ltr" : "rtl";
 }
 function splitUnits(text){                           // نص ← وحدات (سطر، أو جدول كامل، أو كتلة كود كاملة)
   const ls = text.split("\n"), out = [];
@@ -837,6 +848,7 @@ function renderBlock(n){
   const ob = isOb();
   const hasKids = ob ? obsFoldable(n) : (n.children.length>0 || !!n.lazy);
   if (ob && hasKids){ row.classList.add("hastg"); if (n.collapsed) row.classList.add("col"); }
+  if (!hasKids) b.classList.add("leaf");
   const toggle = () => {
     const y0 = b.getBoundingClientRect().top;
     if (n.lazy && n.collapsed){ loadLazy(n).then(() => { n.collapsed = false; render(); }).catch(e => toast(e.message)); return; }
@@ -855,7 +867,7 @@ function renderBlock(n){
   const content = el("div","content");
   if (editingId === n.id){
     const t = el("textarea","ed");
-    t.dir = isOb() ? obsBlockDir(n.text) : S.dir; if (isOb()) t.style.textAlign = OBFD==="ltr" ? "left" : "right";
+    t.dir = isOb() ? obsBlockDir(n.text, n) : S.dir; if (isOb()) t.style.textAlign = n.ltr ? "left" : "right";
     t.rows = 1; t.value = n.text; t.spellcheck = false; t.dataset.id = n.id;
     t.addEventListener("input", () => onInput(n,t));
     t.addEventListener("keydown", e => { t._kd = {k:e.key, t:Date.now()}; onKey(e,n,t); });
@@ -872,7 +884,7 @@ function renderBlock(n){
     if (hm){ cls += " h"+Math.min(6,hm[1].length); txt = hm[2]; }
     else if (/^>[ \t]?/.test(txt)){ cls += " quote"; txt = txt.replace(/^>[ \t]?/,""); }
     const v = el("div",cls);
-    if (isOb()){ v.dir = obsBlockDir(n.text); v.style.textAlign = OBFD==="ltr" ? "left" : "right"; v.innerHTML = (hm || cls!=="view") ? renderObsInline(txt) : renderObs(txt);
+    if (isOb()){ v.dir = obsBlockDir(n.text, n); v.style.textAlign = n.ltr ? "left" : "right"; v.innerHTML = (hm || cls!=="view") ? renderObsInline(txt) : renderObs(txt);
       if (hasKids && n.collapsed){ const tail = v.querySelector(".otx") || v.querySelector(".oin") || v; tail.insertAdjacentHTML("beforeend", ' <span class="fade">\u2026</span>'); } }
     else { v.dir = S.dir; v.innerHTML = renderInline(txt); }
     let downX = 0, downY = 0;
@@ -883,6 +895,7 @@ function renderBlock(n){
     v.onclick = e => {
       suppressBlur = false;
       if (bsSkipClick){ bsSkipClick = false; return; }
+      if (e.target.closest && e.target.closest(".todo")){ todoFlip(n); return; }
       if (!isOb() && roamClick(e)) return;
       const moved = Math.hypot(e.clientX-downX, e.clientY-downY) > 4;       // سحب = تظليل، وإلا نقرة = تحرير
       const sel = window.getSelection();
@@ -899,7 +912,7 @@ function renderBlock(n){
 }
 function render(){
   rendering = true; OBFD = obsFileDir();
-  $("#outline").classList.toggle("plain", isOb()); CAL.open = false; CAL.el = null;
+  if (ACTIVE === "main") $("#outline").classList.toggle("plain", isOb()); CAL.open = false; CAL.el = null;
   const host = HOST(); host.innerHTML = "";
   host.appendChild(renderList(isOb() ? obsVisible() : model, true));
   rendering = false;
@@ -937,7 +950,7 @@ let suppressBlur = false;
 document.addEventListener("mouseup", () => { setTimeout(() => { suppressBlur = false; }, 0); }, true);
 function onInput(n,t){
   n.text = t.value; n.auto = false; if (ACTIVE === "page") docTouch(); else draftTouch();                  // ما كتبتَ فيه لم يعد رأساً تلقائياً
-  if (isOb()){ OBFD = obsFileDir(); t.dir = obsBlockDir(n.text); t.style.textAlign = OBFD==="ltr" ? "left" : "right"; }
+  if (isOb()){ t.dir = obsBlockDir(n.text, n); t.style.textAlign = n.ltr ? "left" : "right"; }
   autosize(t); checkSug(n,t);
 }
 
@@ -1246,13 +1259,15 @@ function checkSug(n,t){
   const q = before.slice(i+2);
   const qn = norm(q.trim());
   let first=[], rest=[];
-  for (let k=0;k<S.pages.length;k++){
-    const pn = S.pagesN[k];
-    if (qn === "") { first.push(S.pages[k]); }
-    else { const p = pn.indexOf(qn); if (p===0) first.push(S.pages[k]); else if (p>0) rest.push(S.pages[k]); }
+  const PG = isOb() ? OBS.names : S.pages, PGN = isOb() ? (OBS.namesN || (OBS.namesN = OBS.names.map(norm))) : S.pagesN;
+  for (let k=0;k<PG.length;k++){
+    const pn = PGN[k];
+    if (qn === "") { first.push(PG[k]); }
+    else { const p = pn.indexOf(qn); if (p===0) first.push(PG[k]); else if (p>0) rest.push(PG[k]); }
     if (first.length + rest.length >= 300) break;
   }
   let items = first.concat(rest).slice(0,12).map(x => ({title:x, kind:"page"}));
+  if (qn && norm("مهمة").startsWith(qn)) items.unshift({title:"مهمة", kind:"task", sub:"☐ مربع مهمة، ثم تاريخ إن شئت"});
   if (q.trim() && !items.some(it => norm(it.title) === qn)) items.push({title:q.trim(), kind:"new"});
   if (!items.length){ closeSug(); return; }
   sug.items = items; sug.sel = 0; sug.start = i+2; sug.id = n.id; sug.open = true; sug.kind = "page";
@@ -1288,6 +1303,7 @@ function pickSug(k){
   const it = sug.items[k]; if (!it) return;
   const t = $('textarea[data-id="'+sug.id+'"]'); if (!t) return;
   const s = t.selectionStart;
+  if (it.kind === "task"){ const L0 = loc(sug.id), st0 = sug.start - 2; closeSug(); if (L0) taskFromSug(L0.node, t, st0, s); return; }
   t.setSelectionRange(sug.start, s);
   pushHist();
   if (sug.kind==="ref"){ const tl = t.value.slice(s, s+2) === "))" ? "" : "))"; document.execCommand("insertText", false, it.uid + tl); const p0 = sug.start + it.uid.length + 2; t.setSelectionRange(p0, p0); closeSug(); return; }
@@ -1349,6 +1365,8 @@ function wrapSel(t, mark){
 function onKey(e,n,t){
   if (e.isComposing) return;
   if (CAL.open && calKey(e, t)) return;
+  if (e.altKey && !e.ctrlKey && !e.shiftKey && e.code==="KeyL" && isOb()){ e.preventDefault(); n.ltr = !n.ltr; const c = t.selectionStart; render(); startEdit(n.id, c); toast(n.ltr ? "الفقرة من اليسار" : "الفقرة من اليمين"); return; }
+  if (e.altKey && !e.ctrlKey && e.code==="KeyC" && !isOb()){ e.preventDefault(); copyPara(e.shiftKey); return; }
   if (e.altKey && !e.ctrlKey && !e.shiftKey && e.code==="KeyT" && !isOb()){ e.preventDefault(); todoKey(n, t); return; }
   if (e.altKey && !e.ctrlKey && !e.shiftKey && e.code==="KeyD" && !isOb()){ e.preventDefault(); calOpen(t); return; }
   const s=t.selectionStart, en=t.selectionEnd, v=t.value;
@@ -1571,6 +1589,20 @@ function bsRoots(){                                  // المظلّلة الت�
 function endEditFor(){ if (editingId != null){ editingId = null; closeSug(); render(); } }
 function ensureNonEmpty(){ if (!model.length){ if (ACTIVE === "main") freshModel(); else model.push(mk("")); } }
 function bsText(){ return toMd(prune(bsRoots(), 6, true)).replace(/\s+$/,""); }
+const pview = () => store.get("rq-pview") === "1";
+const plainLine = t => String(t || "").replace(/\{\{(?:\[\[)?(?:TODO|DONE)(?:\]\])?\}\} ?/g, "").replace(/#?\[\[([^\[\]\n]+)\]\]/g, "$1").replace(/\*\*([^*\n]+)\*\*/g, "$1").replace(/\^\^([^\^\n]+)\^\^/g, "$1").replace(/__([^_\n]+)__/g, "$1").replace(/~~([^~\n]+)~~/g, "$1");
+function paraText(roots, all){                       // نسخ كفقرات: المستوى المحدَّد وحده (أو كتلة واحدة وأبناؤها المباشرون)؛ all = كل ما تحتها
+  let ns;
+  if (all){ ns = []; (function w(L){ for (const n of L){ ns.push(n); w(n.children || []); } })(roots); }
+  else if (roots.length === 1 && roots[0].children.length) ns = [roots[0]].concat(roots[0].children);
+  else ns = roots;
+  return ns.map(n => plainLine(n.text)).filter(x => x.trim()).join("\n");
+}
+function copyPara(all){
+  let roots = BS.ids.length ? bsRoots() : null;
+  if (!roots){ const L = editingId != null ? loc(editingId) : null; if (!L) return false; roots = [L.node]; }
+  copyText(paraText(roots, all)).then(ok => toast(ok ? (all ? "نُسخت فقراتٍ مع كل أبنائها" : "نُسخت فقراتٍ") : "تعذّر النسخ")); return true;
+}
 function bsDelete(){
   const roots = bsRoots(); if (!roots.length) return;
   pushHist();
@@ -1610,7 +1642,8 @@ function bsKey(e){                                   // true = استُهلكت
   if (/^(Control|Shift|Alt|Meta|OS)$/.test(k)) return true;
   if (k === "Escape"){ bsClear(); return true; }
   if (k === "Backspace" || k === "Delete"){ bsDelete(); return true; }
-  if (mod && e.code === "KeyC"){ const t = bsText(); copyText(t).then(ok => toast(ok ? "نُسخت الكتل" : "تعذّر النسخ")); return true; }
+  if (e.altKey && !mod && e.code === "KeyC"){ e.preventDefault(); copyPara(e.shiftKey); return true; }
+  if (mod && e.code === "KeyC"){ if (pview()){ copyPara(false); return true; } const t = bsText(); copyText(t).then(ok => toast(ok ? "نُسخت الكتل" : "تعذّر النسخ")); return true; }
   if (mod && e.code === "KeyX"){ const t = bsText(); copyText(t).then(ok => { if (ok) toast("قُصّت الكتل"); }); bsDelete(); return true; }
   if (mod && e.code === "KeyZ"){ bsClear(); e.shiftKey ? redo() : undo(); return true; }
   if (k === "Tab"){ bsShift(e.shiftKey); return true; }
@@ -1726,24 +1759,33 @@ function bulletDown(e, n, click){
   BD.n = n; BD.x = e.clientX; BD.y = e.clientY; BD.on = false; BD.click = click;
 }
 function dragIdsOf(items){ const s = new Set(); for (const r of items) for (const x of flat([r])) s.add(x.id); return s; }
-function bdTarget(x, y){
+function bdTarget(x, y){                             // كما في Roam: الخطّ تحت الصفّ، وعمقه يتبع المؤشّر يميناً ويساراً
   const host = HOST(), rows = host.querySelectorAll(".row"), ban = BD.ban; let best = null, bd = Infinity;
   for (const r of rows){ const b = r.getBoundingClientRect(); if (!b.height) continue;
     const d = y < b.top ? b.top - y : (y > b.bottom ? y - b.bottom : 0); if (d < bd){ bd = d; best = [r, b]; } if (d === 0) break; }
   if (!best) return null;
   const blk = best[0].closest(".block"), id = +blk.dataset.id; if (ban.has(id)) return null;
   const L = loc(id); if (!L) return null; const n = L.node, b = best[1], rel = (y - b.top) / b.height;
-  let zone = rel < 0.3 ? "before" : rel > 0.7 ? "after" : "inside";
-  if (zone === "after" && n.children.length && !n.collapsed) zone = "first";   // تحت أمٍّ منشورة: أوّل أبنائها
-  return {id, n, zone, row:best[0], rect:b};
+  if (isOb()) return {id, n, zone:rel < 0.5 ? "before" : "after", up:0, d:0, row:best[0], rect:b};
+  if (rel < 0.5) return {id, n, zone:"before", up:0, d:0, row:best[0], rect:b};
+  const ch = host.querySelector(".children"), cs = ch && getComputedStyle(ch), ind = cs ? (parseFloat(cs.marginInlineStart) || 0) + (parseFloat(cs.paddingInlineStart) || 0) + 1 : 32;
+  const bu = best[0].querySelector(".bullet"), br = (bu || best[0]).getBoundingClientRect(), rtl = getComputedStyle(host).direction !== "ltr";
+  let d = Math.round((rtl ? (br.left + br.width / 2) - x : x - (br.left + br.width / 2)) / ind);
+  const kids = n.children.length || n.lazy, open = kids && !n.collapsed;
+  if (open) return {id, n, zone:"first", up:0, d:1, row:best[0], rect:b};                 // تحت أمٍّ منشورة: أوّل أبنائها
+  if (d >= 1) return {id, n, zone:kids ? "inside" : "first", up:0, d:1, row:best[0], rect:b};   // إلى الداخل: ابن لها
+  let up = 0, cur = L;                               // إلى الخارج: أخٌ للأب (ما دامت آخر أبنائه)، ثم للجدّ…
+  while (up < -d && cur.parent && cur.list.slice(cur.index + 1).every(z => ban.has(z.id)) && !ban.has(cur.parent.id)){ const pl = loc(cur.parent.id); if (!pl) break; cur = pl; up++; }
+  return {id, n, zone:"after", up, d:-up, row:best[0], rect:b};
 }
 function bdPaint(){
   document.querySelectorAll(".row.dropin").forEach(r => r.classList.remove("dropin"));
   const t = BD.tgt, ln = BD.line; if (!t){ ln.style.display = "none"; return; }
   if (t.zone === "inside"){ t.row.classList.add("dropin"); ln.style.display = "none"; return; }
-  const c = t.row.querySelector(".content") || t.row, cr = c.getBoundingClientRect(), ind = t.zone === "first" ? 24 : 0;
+  const host = HOST(), ch = host.querySelector(".children"), cs = ch && getComputedStyle(ch), ind = cs ? (parseFloat(cs.marginInlineStart) || 0) + (parseFloat(cs.paddingInlineStart) || 0) + 1 : 32;
+  const c = t.row.querySelector(".content") || t.row, cr = c.getBoundingClientRect(), sh = (t.d || 0) * ind, rtl = getComputedStyle(host).direction !== "ltr";
   ln.style.display = "block"; ln.style.top = ((t.zone === "before" ? t.rect.top : t.rect.bottom) - 1) + "px";
-  ln.style.left = cr.left + "px"; ln.style.width = Math.max(40, cr.width - ind) + "px";
+  ln.style.left = (rtl ? cr.left : cr.left + sh) + "px"; ln.style.width = Math.max(40, cr.width - sh) + "px";
 }
 function bdReclose(keep){                            // أعِد طيّ ما انتشر أثناء السحب ولم يعد طريقاً إلى الموضع
   const anc = new Set(); if (keep){ const pm = parentMap(); let p = keep; while (p){ anc.add(p.id); p = pm.get(p.id); } }
@@ -1793,7 +1835,8 @@ async function bdUp(){
   const pm = parentMap(), dest = (t.zone === "inside" || t.zone === "first") ? t.n : (pm.get(t.id) || null);
   for (const o of opened){ let p = dest, keep = false; while (p){ if (p === o){ keep = true; break; } p = pm.get(p.id); } o.collapsed = !keep; }
   if (t.zone === "inside" || t.zone === "first"){ t.n.children.unshift(...items); t.n.collapsed = false; }
-  else { const L = loc(t.id); if (!L){ render(); return; } L.list.splice(L.index + (t.zone === "after" ? 1 : 0), 0, ...items); }
+  else { let L = loc(t.id); for (let k = 0; L && k < (t.up || 0) && L.parent; k++) L = loc(L.parent.id);
+    if (!L){ render(); return; } L.list.splice(L.index + (t.zone === "after" ? 1 : 0), 0, ...items); }
   render(); bsSet(items[0].id, items[items.length-1].id);
 }
 document.addEventListener("mousemove", e => { if (BD.n) bdMove(e); else if (DRG.t) edDragMove(e); });
@@ -2026,6 +2069,7 @@ function graphChanged(oldHeader){
 }
 function switchDest(d){
   if (d===CFG.dest) return;
+  activate("main");
   const oldHeader = S.header, prev = CFG.dest;
   let md = "", obsTxt = prev==="obsidian" ? bidiStrip(obsText()) : "";
   if (prev==="roam"){
@@ -2048,7 +2092,7 @@ function applyDest(){
   if (typeof rpGraph === "function") rpGraph();
   { const bp = $("#btnPanel"); if (bp) bp.hidden = isOb(); }
   const ob = CFG.dest==="obsidian";
-  $("#roamBox").hidden = ob; $("#obsBox").hidden = !ob; pagesInfo(); $("#outline").hidden = false; $("#obsWrap").hidden = true;
+  $("#roamBox").hidden = ob; pagesInfo(); $("#outline").hidden = false; $("#obsWrap").hidden = true;
   document.querySelectorAll("#destbar button").forEach(b => b.classList.toggle("on", b.dataset.dest===CFG.dest));
   syncS(); loadPages(); pagesInfo(); refreshPageButton();
   document.title = ob ? "المحرر — Obsidian" : "المحرر — Roam";
@@ -2066,20 +2110,20 @@ function renderSettings(){
   box.appendChild(h("label", {}, auto, "اتجاه الكتل تلقائي بحسب لغتها (الافتراضي: يمين←يسار دائماً)"));
 
   viewSettings(box);
-  if (CFG.dest==="roam") tabSettings(box);
-  if (CFG.dest==="roam") syncSettings(box);
+  tabSettings(box);
+  syncSettings(box);
 
   const KEYS = [["Ctrl+Enter / Ctrl+S","إرسال"],["Ctrl+Z","تراجع"],["Ctrl+Shift+Z / Ctrl+Y","إعادة"],
     ["Ctrl+B / Ctrl+I","غامق / مائل"],["Ctrl+Shift+H","تمييز"],["Ctrl+`","كود"],["Ctrl+K","رابط"],
     ["Tab / Shift+Tab", CFG.dest==="obsidian" ? "إزاحة السطر" : "تداخل الكتلة"],
-    ["Alt+Shift+↑ / ↓","نقل السطر"],["Ctrl+A مرتين","تظليل كل النص"],["Ctrl+Shift+V","لصق بلا تحويل"],
+    ["Alt+Shift+↑ / ↓","نقل السطر"],["Alt+C","نسخ فقراتٍ (المستوى المحدَّد)"],["Alt+Shift+C","نسخ فقراتٍ مع كل الأبناء"],["Alt+L","Obsidian: قلب الفقرة إلى اليسار/اليمين"],["Ctrl+A مرتين","تظليل كل النص"],["Ctrl+Shift+V","لصق بلا تحويل"],
     ["Esc","تظليل الكتلة (Roam) · ثانيةً: إلغاؤه"],["Shift+↑ / ↓ عند طرف الكتلة","تظليل الكتل"],["Shift+نقر","تظليل الكتل حتى هذه"],
     ["مع الكتل المظلّلة","Backspace حذف · Ctrl+C نسخ · Ctrl+X قصّ · Tab إزاحة · Enter تحرير"],["سحب النقطة","نقل الكتلة (أو المظلّلة) قبل كتلة أو بعدها أو داخلها"]];
-  if (CFG.dest==="roam") KEYS.push(["Alt+S","الصفحة بجانب المسودة، أو وحدها"],["Alt+W","عرض الصفحة كاملاً / محدوداً"],["Alt+R في المسودة","مزامنة المسودة مع الأجهزة الأخرى"],["Alt+T","مهمة بتاريخ (ثم منجزة، ثم إزالة)"],["Alt+D","إدراج تاريخ"],["Alt+R","مزامنة الصفحة المعروضة من Roam"],["Ctrl+Shift+F","خانة البحث"],["Alt+M","البحث: مطابق / مجرّد"],["نقرة وسطى على لسان","إغلاقه"],["Alt+H","الكتابة تحت ترويسة التاريخ أو بدونها"]);
+  KEYS.push(["Alt+S","الصفحة بجانب المسودة، أو وحدها"],["Alt+W","عرض الصفحة كاملاً / محدوداً"],["Alt+R في المسودة","مزامنة المسودة مع الأجهزة الأخرى"],["Alt+T","مهمة بتاريخ (ثم منجزة، ثم إزالة)"],["Alt+D","إدراج تاريخ"],["Alt+R","مزامنة الصفحة المعروضة من Roam"],["Ctrl+Shift+F","خانة البحث"],["Alt+M","البحث: مطابق / مجرّد"],["نقرة وسطى على لسان","إغلاقه"],["Alt+H","الكتابة تحت ترويسة التاريخ أو بدونها"]);
   KEYS.push(["F9", CFG.dest==="obsidian" ? "إعادة فهرسة الخزنة" : "تحديث صفحات الغراف"]);
   box.appendChild(h("details", {class:"keysbox"}, h("summary", {}, "الاختصارات"), h("div", {class:"keys"}, ...KEYS.map(k => h("div", {}, h("b", {dir:"ltr"}, k[0]), " — "+k[1])))));
 
-  if (CFG.dest==="roam"){
+  {
     title("غرافات Roam");
     CFG.roam.graphs.forEach(g => {
       box.appendChild(h("div", {class:"srow"},
@@ -2095,7 +2139,8 @@ function renderSettings(){
     });
     if (editingGraph) box.appendChild(graphForm(editingGraph));
     else box.appendChild(h("button", {class:"ghost", style:"align-self:flex-start;border:1px solid var(--line)", onclick:() => { editingGraph = "__new__"; renderSettings(); }}, "＋ إضافة غراف"));
-  } else {
+  }
+  {
     title("خزائن Obsidian");
     CFG.obs.vaults.forEach(v => {
       box.appendChild(h("div", {class:"srow"}, h("b", {}, v.name), h("span", {class:"spacer"}),
@@ -2231,7 +2276,7 @@ function fillVaultSelect(){
 async function loadVault(ask){
   const v = curVault();
   OBS.handle = null; OBS.ready = false; OBS.status = "";
-  OBS.folders = []; OBS.notes = []; OBS.names = []; OBS.tagList = []; OBS.tagKey = new Map(); OBS.folderMap = new Map(); OBS.noteMap = new Map();
+  OBS.folders = []; OBS.notes = []; OBS.names = []; OBS.namesN = null; OBS.tagList = []; OBS.tagKey = new Map(); OBS.folderMap = new Map(); OBS.noteMap = new Map();
   if (!v){ obsUI(); loadPages(); return; }
   CFG.obs.current = v.name;
   OBS.handle = (await idbGet("vault:"+v.name)) || null;
@@ -2318,7 +2363,7 @@ async function scanVault(){
 function rebuildIndex(){
   OBS.folderMap = new Map(OBS.folders.map(f => [normKey(f), f]));
   OBS.noteMap = new Map(OBS.notes.map(x => [normKey(x.dir)+"|"+normKey(x.name), x]));
-  OBS.names = [...new Set(OBS.notes.map(x => x.name))];
+  OBS.names = [...new Set(OBS.notes.map(x => x.name))]; OBS.namesN = null;
   const cnt = new Map();
   OBS.notes.forEach(x => (x.tags||[]).forEach(t => cnt.set(t, (cnt.get(t)||0)+1)));
   OBS.tagList = [...cnt.entries()].sort((a,b) => b[1]-a[1]).map(([t,c]) => ({t,c}));
@@ -2482,7 +2527,7 @@ function oblInline(s){
 let OBS_TIGHT = false;     // فقرات متلاصقة بسطر واحد بينها (كما يلصق Obsidian) بدل سطر فارغ
 const LIST_LINE = /^\s*([-*+]|\d+[.)])\s|^\s*\|/;
 function obsEmit(nodes, depth, para, out, forceList){
-  const blank = () => { if (out.length && out[out.length-1] !== "") out.push(""); };
+  const blank = () => { if (out.length && out[out.length-1] !== "" && !/^#{1,6} /.test(out[out.length-1])) out.push(""); };   // لا سطر فارغ بعد العنوان (كما في Obsidian)
   for (const n of nodes){
     let s = n.string;
     const task = s.match(/^\{\{\[\[(TODO|DONE)\]\]\}\}\s*([\s\S]*)$/);
@@ -2490,7 +2535,7 @@ function obsEmit(nodes, depth, para, out, forceList){
     const trs = tableRows(n.string);
     const pad = "    ".repeat(depth);
     if (n.heading && depth===0 && !forceList){
-      blank(); out.push("#".repeat(n.heading)+" "+oblInline(s)); blank();
+      if (out.length && out[out.length-1] !== "") out.push(""); out.push("#".repeat(n.heading)+" "+oblInline(s));
       obsEmit(n.children, 0, para, out, false); continue;
     }
     if (trs){ blank(); n.string.split("\n").forEach(l => out.push(pad+oblInline(l))); blank(); obsEmit(n.children, depth+((depth||forceList) ? 1 : 0), para, out, true); continue; }
@@ -2593,7 +2638,7 @@ function init(){
   $("#btnRescan").onclick = reindex;
   document.addEventListener("keydown", e => {
     if (e.key!=="F9") return;
-    e.preventDefault(); CFG.dest==="obsidian" ? reindex() : refreshPages();
+    e.preventDefault(); obDraft() ? reindex() : refreshPages();
   });
   $("#btnVaultPerm").onclick = async () => { await loadVault(true); obsStatus(); };
   attachSuggest($("#oFolder"), v => rankFilter(OBS.folders, v, x => x).map(f => ({label:f, apply(){ $("#oFolder").value = f; }})));
@@ -2948,6 +2993,17 @@ async function fixPages(recs){                 // كتل بلا صفحة معر�
   if (fix.length){ const t = DB.transaction("blocks", "readwrite"), B = t.objectStore("blocks"); for (const b of fix) B.put(b); await txDone(t); }
   return fix.length;
 }
+async function lRenameRefs(old, nw){                 // محلياً: حدّث نصوص الكتل التي تشير إلى الصفحة (Roam يفعل ذلك عنده)
+  const r = await W("refs", {title:old, limit:50000}), ex = old.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const re1 = new RegExp("\\[\\[" + ex + "\\]\\]", "g"), re2 = /\s/.test(old) ? null : new RegExp("#" + ex + "(?=$|[\\s.,،؛:;!?\\])])", "g"), tag = /\s/.test(nw) ? "#[[" + nw + "]]" : "#" + nw, ch = [];
+  const us = (r.list || []).map(x => x.u);
+  for (let i = 0; i < us.length; i += 400){ const t = DB.transaction("blocks", "readwrite"), B = t.objectStore("blocks");
+    for (const u of us.slice(i, i + 400)){ const g = B.get(u); g.onsuccess = () => { const b = g.result; if (!b || !b.s) return; let s2 = b.s.replace(re1, "[[" + nw + "]]"); if (re2) s2 = s2.replace(re2, tag);
+      if (s2 !== b.s){ b.s = s2; B.put(b); ch.push({u, s:s2}); } }; }
+    await txDone(t); }
+  for (const c of ch) await W("upd", c);
+  return ch.length;
+}
 async function lPutPage(uid, title){
   PT.set(uid, title); const t = DB.transaction("pages", "readwrite"); t.objectStore("pages").put({u:uid, t:title}); await txDone(t);
 }
@@ -3261,7 +3317,7 @@ function markMatches(root, q){                        // ظلّل مواضع ا�
     await txDone(t); await W("move", {rows});
   }
   return {W, rq, kidRange, foldStr, stems, markMatches, isLocal, SYNC, hooks, openLocal, setGraphLocal, loadQueue, flush, enqueue, autoSync, dropLocal,
-    lPutRecs, lShift, lPutPage, lDelete, lMove, fixPages,
+    lPutRecs, lShift, lPutPage, lDelete, lMove, fixPages, lRenameRefs,
     db:() => DB, loc:() => LOC, pending:() => QUEUE.length, pageTitle:g => PT.get(g) || "",
     ROOTHL, diagnose, rootOfBlock, setLoc, roam,
     async sync(full, scope){ if (QUEUE.length){ await flush(); if (QUEUE.length){ toast("في الطابور تعديلات لم تُرسل بعد — تُزامَن بعد إرسالها"); return false; } } const r = await syncGraph(full, scope); hooks.onSync(); return r; },
@@ -3276,7 +3332,7 @@ const AR = n => Number(n).toLocaleString("ar-EG");
 const RP = {mode:store.get("rq-smode") === "2" ? 2 : 1, items:[], sel:0, seq:0, timer:null};
 let DOC = null;                                      // الوثيقة المعروضة في اللوحة
 const pageModel = () => ACTIVE === "page" ? model : CTXS.page.model;
-const rpOpen = () => !isOb();
+const rpOpen = () => true;
 const isSplit = () => store.get("rq-split") === "1";
 
 /* ============================================================
@@ -3300,18 +3356,21 @@ const DOC_HTML = '<div id="rpHead"><div id="rpCrumb" hidden></div><div id="rpTit
 function newDocEl(){
   const d = el("div"); d.id = "rpDoc"; d.innerHTML = DOC_HTML; const q = x => d.querySelector(x);
   q("#outline2").addEventListener("mousedown", () => activate("page"), true);
+  q("#rpTitle").addEventListener("click", () => titleEdit()); q("#rpTitle").title = "اضغط لتعديل اسم الصفحة";
   q("#rpCrumb").addEventListener("click", e => { const a = e.target.closest("a"); if (!a || !DOC) return; e.preventDefault();
     if (a.dataset.p != null) openDoc({kind:"page", title:a.dataset.p, reveal:DOC.uid});
     else openDoc({kind:"block", uid:a.dataset.u, reveal:DOC.uid, q:DOC.q}); });
   return d;
 }
 function layout(){                                   // لسان غراف: وثيقته في مكانها، والمسودة لوحة على اليسار إن طُلبت · لسان المسودة: المسودة
-  const t = TABS.cur, inG = !!t && t.kind === "graph" && !isOb(), d = $("#rpDoc"), sp = inG && !!DOC && isSplit();
+  const t = TABS.cur, inG = !!t && t.kind === "graph", d = $("#rpDoc"), sp = inG && !!DOC && isSplit();
   document.body.classList.toggle("docview", inG); document.body.classList.toggle("rpopen", sp);
-  $("#rp").hidden = !sp; $("#tabs").hidden = isOb();
-  const o = $("#outline"), bs = $("#btnSend"), bc = $("#btnClear");
-  if (sp){ if (o.parentElement !== $("#sdBody")){ $("#sdBody").appendChild(o); $("#sdActs").append(bs, bc); } }
-  else if (o.parentElement === $("#sdBody")){ $("#docSlot").before(o); document.querySelector("#app > .actions").prepend(bs, bc); sdClose(); }
+  $("#rp").hidden = !sp; $("#tabs").hidden = false;
+  const o = $("#outline"), bs = $("#btnSend"), bc = $("#btnClear"), db = $("#destbar"), ob = $("#obsBox");
+  if (sp){ if (o.parentElement !== $("#sdBody")){ $("#sdBody").appendChild(o); $("#sdActs").append(bs, bc); $("#rp").prepend(db); $("#sdBody").before(ob); } }
+  else if (o.parentElement === $("#sdBody")){ $("#docSlot").before(o); document.querySelector("#app > .actions").prepend(bs, bc); $("#roamBox").before(db); $("#roamBox").after(ob); sdClose(); }
+  db.hidden = inG && !sp; ob.hidden = !obDest() || (inG && !sp);            // مفتاح الوجهة وحقول Obsidian فوق المسودة حيث كانت
+  $("#sdHead").hidden = obDest(); document.body.classList.toggle("obdraft", obDraft()); $("#rpBox").hidden = obDraft();
   sideApply(sp);
   if (d){ if (d.parentElement !== $("#docSlot")) $("#docSlot").appendChild(d); d.hidden = !inG;
     d.querySelector("#rpEmpty").hidden = !!DOC; d.querySelector("#rpHead").hidden = !DOC; }
@@ -3320,7 +3379,7 @@ function layout(){                                   // لسان غراف: وث�
 }
 /* ---- اللوحة الجانبية: عنوانها وجهة الكتابة (اليوم في غراف اللسان، أو صفحة تختارها) ---- */
 function sideApply(sp){
-  if (!sp){ CALLG = null; return; }
+  if (!sp || obDest()){ CALLG = null; return; }
   const multi = CFG.roam.graphs.length > 1, ok = SD.set && SD.page.kind === "page" && CFG.roam.graphs.some(g => g.name === SD.graph);
   S.page = ok ? SD.page : {kind:"today", title:""}; CALLG = ok && SD.graph !== S.graph ? SD.graph : null;
   const t = $("#sdTitle"); t.textContent = ok ? SD.page.title : dailyTitle(); t.classList.toggle("tgt", ok);
@@ -3377,7 +3436,7 @@ function sideInit(){
   sep.ondblclick = () => { store.set("rq-spw", "46"); spwApply(); };
 }
 
-function rpToggle(){ if (isOb()) return; $("#rpBox").classList.remove("tgt"); $("#rpQ").focus(); $("#rpQ").select(); }
+function rpToggle(){ if (obDraft()) return; $("#rpBox").classList.remove("tgt"); $("#rpQ").focus(); $("#rpQ").select(); }
 const specOf = d => d ? (d.kind === "page" ? {kind:"page", title:d.title} : {kind:"block", uid:d.uid}) : null;
 function tabsSave(){
   store.set("rq-tabs", JSON.stringify({cur:TABS.cur ? TABS.cur.id : "", list:TABS.list.map(t => ({id:t.id, kind:t.kind, graph:t.graph, doc:t.kind === "graph" ? (specOf(t === TABS.cur ? DOC : t.DOC) || t.pending || null) : null}))}));
@@ -3391,6 +3450,14 @@ function tabsDraw(){
     x.textContent = "×"; x.title = "أغلق اللسان"; x.onclick = e => { e.stopPropagation(); tabClose(t.id); };
     d.onclick = () => tabSwitch(t.id); d.onauxclick = e => { if (e.button === 1){ e.preventDefault(); tabClose(t.id); } };
     d.append(l, x); bar.appendChild(d);
+    d.draggable = true;                               // اسحب اللسان لتغيير موضعه
+    d.ondragstart = e => { TABS.drag = t.id; e.dataTransfer.effectAllowed = "move"; try { e.dataTransfer.setData("text/plain", "tab"); } catch(err){} d.classList.add("tdrag"); };
+    d.ondragend = () => { TABS.drag = null; bar.querySelectorAll(".tab").forEach(z => z.classList.remove("tdrag", "tbefore", "tafter")); };
+    d.ondragover = e => { if (TABS.drag == null || TABS.drag === t.id) return; e.preventDefault(); const r = d.getBoundingClientRect(), rtl = getComputedStyle(bar).direction !== "ltr", first = (e.clientX > r.left + r.width / 2) === rtl;
+      bar.querySelectorAll(".tab").forEach(z => z.classList.remove("tbefore", "tafter")); d.classList.add(first ? "tbefore" : "tafter"); };
+    d.ondrop = e => { if (TABS.drag == null || TABS.drag === t.id) return; e.preventDefault(); const before = d.classList.contains("tbefore");
+      const i = TABS.list.findIndex(z => z.id === TABS.drag); if (i < 0) return; const mv = TABS.list.splice(i, 1)[0]; let j = TABS.list.indexOf(t); if (!before) j++;
+      TABS.list.splice(j, 0, mv); TABS.drag = null; tabsDraw(); tabsSave(); };
   }
   const add = el("button", "tabadd"); add.textContent = "+"; add.title = "افتح لساناً"; add.onclick = e => { e.stopPropagation(); tabMenu(add); }; bar.appendChild(add);
 }
@@ -3451,7 +3518,7 @@ async function openInGraph(g, spec){                 // افتح وثيقة في
 function toDraft(){ const t = TABS.list.find(x => x.kind === "draft") || tabNew("draft"); tabSwitch(t.id); }
 function barMark(){                                  // الشريط: في المسودة وجهة الإرسال، وفي لسان الغراف الصفحة المفتوحة (رمزها، عنوانها، نجمتها) — ما دام غير مفتوح للبحث
   const box = $("#rpBox"), q = $("#rpQ"); if (!box) return;
-  const draft = !!TABS.cur && TABS.cur.kind === "draft" && !isOb(), gdoc = !!TABS.cur && TABS.cur.kind === "graph" && !!DOC && !isOb();
+  const draft = !!TABS.cur && TABS.cur.kind === "draft" && !obDest(), gdoc = !!TABS.cur && TABS.cur.kind === "graph" && !!DOC;
   const show = (draft || gdoc) && document.activeElement !== q && !q.value;
   box.classList.toggle("tgt", show);
   const star = $("#rpStar"), ti = $("#rpTI");
@@ -3460,7 +3527,7 @@ function barMark(){                                  // الشريط: في ال�
   else if (gdoc){ const t = DOC.title || ""; $("#rpTT").textContent = t; $("#rpTG").textContent = "";
     const on = !!t && isDest({kind:"page", title:t, g:S.graph}); ti.style.color = on ? "" : "var(--muted)"; ti.title = on ? "وجهة الإرسال — اضغط لإلغائها" : "اجعلها وجهة الإرسال";
     const pg = DOC.kind === "page", pin = pg && pins(S.graph).includes(t); star.classList.toggle("show", pg); star.classList.toggle("on", pin); }
-  const sy = $("#rpSync"); if (sy){ sy.hidden = !(draft || (TABS.cur && TABS.cur.kind === "graph")) && !isOb(); sy.title = draft ? "زامن المسودة مع الأجهزة الأخرى (Alt+R)" : "زامن هذه الصفحة من Roam (Alt+R)"; }
+  const sy = $("#rpSync"); if (sy){ sy.hidden = false; sy.title = draft ? "زامن المسودة مع الأجهزة الأخرى (Alt+R)" : "زامن هذه الصفحة من Roam (Alt+R)"; }
 }
 const isDest = it => it.today ? !DR.set && (it.g || S.graph) === DR.graph : DR.set && DR.page.kind === "page" && DR.page.title === it.title && (it.g || S.graph) === DR.graph;
 function setTarget(it){                              // رمز الصفحة: اجعلها وجهة ما يُرسل من المسودة (ورمز الوجهة الحالية يلغيها)
@@ -3470,7 +3537,7 @@ function setTarget(it){                              // رمز الصفحة: ا�
   barMark(); toast("وجهة الإرسال: " + (it.today ? "اليوم" : it.title) + (CFG.roam.graphs.length > 1 ? " · " + glabel(DR.graph) : ""));
 }
 function draftAdapt(){                               // ترويسة التاريخ تتبع إعداد غراف الوجهة
-  if (isOb() || !TABS.cur || TABS.cur.kind !== "draft") return; activate("main");
+  if (obDest() || !TABS.cur || TABS.cur.kind !== "draft") return; activate("main");
   const had = model.length === 1 && !!model[0].hdr; if (had !== !!S.header){ adaptModel(had); render(); }
 }
 function clearTarget(){ DR.set = false; DR.page = {kind:"today", title:""}; saveDR(); if (TABS.cur && TABS.cur.kind === "draft") S.page = DR.page; barMark(); }
@@ -3515,7 +3582,7 @@ function tabSettings(box){                           // الإعدادات: أس
 
 function rpDot(){                                    // نقطة واحدة: خضراء = محفوظ ومُرسل · برتقالية = غير ذلك
   const d = $("#rpDot"); if (!d) return; d.hidden = false;
-  if (isOb() || TABS.cur && TABS.cur.kind === "draft"){ const s0 = DSYNC.state; d.className = s0 === "ok" ? "ok" : s0 === "err" ? "err" : s0 === "off" ? "off" : "warn";
+  if (inDraft()){ const s0 = DSYNC.state; d.className = s0 === "ok" ? "ok" : s0 === "err" ? "err" : s0 === "off" ? "off" : "warn";
     d.title = s0 === "ok" ? "المسودة مُزامَنة" : s0 === "err" ? "تعذّرت مزامنة المسودة" : s0 === "off" ? "مزامنة المسودة معطّلة (لا غراف برمز)" : "المسودة في انتظار المزامنة"; return; }
   const run = RQ.SYNC.running, pend = RQ.pending();
   d.className = (RP.dirty || pend || run) ? "warn" : "ok";
@@ -3540,7 +3607,60 @@ function rpSyncUI(){
       closeDoc(); await RQ.dropLocal(); RQ.SYNC.msg = ""; rpSyncUI(); }, "danger");
   }
 }
+/* ---- النسخة الاحتياطية: تصدير النسخ المحلية من الغرافات ملفات JSON (بصيغة استيراد Roam) إلى مجلد تختاره ---- */
+const BK = (function(){
+  const cfg = () => Object.assign({every:0, last:{}}, jget("rq-bk", {})), save = c => store.set("rq-bk", JSON.stringify(c));
+  let busy = false, warned = false, dir = null;
+  const getDir = async () => dir || (dir = await idbGet("bkdir") || null);
+  const all = (db, st) => new Promise((res, rej) => { const q = db.transaction(st).objectStore(st).getAll(); q.onsuccess = () => res(q.result || []); q.onerror = () => rej(q.error); });
+  async function build(name){
+    const db = await new Promise((res, rej) => { const r = indexedDB.open("rqm-" + name); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); });
+    try {
+      if (!db.objectStoreNames.contains("blocks")) return null;
+      const [pages, blocks, tree] = await Promise.all([all(db, "pages"), all(db, "blocks"), all(db, "tree")]);
+      const B = new Map(blocks.map(b => [b.u, b])), kids = new Map();
+      for (const t of tree){ let a = kids.get(t.p); if (!a) kids.set(t.p, a = []); a.push(t); }
+      const sub = (p, depth) => { const a = kids.get(p); if (!a || depth > 60) return []; a.sort((x, y) => x.o - y.o);
+        return a.map(t => { const b = B.get(t.u) || {}, o = {string:b.s || "", uid:t.u}; if (b.h) o.heading = b.h; const c = sub(t.u, depth + 1); if (c.length) o.children = c; return o; }); };
+      return {n:blocks.length, json:pages.map(pg => { const o = {title:pg.t, uid:pg.u}, c = sub(pg.u, 0); if (c.length) o.children = c; return o; })};
+    } finally { db.close(); }
+  }
+  async function run(ask){                           // ask: بضغطة من المستخدم (فيجوز طلب الإذن)
+    if (busy) return; const d = await getDir();
+    if (!d){ if (ask) toast("اختر مجلد النسخة الاحتياطية أولاً"); return; }
+    if (!(await vaultPerm(d, !!ask))){ if (!warned || ask){ warned = true; toast("النسخة الاحتياطية تنتظر إذن المجلد — افتح الإعدادات واضغط «صدّر الآن»", 5000); } return; }
+    busy = true; const c = cfg(); let done = 0;
+    try {
+      for (const g of CFG.roam.graphs){ if (!isLocalG(g.name)) continue;
+        const r = await build(g.name); if (!r) continue;
+        const fh = await d.getFileHandle(cleanName(g.name) + ".json", {create:true}), w = await fh.createWritable();
+        await w.write(JSON.stringify(r.json)); await w.close(); c.last[g.name] = Date.now(); done++; }
+      c.at = Date.now(); save(c); if (ask) toast(done ? "صُدّرت " + AR(done) + " غراف" : "لا غراف محمَّل محلياً لتصديره"); renderSettings();
+    } catch(e){ toast("تعذّر التصدير: " + e.message, 5000); }
+    finally { busy = false; }
+  }
+  const isLocalG = name => store.get("rqm-local:" + name) === "1";
+  function tick(){ const c = cfg(); if (!c.every) return; if (Date.now() - (c.at || 0) >= c.every * 3600e3) run(false); }
+  function settings(box){
+    box.appendChild(h("h4", {}, "نسخة احتياطية"));
+    const c = cfg(), info = h("span", {class:"hint"}, "…");
+    getDir().then(d => { info.textContent = (d ? "المجلد: " + d.name : "لم يُختر مجلد") + (c.at ? " · آخر تصدير: " + new Date(c.at).toLocaleString("ar-EG") : ""); });
+    const pick = h("button", {class:"ghost", style:"border:1px solid var(--line)", onclick:async () => {
+      if (!window.showDirectoryPicker){ toast("هذا المتصفح لا يدعم اختيار المجلدات (استخدم Chrome أو Edge)"); return; }
+      try { dir = await showDirectoryPicker({mode:"readwrite", id:"rqe-backup"}); await idbSet("bkdir", dir); renderSettings(); } catch(e){} }}, "اختر المجلد");
+    const sel = h("select", {onchange:e => { const k = cfg(); k.every = +e.target.value; save(k); }},
+      h("option", {value:"0"}, "يدوياً فقط"), h("option", {value:"1"}, "كل ساعة"), h("option", {value:"6"}, "كل ٦ ساعات"), h("option", {value:"24"}, "كل يوم"), h("option", {value:"168"}, "كل أسبوع"));
+    sel.value = String(c.every || 0);
+    const now = h("button", {class:"ghost", style:"border:1px solid var(--line)", onclick:() => run(true)}, "صدّر الآن");
+    box.appendChild(h("div", {class:"vrow"}, pick, " التحديث التلقائي ", sel, now));
+    box.appendChild(h("div", {class:"hint"}, "ملف JSON لكل غراف محمَّل محلياً (بصيغة يستوردها Roam)، يُستبدل في كل مرة. يحوي ما وصل إليه آخر مزامنة، ويعمل ما دام المحرر مفتوحاً."));
+    box.appendChild(info);
+  }
+  if (!EMBED) setInterval(tick, 5 * 60e3), setTimeout(tick, 20e3);
+  return {run, settings};
+})();
 function syncSettings(box){                          // يُستدعى من لوحة الإعدادات
+  BK.settings(box);
   box.appendChild(h("h4", {}, "مزامنة المسودة بين الأجهزة"));
   { const sel = h("select", {onchange:e => { store.set("rq-dsync-graph", e.target.value); DSYNC.now(true); }}, h("option", {value:"-"}, "بلا مزامنة"), ...CFG.roam.graphs.filter(g => g.token).map(g => h("option", {value:g.name}, g.name)));
     const cur = store.get("rq-dsync-graph"); sel.value = cur === "-" ? "-" : (CFG.roam.graphs.find(g => g.name === cur && g.token) || CFG.roam.graphs.find(g => g.token) || {name:"-"}).name;
@@ -3563,7 +3683,7 @@ function rpDraw(){
   const draft = !!TABS.cur && TABS.cur.kind === "draft", multi = CFG.roam.graphs.length > 1;
   if (!q){                                            // فارغ: الصفحات المثبتة (ثم الأخيرة) للوصول السريع
     RP.items = []; box.innerHTML = "";
-    if (document.activeElement !== $("#rpQ") || isOb()){ box.hidden = true; return; }
+    if (document.activeElement !== $("#rpQ") || obDraft()){ box.hidden = true; return; }
     const sec = (title, arr) => { if (!arr.length) return; if (title){ const hd = el("div", "rphd"); hd.textContent = title; box.appendChild(hd); }
       for (const it of arr){ const k = RP.items.push(it) - 1; box.appendChild(pageRow(it, k, draft && multi)); } };
     if (draft){                                       // الوجهة الحالية أولاً، ثم اليوم (إن لم يكن هو الوجهة)، ثم المثبتة
@@ -3730,6 +3850,38 @@ function dailyUidOf(t){
   const m = t.match(/^([A-Z][a-z]+) (\d{1,2})(?:st|nd|rd|th), (\d{4})$/); if (!m) return null;
   const mi = MONTHS.indexOf(m[1]); return mi < 0 ? null : p2(mi + 1) + "-" + p2(+m[2]) + "-" + m[3];
 }
+/* ---- تعديل اسم الصفحة من موضعه ---- */
+function titleEdit(){
+  const d = DOC, e = $("#rpTitle"); if (!d || d.kind !== "page" || e.isContentEditable) return;
+  if (dailyUidOf(d.title)){ toast("صفحات الأيام لا يُغيَّر اسمها"); return; }
+  e.contentEditable = "plaintext-only"; if (e.contentEditable !== "plaintext-only") e.contentEditable = "true"; e.classList.add("ted"); e.focus();
+  const done = async ok => { if (!e.isContentEditable) return; e.contentEditable = "false"; e.classList.remove("ted"); const nw = e.textContent.replace(/\s+/g, " ").trim(); e.textContent = d.title;
+    if (ok && nw && nw !== d.title && DOC === d) await renamePage(d, nw); };
+  e.onkeydown = ev => { if (ev.key === "Enter"){ ev.preventDefault(); done(true); } else if (ev.key === "Escape"){ ev.preventDefault(); done(false); } ev.stopPropagation(); };
+  e.onblur = () => done(true);
+}
+async function renamePage(d, nw){
+  const old = d.title, g = S.graph;
+  if (dailyUidOf(nw)){ toast("هذا اسم صفحة يوم"); return; }
+  if (S.pages.includes(nw)){ toast("توجد صفحة بهذا الاسم — الدمج يُجرى في Roam نفسه", 4000); return; }
+  try {
+    await saveDoc(); await RQ.flush();
+    if (!d.missing){
+      if (!navigator.onLine){ toast("تغيير الاسم يحتاج اتصالاً"); return; }
+      const ck = await RQ.roam("q", {query:"[:find ?u . :in $ ?t :where [?e :node/title ?t] [?e :block/uid ?u]]", args:[nw]});
+      if (ck && typeof ck.result === "string" && ck.result){ toast("توجد صفحة بهذا الاسم — الدمج يُجرى في Roam نفسه", 4000); return; }
+      await RQ.roam("write", {action:"update-page", page:{uid:d.pageUid, title:nw}});
+      if (RQ.loc()){ await RQ.lPutPage(d.pageUid, nw); await RQ.lRenameRefs(old, nw); }
+    }
+    const i = S.pages.indexOf(old); if (i >= 0){ S.pages[i] = nw; S.pagesN[i] = norm(nw); } else { S.pages.push(nw); S.pagesN.push(norm(nw)); }
+    store.set("rq-pages:" + g, S.pages.join("\n")); ALLP = null;
+    const all = pinsAll(), a = all[g]; if (Array.isArray(a) && a.includes(old)){ a[a.indexOf(old)] = nw; store.set("rq-pins", JSON.stringify(all)); }
+    store.set("rq-recent:" + g, JSON.stringify(recentsD(g).map(x => x === old ? nw : x)));
+    if (DR.set && DR.graph === g && DR.page.title === old){ DR.page.title = nw; saveDR(); }
+    if (SD.set && SD.graph === g && SD.page.title === old){ SD.page.title = nw; store.set("rq-sdtarget", JSON.stringify(SD)); }
+    d.title = nw; brefCache.clear(); toast("تغيّر الاسم"); await openDoc({kind:"page", title:nw}, true); tabsSave();
+  } catch(e){ toast("تعذّر تغيير الاسم: " + e.message, 4000); }
+}
 function closeDoc(){ RQ.ROOTHL.set("", null, false); if (!$("#rpDoc")){ DOC = null; return; } DOC = null; activate("page"); model = []; editingId = null; $("#outline2").innerHTML = ""; $("#rpTitle").textContent = ""; $("#rpRefs").innerHTML = ""; $("#rpCrumb").hidden = true; $("#rpMore").hidden = true; rpState(""); activate("main"); layout(); tabsSave(); }
 function refView(b){
   let cls = "view", txt = (b.h ? "#".repeat(b.h) + " " : "") + (b.s || "");
@@ -3889,11 +4041,13 @@ const CAL_MON = new Intl.DateTimeFormat("ar", {month:"long", year:"numeric"});
 function calClose(){ if (CAL.el) CAL.el.remove(); CAL.el = null; CAL.open = false; if (!EMBED || !CAL.keep) CAL.todo = null; }
 function calOpen(t){
   if (EMBED){ calClose(); const now = new Date(); CAL.d = new Date(now.getFullYear(), now.getMonth(), now.getDate()); try { parent.ENGHOOK.dates(); } catch(e){} return; }
-  calClose(); closeSug(); const now = new Date(); CAL.d = new Date(now.getFullYear(), now.getMonth(), now.getDate()); CAL.open = true;
+  CAL.append = null; calClose(); closeSug(); const now = new Date(); CAL.d = new Date(now.getFullYear(), now.getMonth(), now.getDate()); CAL.open = true;
   CAL.el = el("div", "cal"); t.parentElement.appendChild(CAL.el); calDraw(t);
 }
 function calDraw(t){
   const d = CAL.d, box = CAL.el, y = d.getFullYear(), m = d.getMonth(), today = new Date(); box.innerHTML = "";
+  const qk = el("div", "calq"); [["اليوم",0],["غداً",1],["بعد غد",2],["بعد أسبوع",7]].forEach(([lb, k]) => { const c = el("span"); c.textContent = lb;
+    c.onmousedown = e => { e.preventDefault(); CAL.d = new Date(today.getFullYear(), today.getMonth(), today.getDate() + k); calPick(t); }; qk.appendChild(c); }); box.appendChild(qk);
   const hd = el("div", "calh"); hd.textContent = CAL_MON.format(d); box.appendChild(hd);
   const g = el("div", "calg"); ["س","ح","ن","ث","ر","خ","ج"].forEach(x => { const c = el("span", "wd"); c.textContent = x; g.appendChild(c); });
   const first = new Date(y, m, 1), lead = (first.getDay() + 1) % 7, days = new Date(y, m + 1, 0).getDate();
@@ -3904,7 +4058,11 @@ function calDraw(t){
   const ft = el("div", "calf"); ft.textContent = "الأسهم للتنقل · Enter للإدراج · Esc بلا تاريخ"; box.appendChild(ft);
 }
 function calPick(t){
-  const s = t.selectionStart, prev = t.value[s-1], next = t.value[s], dt = CAL.d, todo = CAL.todo, link = "[[" + dailyTitle(dt) + "]]"; calClose();
+  const s = t.selectionStart, prev = t.value[s-1], next = t.value[s], dt = CAL.d, todo = CAL.todo, ap = CAL.append; CAL.append = null;
+  const iso = dt.getFullYear() + "-" + String(dt.getMonth() + 1).padStart(2, "0") + "-" + String(dt.getDate()).padStart(2, "0");
+  const link = "[[" + (isOb() ? iso : dailyTitle(dt)) + "]]"; calClose();
+  const LA = ap != null ? loc(ap) : null;
+  if (LA){ pushHist(); LA.node.text = LA.node.text.replace(/\s+$/, "") + " " + link; startEdit(LA.node.id, s); if (ACTIVE === "page") docTouch(); else draftTouch(); return; }
   const L = todo != null ? loc(todo) : null;
   if (L){                                            // المهمة تنزل تحت كتلة تاريخها؛ وتنضم إلى أختٍ بالتاريخ نفسه إن وُجدت
     const n = L.node;
@@ -3927,6 +4085,20 @@ function calKey(e, t){                               // true = استُهلكت 
   if (!/^(Control|Shift|Alt|Meta|OS)$/.test(e.key)) calClose();
   return false;
 }
+function todoFlip(n){                                // نقرة على المربع: منجزة ↔ غير منجزة
+  const a = /\{\{(?:\[\[)?TODO(?:\]\])?\}\}/, b = /\{\{(?:\[\[)?DONE(?:\]\])?\}\}/, t = n.text; let nv = t;
+  if (isOb()) nv = /^(\s*[-*+] )\[ \]/.test(t) ? t.replace(/^(\s*[-*+] )\[ \]/, "$1[x]") : t.replace(/^(\s*[-*+] )\[[xX]\]/, "$1[ ]");
+  else { const ia = t.search(a), ib = t.search(b); if (ia >= 0 && (ib < 0 || ia < ib)) nv = t.replace(a, "{{[[DONE]]}}"); else if (ib >= 0) nv = t.replace(b, "{{[[TODO]]}}"); }
+  if (nv === t) return; pushHist(); n.text = nv; n.auto = false; render(); if (ACTIVE === "page") docTouch(); else draftTouch();
+}
+function taskFromSug(n, t, start, end){              // «[[مهمة»: مربع مهمة، ثم تاريخ اختياري يُلحق رابطاً إلى صفحة اليوم
+  let v = t.value; if (v.slice(end, end + 2) === "]]") end += 2;
+  v = (v.slice(0, start) + v.slice(end)).replace(/^\s+/, ""); pushHist();
+  const pre = isOb() ? "- [ ] " : "{{[[TODO]]}} ";
+  n.text = (isOb() ? v.replace(/^[-*+] (\[.\] )?/, "") : v.replace(/^\{\{(?:\[\[)?(?:TODO|DONE)(?:\]\])?\}\} ?/, "")); n.text = pre + n.text; n.auto = false;
+  startEdit(n.id, n.text.length); if (ACTIVE === "page") docTouch(); else draftTouch();
+  const nt = $('textarea[data-id="' + n.id + '"]'); if (nt){ calOpen(nt); CAL.todo = null; CAL.append = n.id; }
+}
 function todoKey(n, t){                              // لا شيء ← TODO ← DONE ← لا شيء
   const v = t.value, s = t.selectionStart, T = "{{[[TODO]]}} ", Dn = "{{[[DONE]]}} "; pushHist();
   let nv, delta, add = false;
@@ -3943,7 +4115,10 @@ function rpInit(){
     if (TABS.cur && TABS.cur.kind === "graph" && DOC){ const it = {kind:"page", title:DOC.title, g:S.graph}; if (isDest(it)){ clearTarget(); toast("وجهة الإرسال: اليوم"); } else { DR.graph = S.graph; DR.set = true; DR.page = {kind:"page", title:DOC.title}; saveDR(); toast("وجهة الإرسال: " + DOC.title); } barMark(); return; }
     if (DR.set){ clearTarget(); toast("وجهة الإرسال: اليوم"); } };
   $("#rpStar").onmousedown = e => { e.preventDefault(); e.stopPropagation(); if (!DOC || DOC.kind !== "page") return; const on = pinToggle(S.graph, DOC.title); barMark(); toast(on ? "ثُبّتت: تجدها في شريط البحث وهو فارغ" : "أُلغي التثبيت"); };
-  $("#rpSync").onclick = () => { if (isOb() || TABS.cur && TABS.cur.kind === "draft") DSYNC.now(true); else syncDoc(); };
+  $("#rpSync").onclick = () => { if (inDraft()) DSYNC.now(true); else syncDoc(); };
+  const paraMark = () => { const on = pview(); document.body.classList.toggle("pview", on); const b = $("#btnPara"); b.classList.toggle("on", on);
+    b.innerHTML = on ? '<svg viewBox="0 0 24 24"><path d="M5 6h14M5 10h14M5 14h14M5 18h9"/></svg>' : '<svg viewBox="0 0 24 24"><circle cx="5.5" cy="7" r="1.3"/><circle cx="5.5" cy="12" r="1.3"/><circle cx="5.5" cy="17" r="1.3"/><path d="M10 7h9M10 12h9M10 17h9"/></svg>'; };
+  $("#btnPara").onclick = () => { store.set("rq-pview", pview() ? "" : "1"); paraMark(); toast(pview() ? "عرض الفقرات" : "عرض الكتل"); }; paraMark();
   $("#btnSplit").onclick = () => { store.set("rq-split", isSplit() ? "" : "1"); layout(); if (DOC){ activate("page"); render(); } };
   $("#rpBox").onmousedown = e => { if (e.target.id === "rpQ" || e.target.closest("#rpStar")) return; e.preventDefault(); $("#rpBox").classList.remove("tgt"); $("#rpQ").focus(); };
   $("#rpQ").addEventListener("blur", () => setTimeout(barMark, 0));
@@ -3970,7 +4145,7 @@ function rpInit(){
     if (e.ctrlKey && e.shiftKey && e.code === "KeyF"){ e.preventDefault(); rpToggle(); }
   });
   window.addEventListener("popstate", e => {         // زر الرجوع (Alt+←): الوثيقة السابقة، لا خروج من المحرر
-    const st = e.state; if (isOb()) return;
+    const st = e.state;
     if (st && st.doc){ const t = TABS.list.find(x => x.id === st.tab); if (t) tabSwitch(t.id).then(() => { if (TABS.cur === t) openDoc(st.doc, true); }); }
     else if (TABS.cur && TABS.cur.kind === "graph") toDraft();
   });
@@ -3982,7 +4157,7 @@ function rpInit(){
 }
 /* ---- ما يُنقر في Roam يُنقر هنا: روابط الصفحات، الوسوم، مراجع الكتل، الروابط الخارجية ---- */
 function roamClick(e){
-  const a = e.target.closest(".link,.bref,.ext"); if (!a || isOb()) return false;
+  const a = e.target.closest(".link,.bref,.ext"); if (!a || (obDest() && !e.target.closest("#rpDoc"))) return false;
   if (a.classList.contains("ext")){ if (a.dataset.h){ window.open(a.dataset.h, "_blank", "noopener"); return true; } return false; }
   e.preventDefault();
   if (a.classList.contains("bref")) openDoc({kind:"block", uid:a.dataset.u}); else openDoc({kind:"page", title:a.dataset.t || a.textContent});
@@ -3999,8 +4174,7 @@ async function brefFill(root){                       // أظهر نص الكتل
 }
 function rpMark(){ document.querySelectorAll("#rpRes .rpi").forEach((d, k) => { d.classList.toggle("sel", k === RP.sel); if (k === RP.sel) d.scrollIntoView({block:"nearest"}); }); }
 function rpGraph(){                                  // عند تغيّر إعدادات الغرافات أو الوجهة (Roam / Obsidian)
-  $("#rpBar").hidden = false; $("#rpBox").hidden = isOb(); $("#rpRes").hidden = true; rpDot(); barMark(); ALLP = null;
-  if (isOb()){ if (DOC){ saveDoc(); activate("main"); } layout(); return; }
+  $("#rpBar").hidden = false; $("#rpBox").hidden = obDraft(); $("#rpRes").hidden = true; rpDot(); barMark(); ALLP = null;
   if (!TABS.cur){ layout(); return; }
   TABS.list = TABS.list.filter(t => t.kind === "draft" || t === TABS.cur || CFG.roam.graphs.some(g => g.name === t.graph));
   const want = TABS.cur.kind === "draft" ? DR.graph : TABS.cur.graph;
@@ -4031,6 +4205,7 @@ function applyView(){
   const st = document.documentElement.style;
   st.setProperty("--fs", VIEW.fs + "px"); st.setProperty("--lhp", Math.round(VIEW.fs * VIEW.lh) + "px");
   if (VFONTS[VIEW.font]) st.setProperty("--ff", VFONTS[VIEW.font]); else st.removeProperty("--ff");
+  st.setProperty("--pgn", VIEW.pgc || "#c2410c");
   store.set("rq-view", JSON.stringify(VIEW));
   document.querySelectorAll("textarea.ed").forEach(t => { t.style.height = "auto"; t.style.height = t.scrollHeight + "px"; });
 }
@@ -4049,6 +4224,11 @@ function viewSettings(box){
   box.appendChild(row);
   const rc = h("input", {type:"checkbox", checked:!!VIEW.roots, onchange:e => { VIEW.roots = e.target.checked; applyView(); if (DOC) openDoc(DOC.kind === "page" ? {kind:"page", title:DOC.title} : {kind:"block", uid:DOC.uid}, true); }});
   box.appendChild(h("label", {}, rc, "تلوين كلمات الجذر في صفحات الجذور (ج/…) وما تحتها من مراجع"));
+  const rerender = () => { const a = ACTIVE; activate("main"); render(); if (DOC){ activate("page"); render(); } if (a !== ACTIVE) activate(a); };
+  const setPg = () => { document.documentElement.style.setProperty("--pgn", VIEW.pgc || "#c2410c"); };
+  const pc = h("input", {type:"checkbox", checked:VIEW.pgn !== false, onchange:e => { VIEW.pgn = e.target.checked; applyView(); rerender(); }});
+  const pcol = h("input", {type:"color", value:VIEW.pgc || "#c2410c", style:"width:34px;height:22px;padding:0;border:0;vertical-align:middle", oninput:e => { VIEW.pgc = e.target.value; applyView(); setPg(); }});
+  box.appendChild(h("label", {}, pc, "تلوين أرقام الصفحات داخل | | (الرقم وحده) ", pcol));
   const nc = h("input", {type:"checkbox", checked:!!VIEW.ns, onchange:e => { VIEW.ns = e.target.checked; applyView(); const a = ACTIVE; activate("main"); render(); if (DOC){ activate("page"); render(); } if (a !== ACTIVE) activate(a); }});
   box.appendChild(h("label", {}, nc, "اختصار أسماء الصفحات ذات / إلى جزئها الأخير، داخل النصوص فقط (كما في Roam)"));
   const mc = h("input", {type:"checkbox", checked:RP.mode === 2, onchange:e => { RP.mode = e.target.checked ? 2 : 1; store.set("rq-smode", String(RP.mode)); }});
@@ -4099,8 +4279,8 @@ const DSYNC = (function(){
       if (EMBED){ CFG.dest = o.dest === "obsidian" ? "obsidian" : "roam"; saveCfg(); applyDest(); const h = H(); h.mode && h.mode(); }
       else nodes = convertModel(nodes, o.dest === "obsidian" ? "obsidian" : "roam", CFG.dest);
     }
-    const m = (!EMBED && S.header && !isOb()) ? [mkHeader(nodes.length ? nodes : [mk("")])] : (nodes.length ? nodes : [mk("")]);
-    if (isOb() && !EMBED) OBFD = obsFileDir();
+    const m = (!EMBED && S.header && !obDest()) ? [mkHeader(nodes.length ? nodes : [mk("")])] : (nodes.length ? nodes : [mk("")]);
+    if (obDest() && !EMBED) OBFD = obsFileDir();
     if (ACTIVE === "main"){ model = m; editingId = null; render(); } else CTXS.main.model = m;
     st.h = hash(JSON.stringify(local().m)); st.editT = o.t; save(); draftSave();
   }
@@ -4173,7 +4353,7 @@ const DSYNC = (function(){
     const copies = allc();
     let box = $("#dsNote");
     if (!box){ box = el("div"); box.id = "dsNote"; const o = $("#outline"); o.parentElement.insertBefore(box, o); }
-    box.hidden = !copies.length || (TABS.cur && TABS.cur.kind !== "draft" && !EMBED && !isOb()); box.innerHTML = ""; if (box.hidden) return;
+    box.hidden = !copies.length || (TABS.cur && TABS.cur.kind !== "draft" && !EMBED); box.innerHTML = ""; if (box.hidden) return;
     const c = copies[0], when = c.t ? new Date(c.t).toLocaleString("ar-EG", {dateStyle:"short", timeStyle:"short"}) : "";
     const t = el("span"); t.textContent = "توجد نسخة أخرى لم تُدمج" + (c.dev ? " (من " + c.dev + (when ? "، " + when : "") + ")" : "") + (copies.length > 1 ? " — وغيرها " + (copies.length - 1).toLocaleString("ar-EG") : "");
     const b = (label, fn) => { const x = el("button", "ghost"); x.textContent = label; x.onclick = fn; box.appendChild(x); };
@@ -4355,11 +4535,12 @@ function embedTouch(){                                // اللمس: ضغطة ط
   const rub = d => d <= PLIM ? d : PLIM + (d - PLIM) * 0.35;
   const prel = () => { pull.classList.add("rel"); pull.style.height = "0"; };
   const txSel = () => { const s0 = window.getSelection(); return !!(s0 && !s0.isCollapsed && String(s0).trim()); };
-  const editingTa = () => !!document.querySelector("textarea.ed:focus");
+  const kbUp = () => { const h = H(); return !h.kbUp || h.kbUp(); };                     // لوحة المفاتيح ظاهرة (لا مجرّد مؤشّر في الكتلة)
+  const editingTa = () => !!document.querySelector("textarea.ed:focus") && kbUp();
   document.addEventListener("touchstart", e => { const t0 = e.touches[0];
     pl = (e.touches.length === 1 && window.scrollY <= 0) ? {x:t0.clientX, y:t0.clientY, on:false, go:false} : null;
     const h = H(); sw = (e.touches.length === 1 && !editingTa() && !BS.ids.length && !txSel() && t0.screenX > 24 && t0.screenX < screen.width - 24
-      && !(e.target.closest && e.target.closest(".bullet,textarea,#dsView,#dsNote")) && h.swOK && h.swOK()) ? {x:t0.screenX, y:t0.screenY, on:false} : null; }, {passive:true});
+      && !(e.target.closest && (e.target.closest(".bullet,#dsView,#dsNote") || (e.target.closest("textarea") && kbUp()))) && h.swOK && h.swOK()) ? {x:t0.screenX, y:t0.screenY, on:false} : null; }, {passive:true});
   document.addEventListener("touchmove", e => {
     if (e.touches.length !== 1){ if (pl){ pl = null; prel(); } if (sw && sw.on){ const h = H(); h.swEnd && h.swEnd(0); } sw = null; return; }
     const t0 = e.touches[0];
@@ -4420,7 +4601,7 @@ function embedTouch(){                                // اللمس: ضغطة ط
 /* ---- اختصارات: الترويسة (Alt+H)، ووضع البحث (Alt+M) ---- */
 function hdrMark(){}
 function hdrSwitch(){                                // الكتابة تحت ترويسة التاريخ أو بدونها — يُحفظ في إعدادات الغراف
-  if (isOb()) return; const g = curGraph(); if (!g) return;
+  if (obDest()) return; const g = curGraph(); if (!g) return;
   const old = S.header; g.header = !old; graphChanged(old);
   toast(g.header ? "الكتابة تحت ترويسة التاريخ" : "الكتابة بلا ترويسة التاريخ");
 }
@@ -4435,16 +4616,16 @@ init(); rpInit(); sideInit();
 if (draftLoad()) render();
 tabsInit();
 setTimeout(() => DSYNC.now(false), 2000);
-document.addEventListener("visibilitychange", () => { if (!document.hidden && (isOb() || TABS.cur && TABS.cur.kind === "draft")) DSYNC.now(false); });
+document.addEventListener("visibilitychange", () => { if (!document.hidden && inDraft()) DSYNC.now(false); });
 }
 document.addEventListener("keydown", e => {
   if (!e.altKey || e.ctrlKey || e.shiftKey) return;
-  if (e.code === "KeyR" && (isOb() || TABS.cur && TABS.cur.kind === "draft")){ e.preventDefault(); DSYNC.now(true); }
+  if (e.code === "KeyR" && inDraft()){ e.preventDefault(); DSYNC.now(true); }
   else if (e.code === "KeyR" && DOC){ e.preventDefault(); syncDoc(); }
-  else if (e.code === "KeyS" && TABS.cur && TABS.cur.kind === "graph" && !isOb()){ e.preventDefault(); $("#btnSplit").click(); }
+  else if (e.code === "KeyS" && TABS.cur && TABS.cur.kind === "graph"){ e.preventDefault(); $("#btnSplit").click(); }
   else if (e.code === "KeyW"){ e.preventDefault(); $("#btnWide").click(); }
-  else if (e.code === "KeyH" && !isOb()){ e.preventDefault(); hdrSwitch(); }
-  else if (e.code === "KeyM" && !isOb()){ e.preventDefault(); modeSwitch(); }
+  else if (e.code === "KeyH" && !obDest()){ e.preventDefault(); hdrSwitch(); }
+  else if (e.code === "KeyM" && !obDest()){ e.preventDefault(); modeSwitch(); }
 });
 </script>
 <script>if("serviceWorker" in navigator && location.protocol.indexOf("http")===0){ navigator.serviceWorker.register("sw.js").catch(function(){}); }</script>

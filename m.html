@@ -54,6 +54,8 @@ select.chip{max-width:24vw;padding:0 8px}
 .sg.new{border-style:dashed;color:var(--mut)}
 .keys{flex:none;display:flex;align-items:stretch;border-top:1px solid var(--line);background:var(--card);padding-bottom:env(safe-area-inset-bottom);user-select:none;-webkit-user-select:none}
 .keys .ks{flex:1;min-width:0;display:flex;overflow-x:auto;scrollbar-width:none}
+.pgn{color:var(--pgn,#c2410c);font-weight:600}
+.ptitle.ted{outline:2px solid var(--acc);outline-offset:3px;border-radius:4px}
 #pTree.ce,#pRefs.ce{outline:0;caret-color:transparent}#pTree.ce textarea,#pRefs.ce textarea{caret-color:auto}
 .keys .k.ts{display:none}.keys.tsel .k.ts{display:grid;color:var(--acc)}
 .keys.disp .k[data-k=tag],.keys.disp .k[data-k=todo],.keys.disp .k[data-k=plain],.keys.disp .k[data-k=redo],.keys.disp .k[data-k=del],.keys.disp .k[data-k=mode]{display:none}
@@ -717,6 +719,7 @@ function pl(t, label, br){
 }
 function fmt(s){
   let h = esc(s);
+  if (PREFS.pgn !== false) h = h.replace(/\|([0-9\u0660-\u0669\u06F0-\u06F9]{1,5})\|/g, '|<span class="pgn">$1</span>|');
   h = h.replace(/\{\{(?:\[\[)?TODO(?:\]\])?\}\}/g, "☐").replace(/\{\{(?:\[\[)?DONE(?:\]\])?\}\}/g, "☑");
   h = h.replace(/!\[([^\[\]\n]*)\]\((https?:[^)\s]+)\)/g, (m,a,u) => '<a class="ext" href="'+u+'" target="_blank" rel="noopener">🖼 '+(a || "صورة")+'</a>');
   h = h.replace(/\[([^\[\]\n]+)\]\((https?:[^)\s]+)\)/g, '<a class="ext" href="$2" target="_blank" rel="noopener">$1</a>');
@@ -988,6 +991,51 @@ async function fixPages(nodes){                // كتل بلا صفحة معر�
   if (fix.length){ const t = DB.transaction("blocks", "readwrite"), B = t.objectStore("blocks");
     for (const n of fix){ const q = B.get(n.uid); q.onsuccess = () => { if (q.result){ q.result.g = n.g; B.put(q.result); } }; } await txDone(t); }
   return fix.length;
+}
+async function lRenameRefs(old, nw){                 // محلياً: حدّث نصوص الكتل التي تشير إلى الصفحة (Roam يفعل ذلك عنده)
+  const r = await W("refs", {title:old, limit:50000}), ex = old.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const re1 = new RegExp("\\[\\[" + ex + "\\]\\]", "g"), re2 = /\s/.test(old) ? null : new RegExp("#" + ex + "(?=$|[\\s.,،؛:;!?\\])])", "g"), tag = /\s/.test(nw) ? "#[[" + nw + "]]" : "#" + nw, ch = [];
+  const us = (r.list || []).map(x => x.u);
+  for (let i = 0; i < us.length; i += 400){ const t = DB.transaction("blocks", "readwrite"), B = t.objectStore("blocks");
+    for (const u of us.slice(i, i + 400)){ const g = B.get(u); g.onsuccess = () => { const b = g.result; if (!b || !b.s) return; let s2 = b.s.replace(re1, "[[" + nw + "]]"); if (re2) s2 = s2.replace(re2, tag);
+      if (s2 !== b.s){ b.s = s2; B.put(b); ch.push({u, s:s2}); } }; }
+    await txDone(t); }
+  for (const c of ch) await W("upd", c);
+  return ch.length;
+}
+function titleEdit(){                                 // تعديل اسم الصفحة من موضعه
+  const e = $("#pTitle"), c = CUR; if (!c || c.kind !== "page" || ROUTE.kind !== "page" || e.isContentEditable) return;
+  if (dailyUidFromTitle(c.title)){ toast("صفحات الأيام لا يُغيَّر اسمها", 1800); return; }
+  e.contentEditable = "plaintext-only"; if (e.contentEditable !== "plaintext-only") e.contentEditable = "true"; e.classList.add("ted"); e.focus();
+  const done = async ok => { if (!e.isContentEditable) return; e.contentEditable = "false"; e.classList.remove("ted"); const nw = e.textContent.replace(/\s+/g, " ").trim(); e.textContent = c.title;
+    if (ok && nw && nw !== c.title && CUR === c) await renamePage(c, nw); };
+  e.onkeydown = ev => { if (ev.key === "Enter"){ ev.preventDefault(); e.blur(); } else if (ev.key === "Escape"){ ev.preventDefault(); done(false); } };
+  e.onblur = () => done(true);
+}
+async function renamePage(c, nw){
+  const old = c.title, g = G(); if (!g) return;
+  if (dailyUidFromTitle(nw)){ toast("هذا اسم صفحة يوم", 2000); return; }
+  if (PAGES.includes(nw)){ toast("توجد صفحة بهذا الاسم — الدمج يُجرى في Roam نفسه", 4000); return; }
+  busy(true);
+  try {
+    await liveClose(); await flush();
+    const uid = c.root && c.root.uid;
+    if (!c.missing && uid){
+      if (!navigator.onLine){ toast("تغيير الاسم يحتاج اتصالاً", 2500); return; }
+      const ck = await roam("q", {query:"[:find ?u . :in $ ?t :where [?e :node/title ?t] [?e :block/uid ?u]]", args:[nw]});
+      if (ck && typeof ck.result === "string" && ck.result){ toast("توجد صفحة بهذا الاسم — الدمج يُجرى في Roam نفسه", 4000); return; }
+      await roam("write", {action:"update-page", page:{uid, title:nw}});
+      if (LOC){ await lPutPage(uid, nw); await lRenameRefs(old, nw); }
+    }
+    const i = PAGES.indexOf(old); if (i >= 0){ PAGES[i] = nw; PAGESN[i] = norm(nw); } else { PAGES.push(nw); PAGESN.push(norm(nw)); }
+    store.set("rq-pages:" + g.name, PAGES.join("\n"));
+    const all = pinsAll(), a = all[g.name]; if (Array.isArray(a) && a.includes(old)){ a[a.indexOf(old)] = nw; store.set("rq-pins", JSON.stringify(all)); }
+    store.set("rqm-recent:" + g.name, JSON.stringify(recents().map(x => x === old ? nw : x)));
+    if (DR.set && DR.graph === g.name && DR.page.title === old){ DR.page.title = nw; saveDR(); }
+    const oh = pageHash(old), nh = pageHash(nw); for (const t of TABS) if (t.kind === "graph" && t.graph === g.name && t.hash === oh) t.hash = nh;
+    pageCache.clear(); tabsSave(); toast("تغيّر الاسم", 1500); goReplace(nh);
+  } catch(e){ toast("تعذّر تغيير الاسم: " + e.message, 4000); }
+  finally { busy(false); }
 }
 async function lPutPage(uid, title){
   PT.set(uid, title); const t = DB.transaction("pages", "readwrite"); t.objectStore("pages").put({u:uid, t:title}); await txDone(t);
@@ -1361,9 +1409,7 @@ function tabsLoad(){
 const tabLabel = t => t.kind === "draft" ? "المسودة" : glabel(t.graph);
 function tabsDraw(){
   const bar = $("#tabs"); bar.innerHTML = "";
-  const mk = i => { const t = TABS[i], b = el("button", "tab" + (i === TABI ? " on" : "")), sp = el("span"), pt = t.kind === "graph" ? tabTitle(t) : "";
-    const pg = pt && pt !== "بحث" && pt !== "كتلة";   // لسان على صفحة: اسمها، وتحته غرافها
-    sp.textContent = pg ? pt : tabLabel(t); if (pg){ b.classList.add("two"); const w = el("span", "tw"); w.appendChild(sp); const g = el("small"); g.textContent = glabel(t.graph); w.appendChild(g); b.appendChild(w); } else b.appendChild(sp); b.dataset.i = i;
+  const mk = i => { const t = TABS[i], b = el("button", "tab" + (i === TABI ? " on" : "")), sp = el("span"); sp.textContent = tabLabel(t); b.appendChild(sp); b.dataset.i = i;
     b.onclick = () => { if (b._drag) return; if (i === TABI) tabMenu(i); else tabGo(i); }; if (t.kind === "graph") tabDragClose(b, i); return b; };
   bar.appendChild(mk(0));
   const w = el("div"); w.id = "tabW"; const sc = el("div"); sc.id = "tabSc"; w.appendChild(sc);
@@ -1563,6 +1609,7 @@ function ins(text, selStart, selEnd){
   let ok = false; try { ok = (ta.ownerDocument || document).execCommand("insertText", false, text); } catch(e){}
   if (!ok){ const s = ta.selectionStart; ta.setRangeText(text, s, ta.selectionEnd, "end"); ta.dispatchEvent(new Event("input", {bubbles:true})); }
 }
+const hlMark = () => { try { return ROUTE.name === "home" && ENGW && ENGW.ENGAPI.mode() === "obsidian" ? "==" : "^^"; } catch(e){ return "^^"; } };   // التمييز بحسب التنسيق
 function wrapPair(open, close){
   const ta = ED.ta, s = ta.selectionStart, e = ta.selectionEnd, sel = ta.value.slice(s, e);
   ins(open + sel + close);
@@ -1586,7 +1633,7 @@ const KEYS = {
   page(){ wrapPair("[[", "]]"); },
   ref(){ wrapPair("((", "))"); },
   bold(){ wrapPair("**", "**"); },
-  hl(){ wrapPair("^^", "^^"); },
+  hl(){ const m = hlMark(); wrapPair(m, m); },
   tag(){ const ta = ED.ta, s = ta.selectionStart, prev = ta.value[s-1]; ins((s === 0 || /\s/.test(prev) ? "" : " ") + "#"); },
   todo(){ if (ED.eng){ engKey("t", {altKey:true}); return; } const ta = ED.ta, v = ta.value, s = ta.selectionStart, ls = v.lastIndexOf("\n", s-1) + 1, ind = v.slice(ls).match(/^[ \t]*/)[0].length;
           if (!v.slice(ls+ind).startsWith("{{[[TODO]]}} ")){ ins("{{[[TODO]]}} ", ls+ind); const p = s + 13; ta.setSelectionRange(p, p); }
@@ -1769,6 +1816,7 @@ window.ENGHOOK = {
   toast(m){ toast(m); },
   gbar(){ return PREFS.gbar !== false; },
   tsel(on){ TSD.draft = on; tsUpdate(); },
+  kbUp(){ return kbUp(); },
   swOK(){ return PREFS.tabSwipe !== false && ROUTE.name === "home" && !$("#tabMenu") && !OVL; },
   swMove(dx){ TSW.move(dx); },
   swEnd(dx, fast){ TSW.end(dx, fast); },
@@ -2287,7 +2335,7 @@ function enterView(){
 }
 async function enterPage(title){
   const key = cacheKey(title); let c = pageCache.get(key);
-  $("#pTitle").className = "ptitle"; $("#pTitle").textContent = title; $("#pTitle").onclick = null;
+  $("#pTitle").className = "ptitle"; $("#pTitle").textContent = title; $("#pTitle").onclick = () => titleEdit();
   if (!c){ c = {kind:"page", title, root:null, refs:null, scroll:0, stale:false, missing:false}; pageCache.set(key, c); }
   CUR = c; addRecent(title); ROOTHL.set(title, pBody, PREFS.roots);
   if (c.root && !c.stale){ drawTree(); drawRefs(); pBody.scrollTop = c.scroll || 0; return; }
@@ -2543,7 +2591,14 @@ attachPinch(pBody); attachPinch($("#home")); attachPinch($("#sList"));
 /* ---- السحب: للتحديث من أعلى الصفحة، وللإغلاق من آخرها، وللتنقّل بين الألسنة أفقياً ---- */
 const buzz = ms => { try { if (navigator.vibrate) navigator.vibrate(ms || 15); } catch(e){} };
 const rubber = (d, lim) => d <= lim ? d : lim + (d - lim) * 0.35;                       // يتبع الإصبع كما هو، ثم يلين قرب النهاية
-const editingNow = () => { const a = document.activeElement; return !!a && (a.tagName === "TEXTAREA" || (a.tagName === "INPUT" && a.type !== "checkbox")); };
+let VH0 = 0, VW0 = 0;
+function kbUp(){                                      // لوحة المفاتيح ظاهرة؟ (قد يبقى المؤشّر في الكتلة بعد إنزالها)
+  const vv = window.visualViewport; if (!vv) return true;
+  if (innerWidth !== VW0){ VW0 = innerWidth; VH0 = 0; } VH0 = Math.max(VH0, vv.height, innerHeight);
+  return VH0 - vv.height > 140;
+}
+if (window.visualViewport) visualViewport.addEventListener("resize", kbUp);
+const editingNow = () => { const a = document.activeElement; return !!a && (a.tagName === "TEXTAREA" || (a.tagName === "INPUT" && a.type !== "checkbox")) && kbUp(); };
 const hasSel = () => { const s = getSelection(); return BSEL.on || !!(s && !s.isCollapsed && String(s).trim()); };
 (function pullToRefresh(){
   let p = null; const bar = $("#pPull"), LIM = 72;
@@ -2586,7 +2641,7 @@ const TSW = {
 (function tabSwipe(){
   let p = null;
   document.addEventListener("touchstart", e => { const t = e.target, x = e.touches[0] && e.touches[0].clientX;
-    p = (e.touches.length === 1 && (ROUTE.name === "page" || ROUTE.name === "search") && TSW.ok(x) && !(t.closest && t.closest("#tabs,#tabMenu,.it,textarea,input,button,#keys,#pSel,#dSel,#foldPop"))) ? {x, y:e.touches[0].clientY, t:Date.now(), on:false} : null; }, {passive:true});
+    p = (e.touches.length === 1 && (ROUTE.name === "page" || ROUTE.name === "search") && TSW.ok(x) && !(t.closest && (t.closest("#tabs,#tabMenu,.it,input,button,#keys,#pSel,#dSel,#foldPop") || (t.closest("textarea") && kbUp())))) ? {x, y:e.touches[0].clientY, t:Date.now(), on:false} : null; }, {passive:true});
   document.addEventListener("touchmove", e => { if (!p) return; if (e.touches.length !== 1){ if (p.on) TSW.end(0); p = null; return; }
     const dx = e.touches[0].clientX - p.x, dy = e.touches[0].clientY - p.y;
     if (!p.on){ if (Math.abs(dx) < 14 && Math.abs(dy) < 14) return; if (Math.abs(dx) < Math.abs(dy) * 1.6 || hasSel()){ p = null; return; } p.on = true; p.x = e.touches[0].clientX; p.t = Date.now(); return; }
@@ -3125,7 +3180,7 @@ const TSK_DISP = {
   tdel(){ tsDo("del"); }, tcopy(){ tsDo("copy"); }, tcut(){ tsDo("cut"); },
   async tpaste(){ const t = await clipRead(); if (t != null) tsDo("paste", {text:t}); },
   in(){ tsDo("in"); }, out(){ tsDo("out"); },
-  page(){ tsDo("wrap", ["[[", "]]"]); }, ref(){ tsDo("wrap", ["((", "))"]); }, bold(){ tsDo("wrap", ["**", "**"]); }, hl(){ tsDo("wrap", ["^^", "^^"]); },
+  page(){ tsDo("wrap", ["[[", "]]"]); }, ref(){ tsDo("wrap", ["((", "))"]); }, bold(){ tsDo("wrap", ["**", "**"]); }, hl(){ const m = hlMark(); tsDo("wrap", [m, m]); },
   undo(){ if (tsMode() === "draft"){ ENGW && ENGW.ENGAPI.undo(); } else bselUndo(); }
 };
 const TSK_ED = {                                     // داخل مربع الكتابة: على المظلّل فيه
@@ -3363,6 +3418,9 @@ function renderSettings(){
   sel("الغراف الافتراضي", [["","بلا افتراضي — آخر غراف استعملته"]].concat(graphs().map(g => [g.name, g.name])), graphs().some(g => g.name === PREFS.defGraph) ? PREFS.defGraph : "", v => { PREFS.defGraph = v; savePrefs(); });
 
   h3("العرض");
+  { const c1 = el("label", "ck"), b1 = el("input"), cl = el("input"); b1.type = "checkbox"; b1.checked = PREFS.pgn !== false; b1.onchange = () => { PREFS.pgn = b1.checked; savePrefs(); pageCache.clear(); };
+    cl.type = "color"; cl.value = PREFS.pgc || "#c2410c"; cl.style.cssText = "width:36px;height:24px;padding:0;border:0;margin-inline-start:8px"; cl.oninput = () => { PREFS.pgc = cl.value; savePrefs(); document.documentElement.style.setProperty("--pgn", cl.value); };
+    c1.append(b1, "تلوين أرقام الصفحات داخل | | (الرقم وحده)", cl); box.appendChild(c1); }
   sel("الخط", [["","خط النظام"],["vazir","Vazirmatn"],["naskh","Noto Naskh Arabic"]], FONTS[PREFS.font] ? PREFS.font : "", v => { PREFS.font = v; savePrefs(); applyFont(); });
   { const l = el("label", "f"), r = el("div", "btns"), v = el("b"), mi = el("button", "btn"), pl = el("button", "btn"); v.textContent = AR(PREFS.fs); v.style.cssText = "min-width:40px;text-align:center;align-self:center";
     mi.textContent = "−"; pl.textContent = "+"; mi.onclick = e => { e.preventDefault(); setFs(PREFS.fs - 1, true); v.textContent = AR(PREFS.fs); }; pl.onclick = e => { e.preventDefault(); setFs(PREFS.fs + 1, true); v.textContent = AR(PREFS.fs); };
@@ -3504,6 +3562,7 @@ loadCfg(); loadPrefs(); SMODE = PREFS.smode === 2 ? 2 : 1;
 if (PREFS.defGraph && graphs().some(g => g.name === PREFS.defGraph) && RAW.roam.current !== PREFS.defGraph){ RAW.roam.current = PREFS.defGraph; saveCfg(); }
 tabsLoad(); { const t = TABS[TABI]; if (t && graphs().length) RAW.roam.current = t.kind === "draft" ? DR.graph : t.graph; }
 $("#tTI").innerHTML = IC_PAGE; $("#pTI").innerHTML = IC_PAGE;
+if (PREFS.pgc) document.documentElement.style.setProperty("--pgn", PREFS.pgc);
 loadPages(); initTarget(); loadQueue(); setGraphLocal(); ENG(); gbarPages(PREFS.gbar !== false); takeShared(); route();
 flush(); setTimeout(autoSync, 1500);
 </script>
