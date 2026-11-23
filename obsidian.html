@@ -296,6 +296,20 @@ body.docview #rp #btnSend,body.docview #rp #btnClear{display:inline-block}
 body.rpopen #rpSep{display:block}
 #rpSep:hover,body.resz #rpSep{background:color-mix(in srgb,var(--accent) 35%,transparent)}
 body.resz{user-select:none;cursor:col-resize}
+#pgFind{position:fixed;top:8px;inset-inline-start:12px;z-index:70;display:flex;align-items:center;gap:4px;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:4px 6px;box-shadow:0 6px 18px rgba(0,0,0,.14)}
+#pgFind input{width:180px;border:0;outline:0;background:transparent;color:var(--text);font:inherit}
+#pgFind input::-webkit-search-cancel-button{display:none}
+#pgFind .fcnt{font-size:.8em;color:var(--muted);min-width:46px;text-align:center}
+#pgFind button{padding:2px 7px}
+mark.fh{background:#fff1a6;color:inherit;border-radius:2px;padding:0 1px}
+mark.fh.cur{background:#ff9f1a}
+#keysSheet{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:80;display:flex;align-items:center;justify-content:center;padding:20px}
+.ksbox{background:var(--bg);border-radius:12px;max-width:760px;width:100%;max-height:86vh;overflow:auto;padding:14px 18px;box-shadow:0 10px 40px rgba(0,0,0,.25)}
+.ksh{display:flex;align-items:center;gap:10px;font-weight:700;font-size:1.1em;margin-bottom:6px}.ksh button{margin-inline-start:auto}
+.ksg h5{margin:12px 0 4px;color:var(--accent);font-size:.95em}
+.ksr{display:flex;gap:10px;padding:2px 0;font-size:.92em}.ksr b{flex:none;min-width:190px;font-weight:600}.ksr span{color:var(--muted)}
+.gdef{font-size:.8em;color:var(--accent);border:1px solid var(--accent);border-radius:10px;padding:1px 7px}
+.locbox{border:1px solid var(--line);border-radius:8px;padding:8px 10px;display:flex;flex-direction:column;gap:6px}
 .rpi .pinm{flex:none;color:#e0a100;font-size:.85em}
 .block.bsel>.row{background:color-mix(in srgb,var(--accent) 17%,transparent);border-radius:5px}
 .block.bsel>.row ::selection{background:transparent}
@@ -916,6 +930,7 @@ function render(){
   const host = HOST(); host.innerHTML = "";
   host.appendChild(renderList(isOb() ? obsVisible() : model, true));
   rendering = false;
+  if (FIND.q) findPaint();
   if (editingId != null){
     const t = host.querySelector('textarea[data-id="'+editingId+'"]');
     if (t){
@@ -1598,6 +1613,18 @@ function paraText(roots, all){                       // نسخ كفقرات: ا�
   else ns = roots;
   return ns.map(n => plainLine(n.text)).filter(x => x.trim()).join("\n");
 }
+function selText(){                                  // نصّ التظليل الممتدّ: سطر لكل كتلة، بلا فراغ بينها
+  const sel = window.getSelection(); if (!sel || sel.isCollapsed || !sel.rangeCount) return null;
+  const host = HOST(), r = sel.getRangeAt(0); if (!host.contains(r.commonAncestorContainer)) return null;
+  const vs = [...host.querySelectorAll(".view")].filter(v => r.intersectsNode(v));
+  if (vs.length < 2) return null;                                       // داخل كتلة واحدة: اترك النسخ للمتصفح
+  const line = (v, k) => { const txt = v.textContent || ""; let a = 0, b = txt.length;
+    if (k === 0 && v.contains(r.startContainer)){ const q = document.createRange(); q.selectNodeContents(v); q.setEnd(r.startContainer, r.startOffset); a = q.toString().length; }
+    if (k === vs.length - 1 && v.contains(r.endContainer)){ const q = document.createRange(); q.selectNodeContents(v); q.setEnd(r.endContainer, r.endOffset); b = q.toString().length; }
+    return txt.slice(a, b); };
+  const out = vs.map(line).filter(x => x.trim());
+  return out.length ? (pview() ? out.map(plainLine).join("\n") : out.join("\n")) : null;
+}
 function copyPara(all){
   let roots = BS.ids.length ? bsRoots() : null;
   if (!roots){ const L = editingId != null ? loc(editingId) : null; if (!L) return false; roots = [L.node]; }
@@ -2110,25 +2137,21 @@ function renderSettings(){
   box.appendChild(h("label", {}, auto, "اتجاه الكتل تلقائي بحسب لغتها (الافتراضي: يمين←يسار دائماً)"));
 
   viewSettings(box);
-  tabSettings(box);
   syncSettings(box);
 
-  const KEYS = [["Ctrl+Enter / Ctrl+S","إرسال"],["Ctrl+Z","تراجع"],["Ctrl+Shift+Z / Ctrl+Y","إعادة"],
-    ["Ctrl+B / Ctrl+I","غامق / مائل"],["Ctrl+Shift+H","تمييز"],["Ctrl+`","كود"],["Ctrl+K","رابط"],
-    ["Tab / Shift+Tab", CFG.dest==="obsidian" ? "إزاحة السطر" : "تداخل الكتلة"],
-    ["Alt+Shift+↑ / ↓","نقل السطر"],["Alt+C","نسخ فقراتٍ (المستوى المحدَّد)"],["Alt+Shift+C","نسخ فقراتٍ مع كل الأبناء"],["Alt+L","Obsidian: قلب الفقرة إلى اليسار/اليمين"],["Ctrl+A مرتين","تظليل كل النص"],["Ctrl+Shift+V","لصق بلا تحويل"],
-    ["Esc","تظليل الكتلة (Roam) · ثانيةً: إلغاؤه"],["Shift+↑ / ↓ عند طرف الكتلة","تظليل الكتل"],["Shift+نقر","تظليل الكتل حتى هذه"],
-    ["مع الكتل المظلّلة","Backspace حذف · Ctrl+C نسخ · Ctrl+X قصّ · Tab إزاحة · Enter تحرير"],["سحب النقطة","نقل الكتلة (أو المظلّلة) قبل كتلة أو بعدها أو داخلها"]];
-  KEYS.push(["Alt+S","الصفحة بجانب المسودة، أو وحدها"],["Alt+W","عرض الصفحة كاملاً / محدوداً"],["Alt+R في المسودة","مزامنة المسودة مع الأجهزة الأخرى"],["Alt+T","مهمة بتاريخ (ثم منجزة، ثم إزالة)"],["Alt+D","إدراج تاريخ"],["Alt+R","مزامنة الصفحة المعروضة من Roam"],["Ctrl+Shift+F","خانة البحث"],["Alt+M","البحث: مطابق / مجرّد"],["نقرة وسطى على لسان","إغلاقه"],["Alt+H","الكتابة تحت ترويسة التاريخ أو بدونها"]);
-  KEYS.push(["F9", CFG.dest==="obsidian" ? "إعادة فهرسة الخزنة" : "تحديث صفحات الغراف"]);
-  box.appendChild(h("details", {class:"keysbox"}, h("summary", {}, "الاختصارات"), h("div", {class:"keys"}, ...KEYS.map(k => h("div", {}, h("b", {dir:"ltr"}, k[0]), " — "+k[1])))));
+  box.appendChild(h("div", {class:"srow"},
+    h("button", {class:"ghost", style:"border:1px solid var(--line)", onclick:() => keysSheet()}, "ورقة الاختصارات (F1)"),
+    h("button", {class:"ghost", style:"border:1px solid var(--line)", onclick:() => appUpdate()}, "تحديث التطبيق")));
 
   {
     title("غرافات Roam");
     CFG.roam.graphs.forEach(g => {
+      const def = defGraph() === g.name;
       box.appendChild(h("div", {class:"srow"},
-        h("b", {dir:"ltr"}, g.name+(g.token ? "" : "  (بلا رمز)")), h("span", {class:"spacer"}),
-        h("button", {class:"ghost", onclick:() => { editingGraph = g.name; renderSettings(); }}, "تعديل"),
+        h("b", {dir:"ltr"}, glabel(g.name) + (GLAB[g.name] ? "  ·  " + g.name : "") + (g.token ? "" : "  (بلا رمز)")),
+        def ? h("span", {class:"gdef"}, "الافتراضي") : h("button", {class:"ghost", onclick:() => { store.set("rq-defgraph", g.name); if (!DR.set){ DR.graph = g.name; saveDR(); if (TABS.cur && TABS.cur.kind === "draft") setGraph(g.name); } renderSettings(); barMark(); toast("الغراف الافتراضي: " + glabel(g.name)); }}, "اجعله الافتراضي"),
+        h("span", {class:"spacer"}),
+        h("button", {class:"ghost", onclick:() => { editingGraph = editingGraph === g.name ? null : g.name; renderSettings(); }}, editingGraph === g.name ? "إغلاق" : "تعديل"),
         h("button", {class:"ghost danger", onclick:e => {
           if (CFG.roam.graphs.length<2){ toast("لا يمكن حذف الغراف الوحيد"); return; }
           if (e.target.dataset.arm!=="1"){ e.target.dataset.arm = "1"; e.target.textContent = "تأكيد؟"; return; }
@@ -2136,8 +2159,9 @@ function renderSettings(){
           if (CFG.roam.current===g.name) CFG.roam.current = CFG.roam.graphs[0].name;
           graphChanged(old); renderSettings();
         }}, "حذف")));
+      if (editingGraph === g.name) box.appendChild(graphForm(g.name));
     });
-    if (editingGraph) box.appendChild(graphForm(editingGraph));
+    if (editingGraph === "__new__") box.appendChild(graphForm("__new__"));
     else box.appendChild(h("button", {class:"ghost", style:"align-self:flex-start;border:1px solid var(--line)", onclick:() => { editingGraph = "__new__"; renderSettings(); }}, "＋ إضافة غراف"));
   }
   {
@@ -2162,6 +2186,33 @@ function renderSettings(){
     box.appendChild(h("div", {class:"hint"}, "الرموز: YYYY السنة · MM الشهر · DD اليوم"));
   }
 }
+const defGraph = () => { const d = store.get("rq-defgraph"); return CFG.roam.graphs.some(x => x.name === d) ? d : (CFG.roam.graphs[0] || {}).name || ""; };
+function locBox(name){                               // النسخة المحلية لهذا الغراف: تحميلها ومزامنتها وحذفها واستيرادها
+  const w = h("div", {class:"locbox"}), msg = h("div", {class:"hint"}), row = h("div", {class:"srow"});
+  const draw = () => {
+    msg.textContent = ""; row.innerHTML = "";
+    const loc = RQ.isLocal(name), cur = S.graph === name, run = RQ.SYNC.running && cur;
+    const at = +store.get("rqm-syncAt:" + name) || 0;
+    msg.textContent = run ? RQ.SYNC.msg : loc ? ("نسخة محلية على هذا الجهاز" + (at ? " · آخر مزامنة: " + new Date(at).toLocaleString("ar-EG") : "")) : "لا نسخة محلية. التحميل يتيح البحث والفتح بلا إنترنت.";
+    const btn = (t, fn, cls) => { const b = h("button", {class:"ghost" + (cls ? " " + cls : ""), onclick:fn}, t); row.appendChild(b); return b; };
+    if (run){ btn("إيقاف", () => { RQ.SYNC.stop = true; }, "danger"); return; }
+    const withGraph = async fn => {                  // المحرك يعمل على غراف واحد: حوّله مؤقتاً ثم أعِده
+      const back = S.graph; if (back !== name) setGraph(name);
+      try { await fn(); } finally { if (back !== name && CFG.roam.graphs.some(x => x.name === back)) setGraph(back); draw(); rpSyncUI(); }
+    };
+    const go = full => withGraph(async () => { await saveDoc(); const t = setInterval(draw, 400); await RQ.sync(full); clearInterval(t); });
+    if (!loc){ btn("تحميل الغراف إلى الجهاز", () => { const gg = CFG.roam.graphs.find(x => x.name === name); if (!gg || !gg.token){ toast("أضف رمز الغراف أولاً"); return; } go(true); });
+      btn("استورد نسخة…", () => BK.restore(name).then(draw)); }
+    else {
+      btn("مزامنة الآن", () => go(false)); btn("مزامنة كاملة", () => go(true));
+      btn("جلب التواريخ", () => withGraph(() => RQ.fillTimes()));
+      btn("استورد نسخة…", () => BK.restore(name).then(draw));
+      const d = btn("حذف النسخة", () => { if (d.dataset.arm !== "1"){ d.dataset.arm = "1"; d.textContent = "اضغط ثانية للتأكيد"; setTimeout(() => { d.dataset.arm = ""; d.textContent = "حذف النسخة"; }, 2500); return; }
+        withGraph(async () => { closeDoc(); await RQ.dropLocal(); RQ.SYNC.msg = ""; }); }, "danger");
+    }
+  };
+  draw(); w.append(msg, row); return w;
+}
 function graphForm(gname){
   const isNew = gname==="__new__";
   const src = isNew ? null : CFG.roam.graphs.find(x => x.name===gname);
@@ -2172,6 +2223,8 @@ function graphForm(gname){
   const hd = h("input", {type:"checkbox", checked:g.header});
   const tp = h("input", {type:"text", dir:"ltr", value:g.tpl});
   const md = h("select", {}, h("option", {value:"today"}, "صفحة اليوم دائماً"), h("option", {value:"last"}, "آخر صفحة استُخدمت")); md.value = g.pageMode;
+  const lb = h("input", {type:"text", dir:"rtl", placeholder:g.name || "اسم التبويب", value:GLAB[g.name] || "",
+    oninput:e => { const v = e.target.value.trim(), k = nm.value.trim() || g.name; if (!k) return; if (v) GLAB[k] = v; else delete GLAB[k]; store.set("rq-glabels", JSON.stringify(GLAB)); tabsDraw(); barMark(); }});
   const out = h("pre", {class:"tout", dir:"ltr"});
   const pages = h("span", {class:"hint"}, store.get("rq-pages:"+(g.name||"")) ? "" : "");
   const fileIn = h("input", {type:"file", accept:".txt,text/plain", hidden:true, onchange:e => {
@@ -2180,11 +2233,12 @@ function graphForm(gname){
       store.set("rq-pages:"+nm.value.trim(), lines.join("\n")); if (nm.value.trim()===S.graph) loadPages(); out.textContent = "حُمّلت "+lines.length+" صفحة من الملف"; };
     r.readAsText(f, "utf-8"); }});
   return h("div", {class:"gform"},
-    h("label", {}, "الاسم:", nm), h("label", {}, "الرمز:", tk),
+    h("label", {}, "الاسم:", nm), h("label", {}, "الرمز:", tk), h("label", {}, "اسم التبويب:", lb),
     h("label", {}, sv, "حفظ الرمز على هذا الجهاز (بنص صريح في المتصفح)"),
     h("label", {}, hd, "سطر رأس تلقائي، تكون كتابتك ابناً له"), h("label", {}, "قالب الرأس:", tp),
     h("div", {class:"hint"}, "الرموز: {date} عنوان صفحة اليوم · {time} الوقت · {iso} التاريخ yyyy-mm-dd"),
     h("label", {}, "الصفحة الافتراضية:", md),
+    isNew ? "" : locBox(g.name),
     h("div", {class:"srow"},
       h("button", {class:"ghost", style:"border:1px solid var(--line)", onclick:async () => {
         const name = nm.value.trim(), token = tk.value.trim(); if (!name || !token){ out.textContent = "اكتب الاسم والرمز أولاً"; return; }
@@ -2672,8 +2726,10 @@ function init(){
   document.addEventListener("keydown", e => { if (e.key==="Escape" && $("#out").classList.contains("open")) { $("#out").classList.remove("open"); } });
 
   document.addEventListener("copy", e => {
-    if (!selAll || !e.clipboardData) return;
-    e.preventDefault(); e.clipboardData.setData("text/plain", rawAll());
+    if (selAll && e.clipboardData){ e.preventDefault(); e.clipboardData.setData("text/plain", rawAll()); return; }
+    if (!e.clipboardData || editingId != null || BS.ids.length) return;
+    const t = selText(); if (t == null) return;                         // تظليل بالفأرة عبر الكتل: ننسخه نحن سطراً لكل كتلة
+    e.preventDefault(); e.clipboardData.setData("text/plain", t);
   });
   document.addEventListener("cut", e => {
     if (!selAll || !e.clipboardData) return;
@@ -2969,7 +3025,7 @@ async function lMaxOrder(p){
 }
 async function lPutRecs(recs, viaSync){              // recs: {u,s,p,g,o,h?,c?}
   const t = DB.transaction(viaSync ? ["blocks","tree"] : ["blocks","tree","kv"], "readwrite"), B = t.objectStore("blocks"), T = t.objectStore("tree");
-  for (const r of recs){ const b = {u:r.u, s:r.s, g:r.g}; if (r.h) b.h = r.h; if (r.c) b.c = 1; B.put(b); T.put({u:r.u, p:r.p, o:r.o}); }
+  for (const r of recs){ const b = {u:r.u, s:r.s, g:r.g}; if (r.h) b.h = r.h; if (r.c) b.c = 1; if (r.ct) b.ct = r.ct; if (r.et) b.et = r.et; B.put(b); T.put({u:r.u, p:r.p, o:r.o}); }
   if (!viaSync){ const kv = t.objectStore("kv"), g = kv.get("tail"); g.onsuccess = () => kv.put((g.result || []).concat(recs.map(r => ({u:r.u, s:r.s, p:r.p, g:r.g, o:r.o}))), "tail"); }
   await txDone(t);
   await W("add", {rows:recs.map(r => ({u:r.u, s:r.s, p:r.p, g:r.g, o:r.o, n:r.n}))});
@@ -3095,7 +3151,8 @@ const Q_MAN = "[:find ?u ?n ?pu ?o :where [?b :block/string ?s] [?b :block/uid ?
 const Q_MAN2 = "[:find ?u ?pu ?o :where [?b :block/string] [?b :block/uid ?u] [?par :block/children ?b] [?par :block/uid ?pu] [?b :block/order ?o]]";
 const Q_CHECK = "[:find ?u ?n ?pu ?o :in $ [?u ...] :where [?b :block/uid ?u] [?b :block/string ?s] [(count ?s) ?n] [?par :block/children ?b] [?par :block/uid ?pu] [?b :block/order ?o]]";
 const Q_CHANGED = "[:find ?u :in $ ?since :where [?b :edit/time ?t] [(> ?t ?since)] [?b :block/string] [?b :block/uid ?u]]";
-const Q_BATCH = "[:find ?pu (pull ?b [:block/uid :block/string :block/order :block/heading :block/open]) :in $ [?u ...] :where [?b :block/uid ?u] [?par :block/children ?b] [?par :block/uid ?pu]]";
+const Q_BATCH = "[:find ?pu (pull ?b [:block/uid :block/string :block/order :block/heading :block/open :create/time :edit/time]) :in $ [?u ...] :where [?b :block/uid ?u] [?par :block/children ?b] [?par :block/uid ?pu]]";
+const Q_TIMES = "[:find ?u ?ct ?et :where [?b :block/uid ?u] [?b :create/time ?ct] [?b :edit/time ?et]]";
 async function syncGraph(full, scope){               // scope: معرّف صفحة لمزامنتها وحدها
   const g = G(); if (!g || SYNC.running) return;
   if (!g.token){ toast("أضف رمز الغراف أولاً"); return; }
@@ -3189,7 +3246,8 @@ async function syncGraph(full, scope){               // scope: معرّف صفح
       const recs = [];
       for (const row of parse(r)){ const o = row[1]; if (!o) continue; const u = K(o,"block/uid"); if (!u) continue;
         const rec = {u, s:K(o,"block/string") || "", p:row[0], g:"", o:K(o,"block/order") || 0}; if (nmap.get(u) != null) rec.n = nmap.get(u);
-        const h = K(o,"block/heading"); if (h) rec.h = h; if (K(o,"block/open") === false) rec.c = 1; recs.push(rec); }
+        const h = K(o,"block/heading"); if (h) rec.h = h; if (K(o,"block/open") === false) rec.c = 1;
+        const ct = K(o,"create/time"), et = K(o,"edit/time"); if (ct) rec.ct = ct; if (et) rec.et = et; recs.push(rec); }
       if (recs.length){ await pageOf(recs); await lPutRecs(recs, true); }
       const got = new Set(recs.map(x => x.u)), miss = batch.filter(u => !got.has(u));      // الخادم قد يقتطع الردّ: أعد طلب ما لم يرجع
       if (miss.length && recs.length && miss.length < batch.length){ const h = Math.ceil(miss.length / 2); queue.unshift(miss.slice(0, h)); if (miss.length > h) queue.unshift(miss.slice(h)); }
@@ -3226,6 +3284,61 @@ async function diagnose(){
     out.push("parent: " + JSON.stringify(await q("[:find ?u ?pu :in $ [?u ...] :where [?b :block/uid ?u] [?par :block/children ?b] [?par :block/uid ?pu]]", [miss])));
   }
   return out.join("\n");
+}
+async function fillTimes(){                          // مرور واحد: يجلب تواريخ الإنشاء والتعديل وحدها (بلا نصوص)
+  const g = G(); if (!g || SYNC.running) return 0;
+  if (!g.token){ toast("أضف رمز الغراف أولاً"); return 0; }
+  await openLocal(); SYNC.running = true; syncMsg("يجلب التواريخ…");
+  try {
+    const r = await roam("q", {query:Q_TIMES}, {graph:g, soft:true, timeout:180000}); if (!r.ok) throw new Error("فشل الجلب (" + r.status + ")");
+    const rows = JSON.parse(r.text).result || []; let n = 0;
+    for (let i = 0; i < rows.length; i += 2000){
+      syncMsg("يحفظ التواريخ: " + AR(i) + " من " + AR(rows.length));
+      const t = DB.transaction(["blocks","pages"], "readwrite"), B = t.objectStore("blocks"), P = t.objectStore("pages");
+      for (const [u, ct, et] of rows.slice(i, i + 2000)){
+        const q = B.get(u); q.onsuccess = () => { const b = q.result; if (b){ b.ct = ct; b.et = et; B.put(b); n++; return; }
+          const p = P.get(u); p.onsuccess = () => { const pg = p.result; if (pg){ pg.ct = ct; pg.et = et; P.put(pg); n++; } }; };
+      }
+      await txDone(t);
+    }
+    SYNC.msg = "حُفظت تواريخ " + AR(n) + " كتلة"; toast(SYNC.msg);
+    return n;
+  } catch(e){ SYNC.msg = ""; toast("تعذّر جلب التواريخ: " + e.message, 4000); return 0; }
+  finally { SYNC.running = false; hooks.onSync && hooks.onSync(); }
+}
+async function importTree(pages, onP){               // استيراد نسخة محفوظة: يبني النسخة المحلية كاملة
+  const g = G(); if (!g) throw new Error("لا غراف");
+  await openLocal();
+  { const t = DB.transaction(["blocks","tree","pages","kv"], "readwrite");
+    t.objectStore("blocks").clear(); t.objectStore("tree").clear(); t.objectStore("pages").clear(); t.objectStore("kv").clear(); await txDone(t); }
+  try { await W("close"); } catch(e){}
+  PT.clear(); const names = [];
+  let recs = [], done = 0, total = 0;
+  const count = L => { for (const x of L || []){ total++; count(x.children); } };
+  for (const p of pages) count(p.children);
+  const walk = async (list, parent, pg) => {
+    let o = 0;
+    for (const n of list || []){
+      const u = n.uid || newUid(), rec = {u, s:n.string || "", p:parent, g:pg, o:o++};
+      if (n.heading) rec.h = n.heading; if (n.open === false) rec.c = 1;
+      if (n["create-time"]) rec.ct = n["create-time"]; if (n["edit-time"]) rec.et = n["edit-time"];
+      recs.push(rec);
+      if (recs.length >= 4000){ await lPutRecs(recs, true); done += recs.length; recs = []; onP && onP(done, total); }
+      if (n.children && n.children.length) await walk(n.children, u, pg);
+    }
+  };
+  for (const p of pages){
+    const u = p.uid || newUid(), t = p.title || ""; if (!t) continue;
+    const tx = DB.transaction("pages", "readwrite"); const o = {u, t}; if (p["create-time"]) o.ct = p["create-time"]; if (p["edit-time"]) o.et = p["edit-time"];
+    tx.objectStore("pages").put(o); await txDone(tx); PT.set(u, t); names.push(t);
+    await walk(p.children, u, u);
+  }
+  if (recs.length){ await lPutRecs(recs, true); done += recs.length; onP && onP(done, total); }
+  await W("persist");
+  store.set("rq-pages:" + g.name, names.join("\n")); store.set("rqm-pagesAt:" + g.name, String(Date.now()));
+  store.set("rqm-local:" + g.name, "1"); store.set("rqm-syncAt:" + g.name, String(Date.now()));
+  await kvSet("since", 0); LOC = true; hooks.onSync && hooks.onSync();
+  return done;
 }
 async function dropLocal(){
   const g = G(); if (!g) return;
@@ -3319,7 +3432,7 @@ function markMatches(root, q){                        // ظلّل مواضع ا�
   return {W, rq, kidRange, foldStr, stems, markMatches, isLocal, SYNC, hooks, openLocal, setGraphLocal, loadQueue, flush, enqueue, autoSync, dropLocal,
     lPutRecs, lShift, lPutPage, lDelete, lMove, fixPages, lRenameRefs,
     db:() => DB, loc:() => LOC, pending:() => QUEUE.length, pageTitle:g => PT.get(g) || "",
-    ROOTHL, diagnose, rootOfBlock, setLoc, roam,
+    ROOTHL, diagnose, rootOfBlock, setLoc, roam, fillTimes, importTree, openLocal,
     async sync(full, scope){ if (QUEUE.length){ await flush(); if (QUEUE.length){ toast("في الطابور تعديلات لم تُرسل بعد — تُزامَن بعد إرسالها"); return false; } } const r = await syncGraph(full, scope); hooks.onSync(); return r; },
     async search(q, opt){ await openLocal(); return Array.isArray(q) ? W("searchAll", Object.assign({terms:q}, opt)) : W("search", Object.assign({q}, opt)); }};
 })({store, toast:(...a) => toast(...a), newUid:() => newUid(), norm:x => norm(x), graph:() => curGraph()});
@@ -3441,7 +3554,7 @@ const specOf = d => d ? (d.kind === "page" ? {kind:"page", title:d.title} : {kin
 function tabsSave(){
   store.set("rq-tabs", JSON.stringify({cur:TABS.cur ? TABS.cur.id : "", list:TABS.list.map(t => ({id:t.id, kind:t.kind, graph:t.graph, doc:t.kind === "graph" ? (specOf(t === TABS.cur ? DOC : t.DOC) || t.pending || null) : null}))}));
 }
-function tabNew(kind, graph, doc){ const t = {id:"t" + Date.now().toString(36) + (TABS.n++), kind, graph:graph || "", q:"", DOC:null, pending:doc || null}; TABS.list.push(t); return t; }
+function tabNew(kind, graph, doc){ const t = {id:"t" + Date.now().toString(36) + (TABS.n++), kind, graph:graph || (kind === "graph" ? defGraph() : ""), q:"", DOC:null, pending:doc || null}; TABS.list.push(t); return t; }
 function tabsDraw(){
   const bar = $("#tabs"); bar.innerHTML = "";
   for (const t of TABS.list){
@@ -3491,7 +3604,7 @@ async function tabSwitch(id){
     }
     DOC = null; CTXS.page.model = []; CTXS.page.hist = {past:[], future:[], mark:0}; RP.dirty = false;
     TABS.cur = t; $("#rpRes").hidden = true;
-    if (!CFG.roam.graphs.some(g => g.name === DR.graph)) DR.graph = CFG.roam.graphs[0].name;
+    if (!CFG.roam.graphs.some(g => g.name === DR.graph)) DR.graph = defGraph();
     setGraph(t.kind === "draft" ? DR.graph : t.graph);
     if (t.kind === "graph"){
       const e = t.el || newDocEl(); t.el = null; $("#docSlot").appendChild(e);
@@ -3549,7 +3662,7 @@ function tabsInit(){
   const sv = jget("rq-tabs", null), ok = g => CFG.roam.graphs.some(x => x.name === g);
   if (sv && Array.isArray(sv.list)) for (const x of sv.list){ if (x.kind === "draft" && !TABS.list.some(t => t.kind === "draft")) tabNew("draft").id = x.id; else if (x.kind === "graph" && ok(x.graph)) tabNew("graph", x.graph, x.doc || null).id = x.id; }
   if (!TABS.list.length) tabNew("draft");
-  if (!ok(DR.graph)) DR.graph = CFG.roam.current;
+  if (!ok(DR.graph)) DR.graph = defGraph();
   const first = (sv && TABS.list.find(t => t.id === sv.cur)) || TABS.list[0];
   rpGraphKey = ""; tabSwitch(first.id);
   setTimeout(() => RQ.autoSync().then(rpSyncUI), 1500);
@@ -3572,13 +3685,6 @@ function draftLoad(){                                // مسودة واحدة ل
       model = m; return true; } } catch(e){}
   return false;
 }
-function tabSettings(box){                           // الإعدادات: أسماء مختصرة للألسنة
-  box.appendChild(h("h4", {}, "أسماء الألسنة"));
-  for (const g of CFG.roam.graphs){
-    const inp = h("input", {type:"text", dir:"rtl", placeholder:g.name, value:GLAB[g.name] || "", oninput:e => { const v = e.target.value.trim(); if (v) GLAB[g.name] = v; else delete GLAB[g.name]; store.set("rq-glabels", JSON.stringify(GLAB)); tabsDraw(); barMark(); }});
-    box.appendChild(h("div", {class:"vrow"}, h("b", {dir:"ltr", style:"min-width:120px"}, g.name), inp));
-  }
-}
 
 function rpDot(){                                    // نقطة واحدة: خضراء = محفوظ ومُرسل · برتقالية = غير ذلك
   const d = $("#rpDot"); if (!d) return; d.hidden = false;
@@ -3591,55 +3697,173 @@ function rpDot(){                                    // نقطة واحدة: خ�
 function rpState(t, cls){ RP.dirty = cls === "dirty"; rpDot(); }
 
 /* ---- التحميل والمزامنة (في الإعدادات) ---- */
-function rpSyncUI(){
-  rpDot();
-  const g = curGraph(), box = $("#rpSyncBtns"), msg = $("#syncMsg"); if (!g || !box || !msg) return; box.innerHTML = "";
-  const btn = (t, fn, cls) => { const b = el("button", "ghost" + (cls ? " " + cls : "")); b.textContent = t; b.onclick = fn; box.appendChild(b); return b; };
-  const loc = RQ.isLocal(g.name);
-  if (RQ.SYNC.running){ msg.textContent = RQ.SYNC.msg; btn("إيقاف", () => { RQ.SYNC.stop = true; }, "danger"); return; }
-  msg.textContent = RQ.SYNC.msg || (loc ? "نسخة محلية كاملة لهذا الغراف على هذا الجهاز. تُزامَن تلقائياً عند فتح المحرر." : "لا نسخة محلية بعد. تحميل الغراف يتيح البحث في النصوص، والعرض والتعديل.");
-  const go = full => { if (!getToken()){ toast("أضف رمز الغراف أولاً"); return; } saveDoc().then(() => { RQ.sync(full).then(rpSyncUI); setTimeout(rpSyncUI, 50); }); };
-  if (!loc) btn("تحميل الغراف إلى الجهاز", () => go(true));
-  else {
-    btn("مزامنة الغراف الآن", () => go(false)); btn("مزامنة كاملة", () => go(true));
-    btn("تشخيص", async () => { msg.textContent = "يشخّص…"; const t = await RQ.diagnose(); const a = el("textarea"); a.readOnly = true; a.value = t; a.style.cssText = "width:100%;height:150px;direction:ltr;font-size:11px"; box.appendChild(a); msg.textContent = "انسخ النص التالي وأرسله:"; a.select(); });
-    const d = btn("حذف النسخة", async () => { if (d.dataset.arm !== "1"){ d.dataset.arm = "1"; d.textContent = "اضغط ثانية للتأكيد"; setTimeout(() => { d.dataset.arm = ""; d.textContent = "حذف النسخة"; }, 2500); return; }
-      closeDoc(); await RQ.dropLocal(); RQ.SYNC.msg = ""; rpSyncUI(); }, "danger");
-  }
+/* ---- ورقة الاختصارات ---- */
+const KEYS_SHEET = () => [
+  ["الكتابة", [["Ctrl+Enter / Ctrl+S","إرسال"],["Ctrl+Z / Ctrl+Shift+Z","تراجع / إعادة"],["Ctrl+B / Ctrl+I","غامق / مائل"],["Ctrl+Shift+H","تمييز"],["Ctrl+`","كود"],["Ctrl+K","رابط"],
+    ["Ctrl+A مرتين","تظليل كل النص"],["Ctrl+Shift+V","لصق بلا تحويل"],["Alt+T","مهمة بتاريخ (ثم منجزة، ثم إزالة)"],["Alt+D","إدراج تاريخ"],["[[مهمة","مربع مهمة، ثم تاريخ إن شئت"],["Alt+L","Obsidian: قلب الفقرة يميناً/يساراً"]]],
+  ["الكتل", [["Tab / Shift+Tab","تداخل الكتلة (Obsidian: إزاحة السطر)"],["Alt+Shift+↑ / ↓","نقل الكتلة"],["Esc","تظليل الكتلة · ثانيةً: إلغاؤه"],
+    ["Shift+↑ / ↓ عند الطرف","تظليل الكتل"],["Shift+نقر","تظليل الكتل حتى هذه"],["مع المظلّلة","Backspace حذف · Ctrl+C نسخ · Ctrl+X قصّ · Tab إزاحة · Enter تحرير"],
+    ["سحب النقطة","نقل الكتلة؛ وحرّك يميناً ويساراً لتغيير عمق الموضع"],["Ctrl+↑ / ↓","طيّ ونشر"]]],
+  ["النسخ والعرض", [["Ctrl+C","نسخ بحسب العرض الجاري (كتل أو فقرات)"],["Alt+C","نسخ فقراتٍ — المستوى المحدَّد"],["Alt+Shift+C","نسخ فقراتٍ مع كل الأبناء"],["زر الفقرات","تبديل عرض الكتل والفقرات"],["Alt+W","عرض الصفحة كاملاً / محدوداً"]]],
+  ["التنقّل والصفحات", [["Ctrl+Shift+F","شريط البحث"],["Ctrl+F","بحث داخل الصفحة المفتوحة"],["F3 / Shift+F3","المطابقة التالية / السابقة"],["Alt+S","الصفحة بجانب المسودة، أو وحدها"],
+    ["Alt+R","مزامنة: المسودة في لسانها، أو الصفحة المعروضة"],["Alt+H","الكتابة تحت ترويسة التاريخ أو بدونها"],["Alt+M","تبديل نمط العرض"],["F9","تحديث صفحات الغراف (Obsidian: إعادة فهرسة)"],["F1","هذه الورقة"]]]
+];
+function keysSheet(){
+  const old = $("#keysSheet"); if (old){ old.remove(); return; }
+  const ov = el("div"); ov.id = "keysSheet";
+  const bx = el("div", "ksbox"), hd = el("div", "ksh"); hd.textContent = "الاختصارات";
+  const x = el("button", "ghost"); x.textContent = "إغلاق"; x.onclick = () => ov.remove(); hd.appendChild(x); bx.appendChild(hd);
+  for (const [t, rows] of KEYS_SHEET()){ const g = el("div", "ksg"), h0 = el("h5"); h0.textContent = t; g.appendChild(h0);
+    for (const [k, d] of rows){ const r = el("div", "ksr"), b = el("b"); b.dir = "ltr"; b.textContent = k; const sp = el("span"); sp.textContent = d; r.append(b, sp); g.appendChild(r); }
+    bx.appendChild(g); }
+  ov.appendChild(bx); ov.onclick = e => { if (e.target === ov) ov.remove(); };
+  document.body.appendChild(ov);
 }
-/* ---- النسخة الاحتياطية: تصدير النسخ المحلية من الغرافات ملفات JSON (بصيغة استيراد Roam) إلى مجلد تختاره ---- */
+async function appUpdate(){                          // يجلب آخر نسخة ويعيد التشغيل بلا حذف شيء
+  toast("يبحث عن تحديث…", 2000);
+  try {
+    if ("serviceWorker" in navigator){
+      const rs = await navigator.serviceWorker.getRegistrations();
+      for (const r of rs){ try { await r.update(); } catch(e){} }
+      for (const r of rs){ try { await r.unregister(); } catch(e){} }
+    }
+    if (window.caches){ for (const k of await caches.keys()) await caches.delete(k); }
+  } catch(e){}
+  location.reload(true);
+}
+/* ---- البحث داخل الصفحة المفتوحة (Ctrl+F): بلا شريط دائم ---- */
+const FIND = {q:"", hits:[], i:0, el:null};
+function findClose(){ if (FIND.el){ FIND.el.remove(); FIND.el = null; } if (FIND.q){ FIND.q = ""; FIND.hits = []; render(); } }
+function findOpen(){
+  if (FIND.el){ FIND.el.querySelector("input").select(); return; }
+  const w = el("div"); w.id = "pgFind";
+  const inp = el("input"); inp.type = "search"; inp.placeholder = "بحث في الصفحة"; inp.dir = "rtl"; inp.spellcheck = false;
+  const cnt = el("span", "fcnt"), up = el("button", "ghost"), dn = el("button", "ghost"), x = el("button", "ghost");
+  up.textContent = "↑"; dn.textContent = "↓"; x.textContent = "✕"; up.title = "السابقة (Shift+F3)"; dn.title = "التالية (F3)";
+  up.onclick = () => findStep(-1); dn.onclick = () => findStep(1); x.onclick = findClose;
+  w.append(inp, cnt, up, dn, x); document.body.appendChild(w); FIND.el = w;
+  let t0 = null;
+  inp.addEventListener("input", () => { clearTimeout(t0); t0 = setTimeout(() => findRun(inp.value), 180); });
+  inp.addEventListener("keydown", e => { e.stopPropagation();
+    if (e.key === "Escape"){ e.preventDefault(); findClose(); }
+    else if (e.key === "Enter" || e.key === "F3"){ e.preventDefault(); findStep(e.shiftKey ? -1 : 1); } });
+  inp.focus();
+}
+async function findRun(q){
+  FIND.q = q.trim();
+  const cnt = FIND.el && FIND.el.querySelector(".fcnt");
+  if (!FIND.q){ FIND.hits = []; if (cnt) cnt.textContent = ""; render(); return; }
+  const qn = norm(FIND.q), list = ACTIVE === "page" ? model : model;
+  let lazy = [];                                     // حمّل المطويّ غير المحمَّل ليدخل البحث
+  (function w(L){ for (const n of L){ if (n.lazy && lazy.length < 200) lazy.push(n); w(n.children); } })(list);
+  if (lazy.length){ if (cnt) cnt.textContent = "…"; for (const n of lazy){ try { await loadLazy(n); } catch(e){} } }
+  const open = (L, par) => { let any = false;
+    for (const n of L){ const me = norm(n.text).includes(qn), kid = open(n.children, n); if ((me || kid) && par) par.collapsed = false; if (me || kid) any = true; }
+    return any; };
+  open(list, null); render();
+  if (cnt) cnt.textContent = FIND.hits.length ? AR(FIND.i + 1) + "/" + AR(FIND.hits.length) : "لا شيء";
+}
+function findPaint(){                                // يلفّ المطابقات في النصّ المعروض بعد كل رسم
+  FIND.hits = []; if (!FIND.q) return;
+  const host = HOST(), qn = norm(FIND.q), L = qn.length; if (!L) return;
+  for (const v of host.querySelectorAll(".view")){
+    const walk = document.createTreeWalker(v, NodeFilter.SHOW_TEXT), nodes = []; let nd;
+    while (nd = walk.nextNode()) nodes.push(nd);
+    for (const t of nodes){
+      const nt = norm(t.nodeValue); let from = 0, p;
+      const marks = [];
+      while ((p = nt.indexOf(qn, from)) >= 0){ marks.push(p); from = p + L; if (marks.length > 40) break; }
+      if (!marks.length) continue;
+      for (let k = marks.length - 1; k >= 0; k--){
+        const r = document.createRange(); r.setStart(t, marks[k]); r.setEnd(t, Math.min(t.nodeValue.length, marks[k] + L));
+        const m = el("mark", "fh"); try { r.surroundContents(m); FIND.hits.unshift(m); } catch(e){}
+      }
+    }
+  }
+  if (FIND.i >= FIND.hits.length) FIND.i = 0;
+  findMark(false);
+}
+function findMark(scroll){
+  FIND.hits.forEach((m, k) => m.classList.toggle("cur", k === FIND.i));
+  const c = FIND.hits[FIND.i]; if (c && scroll) c.scrollIntoView({block:"center", behavior:"smooth"});
+  const cnt = FIND.el && FIND.el.querySelector(".fcnt"); if (cnt) cnt.textContent = FIND.hits.length ? AR(FIND.i + 1) + "/" + AR(FIND.hits.length) : (FIND.q ? "لا شيء" : "");
+}
+function findStep(d){ if (!FIND.hits.length) return; FIND.i = (FIND.i + d + FIND.hits.length) % FIND.hits.length; findMark(true); }
+function rpSyncUI(){ rpDot(); const box = $("#settings"); if (box && box.querySelector(".locbox") && !RQ.SYNC.running) renderSettings(); }
+/* ---- النسخة الاحتياطية: مجلد «المحرر» فيه مجلدان — نسخة للاسترجاع، وأخرى بصيغة استيراد Roam ---- */
 const BK = (function(){
-  const cfg = () => Object.assign({every:0, last:{}}, jget("rq-bk", {})), save = c => store.set("rq-bk", JSON.stringify(c));
+  const cfg = () => Object.assign({every:24, last:{}}, jget("rq-bk", {})), save = c => store.set("rq-bk", JSON.stringify(c));
+  const F_LOC = "النسخ-المحلية", F_ROAM = "json-روم";
   let busy = false, warned = false, dir = null;
   const getDir = async () => dir || (dir = await idbGet("bkdir") || null);
   const all = (db, st) => new Promise((res, rej) => { const q = db.transaction(st).objectStore(st).getAll(); q.onsuccess = () => res(q.result || []); q.onerror = () => rej(q.error); });
-  async function build(name){
-    const db = await new Promise((res, rej) => { const r = indexedDB.open("rqm-" + name); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); });
+  const openG = name => new Promise((res, rej) => { const r = indexedDB.open("rqm-" + name); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); });
+  const isLocalG = name => store.get("rqm-local:" + name) === "1";
+  async function build(name){                        // شجرة الصفحات من النسخة المحلية
+    const db = await openG(name);
     try {
       if (!db.objectStoreNames.contains("blocks")) return null;
       const [pages, blocks, tree] = await Promise.all([all(db, "pages"), all(db, "blocks"), all(db, "tree")]);
       const B = new Map(blocks.map(b => [b.u, b])), kids = new Map();
       for (const t of tree){ let a = kids.get(t.p); if (!a) kids.set(t.p, a = []); a.push(t); }
       const sub = (p, depth) => { const a = kids.get(p); if (!a || depth > 60) return []; a.sort((x, y) => x.o - y.o);
-        return a.map(t => { const b = B.get(t.u) || {}, o = {string:b.s || "", uid:t.u}; if (b.h) o.heading = b.h; const c = sub(t.u, depth + 1); if (c.length) o.children = c; return o; }); };
-      return {n:blocks.length, json:pages.map(pg => { const o = {title:pg.t, uid:pg.u}, c = sub(pg.u, 0); if (c.length) o.children = c; return o; })};
+        return a.map(t => { const b = B.get(t.u) || {}, o = {string:b.s || "", uid:t.u};
+          if (b.h) o.heading = b.h; if (b.c) o.open = false;
+          if (b.ct) o["create-time"] = b.ct; if (b.et) o["edit-time"] = b.et;
+          const c = sub(t.u, depth + 1); if (c.length) o.children = c; return o; }); };
+      const out = pages.map(pg => { const o = {title:pg.t, uid:pg.u};
+        if (pg.ct) o["create-time"] = pg.ct; if (pg.et) o["edit-time"] = pg.et;
+        const c = sub(pg.u, 0); if (c.length) o.children = c; return o; });
+      return {n:blocks.length, pages:out};
     } finally { db.close(); }
   }
-  async function run(ask){                           // ask: بضغطة من المستخدم (فيجوز طلب الإذن)
+  const write = async (d, folder, file, text) => { const sub = await d.getDirectoryHandle(folder, {create:true});
+    const fh = await sub.getFileHandle(file, {create:true}), w = await fh.createWritable(); await w.write(text); await w.close(); };
+  async function run(ask){                           // ask: بضغطة منك (فيجوز طلب الإذن)
     if (busy) return; const d = await getDir();
-    if (!d){ if (ask) toast("اختر مجلد النسخة الاحتياطية أولاً"); return; }
+    if (!d){ if (ask) toast("اختر مجلد «المحرر» أولاً"); return; }
     if (!(await vaultPerm(d, !!ask))){ if (!warned || ask){ warned = true; toast("النسخة الاحتياطية تنتظر إذن المجلد — افتح الإعدادات واضغط «صدّر الآن»", 5000); } return; }
-    busy = true; const c = cfg(); let done = 0;
+    busy = true; const c = cfg(); let done = 0, skip = 0;
     try {
       for (const g of CFG.roam.graphs){ if (!isLocalG(g.name)) continue;
+        const at = +store.get("rqm-syncAt:" + g.name) || 0, last = c.last[g.name] || 0;
+        if (!ask && at && at <= last){ skip++; continue; }                     // لم يتغيّر منذ آخر تصدير
         const r = await build(g.name); if (!r) continue;
-        const fh = await d.getFileHandle(cleanName(g.name) + ".json", {create:true}), w = await fh.createWritable();
-        await w.write(JSON.stringify(r.json)); await w.close(); c.last[g.name] = Date.now(); done++; }
-      c.at = Date.now(); save(c); if (ask) toast(done ? "صُدّرت " + AR(done) + " غراف" : "لا غراف محمَّل محلياً لتصديره"); renderSettings();
+        const f = cleanName(g.name) + ".json";
+        await write(d, F_LOC, f, JSON.stringify({v:1, graph:g.name, at:Date.now(), blocks:r.n, pages:r.pages}));
+        await write(d, F_ROAM, f, JSON.stringify(r.pages));
+        c.last[g.name] = Date.now(); done++; }
+      c.at = Date.now(); save(c);
+      if (ask) toast(done ? "صُدّر " + AR(done) + " غراف" : skip ? "لا جديد منذ آخر تصدير" : "لا غراف محمَّل محلياً لتصديره");
+      renderSettings();
     } catch(e){ toast("تعذّر التصدير: " + e.message, 5000); }
     finally { busy = false; }
   }
-  const isLocalG = name => store.get("rqm-local:" + name) === "1";
+  async function restore(name){                      // استيراد ملف نسخة إلى النسخة المحلية لهذا الغراف
+    let text = null;
+    try {
+      if (window.showOpenFilePicker){ const d0 = await getDir(); let start;
+        try { start = d0 ? await d0.getDirectoryHandle(F_LOC) : undefined; } catch(e){}
+        const [fh] = await showOpenFilePicker({types:[{description:"نسخة المحرر", accept:{"application/json":[".json"]}}], startIn:start});
+        text = await (await fh.getFile()).text();
+      } else {
+        text = await new Promise(res => { const i = el("input"); i.type = "file"; i.accept = ".json,application/json";
+          i.onchange = () => { const f = i.files[0]; if (!f){ res(null); return; } const rd = new FileReader(); rd.onload = () => res(String(rd.result)); rd.readAsText(f, "utf-8"); }; i.click(); });
+      }
+    } catch(e){ return false; }
+    if (!text) return false;
+    let o; try { o = JSON.parse(text); } catch(e){ toast("الملف ليس JSON سليماً", 4000); return false; }
+    const pages = Array.isArray(o) ? o : (o && Array.isArray(o.pages) ? o.pages : null);
+    if (!pages){ toast("ليس ملف نسخة", 4000); return false; }
+    if (o && o.graph && o.graph !== name && !confirm("هذا الملف لغراف «" + o.graph + "» لا «" + name + "». أتريد المتابعة؟")) return false;
+    if (RQ.isLocal(name) && !confirm("ستُستبدل النسخة المحلية الحالية لهذا الغراف. أتتابع؟")) return false;
+    try {
+      toast("يستورد…", 2000);
+      const n = await RQ.importTree(pages, (a, b) => { const m = $("#syncMsg"); if (m) m.textContent = "يستورد: " + AR(a) + " من " + AR(b); });
+      toast("استُورد " + AR(n) + " كتلة — يُنصح بمزامنة كاملة الآن", 5000);
+      renderSettings(); return true;
+    } catch(e){ toast("تعذّر الاستيراد: " + e.message, 5000); return false; }
+  }
   function tick(){ const c = cfg(); if (!c.every) return; if (Date.now() - (c.at || 0) >= c.every * 3600e3) run(false); }
   function settings(box){
     box.appendChild(h("h4", {}, "نسخة احتياطية"));
@@ -3647,27 +3871,25 @@ const BK = (function(){
     getDir().then(d => { info.textContent = (d ? "المجلد: " + d.name : "لم يُختر مجلد") + (c.at ? " · آخر تصدير: " + new Date(c.at).toLocaleString("ar-EG") : ""); });
     const pick = h("button", {class:"ghost", style:"border:1px solid var(--line)", onclick:async () => {
       if (!window.showDirectoryPicker){ toast("هذا المتصفح لا يدعم اختيار المجلدات (استخدم Chrome أو Edge)"); return; }
-      try { dir = await showDirectoryPicker({mode:"readwrite", id:"rqe-backup"}); await idbSet("bkdir", dir); renderSettings(); } catch(e){} }}, "اختر المجلد");
+      try { dir = await showDirectoryPicker({mode:"readwrite", id:"rqe-backup"}); await idbSet("bkdir", dir); renderSettings(); } catch(e){} }}, "اختر مجلد «المحرر»");
     const sel = h("select", {onchange:e => { const k = cfg(); k.every = +e.target.value; save(k); }},
-      h("option", {value:"0"}, "يدوياً فقط"), h("option", {value:"1"}, "كل ساعة"), h("option", {value:"6"}, "كل ٦ ساعات"), h("option", {value:"24"}, "كل يوم"), h("option", {value:"168"}, "كل أسبوع"));
-    sel.value = String(c.every || 0);
+      h("option", {value:"0"}, "يدوياً فقط"), h("option", {value:"6"}, "كل ٦ ساعات"), h("option", {value:"24"}, "يومياً"), h("option", {value:"168"}, "أسبوعياً"));
+    sel.value = String(c.every == null ? 24 : c.every);
     const now = h("button", {class:"ghost", style:"border:1px solid var(--line)", onclick:() => run(true)}, "صدّر الآن");
-    box.appendChild(h("div", {class:"vrow"}, pick, " التحديث التلقائي ", sel, now));
-    box.appendChild(h("div", {class:"hint"}, "ملف JSON لكل غراف محمَّل محلياً (بصيغة يستوردها Roam)، يُستبدل في كل مرة. يحوي ما وصل إليه آخر مزامنة، ويعمل ما دام المحرر مفتوحاً."));
+    box.appendChild(h("div", {class:"vrow"}, pick, " التحديث ", sel, now));
+    box.appendChild(h("div", {class:"hint"}, "داخل المجلد: «" + F_LOC + "» للاسترجاع إلى المحرر، و«" + F_ROAM + "» للاستيراد في Roam. ملف لكل غراف محمَّل محلياً، يُستبدل، ولا يُكتب إلا إن تغيّر الغراف. يعمل ما دام المحرر مفتوحاً."));
     box.appendChild(info);
   }
   if (!EMBED) setInterval(tick, 5 * 60e3), setTimeout(tick, 20e3);
-  return {run, settings};
+  return {run, settings, restore};
 })();
 function syncSettings(box){                          // يُستدعى من لوحة الإعدادات
   BK.settings(box);
   box.appendChild(h("h4", {}, "مزامنة المسودة بين الأجهزة"));
+
   { const sel = h("select", {onchange:e => { store.set("rq-dsync-graph", e.target.value); DSYNC.now(true); }}, h("option", {value:"-"}, "بلا مزامنة"), ...CFG.roam.graphs.filter(g => g.token).map(g => h("option", {value:g.name}, g.name)));
     const cur = store.get("rq-dsync-graph"); sel.value = cur === "-" ? "-" : (CFG.roam.graphs.find(g => g.name === cur && g.token) || CFG.roam.graphs.find(g => g.token) || {name:"-"}).name;
     box.appendChild(h("div", {class:"vrow"}, "تُحفظ المسودة في صفحة «المحرر/المسودة» في الغراف: ", sel)); }
-  box.appendChild(h("h4", {}, "النسخة المحلية والمزامنة"));
-  box.appendChild(h("div", {id:"rpSyncBox"}, h("div", {id:"syncMsg", class:"hint"}), h("div", {id:"rpSyncBtns"})));
-  rpSyncUI();
 }
 
 /* ---- البحث ---- */
@@ -4116,6 +4338,10 @@ function rpInit(){
     if (DR.set){ clearTarget(); toast("وجهة الإرسال: اليوم"); } };
   $("#rpStar").onmousedown = e => { e.preventDefault(); e.stopPropagation(); if (!DOC || DOC.kind !== "page") return; const on = pinToggle(S.graph, DOC.title); barMark(); toast(on ? "ثُبّتت: تجدها في شريط البحث وهو فارغ" : "أُلغي التثبيت"); };
   $("#rpSync").onclick = () => { if (inDraft()) DSYNC.now(true); else syncDoc(); };
+  document.addEventListener("mousedown", e => {      // أزرار الأشرطة لا تسحب التركيز من الصفحة إلى المسودة
+    const b = e.target.closest && e.target.closest("#app > .actions button, #sdActs button, #rpBar button, #tabs button, #destbar button");
+    if (b && !b.closest("#rpBox")) e.preventDefault();
+  }, true);
   const paraMark = () => { const on = pview(); document.body.classList.toggle("pview", on); const b = $("#btnPara"); b.classList.toggle("on", on);
     b.innerHTML = on ? '<svg viewBox="0 0 24 24"><path d="M5 6h14M5 10h14M5 14h14M5 18h9"/></svg>' : '<svg viewBox="0 0 24 24"><circle cx="5.5" cy="7" r="1.3"/><circle cx="5.5" cy="12" r="1.3"/><circle cx="5.5" cy="17" r="1.3"/><path d="M10 7h9M10 12h9M10 17h9"/></svg>'; };
   $("#btnPara").onclick = () => { store.set("rq-pview", pview() ? "" : "1"); paraMark(); toast(pview() ? "عرض الفقرات" : "عرض الكتل"); }; paraMark();
@@ -4143,6 +4369,9 @@ function rpInit(){
   $("#app").addEventListener("focusin", e => { if (!e.target.closest("#rpDoc") && e.target.id !== "rpQ" && (e.target.tagName === "INPUT" || e.target.tagName === "SELECT")) activate("main"); });
   document.addEventListener("keydown", e => {
     if (e.ctrlKey && e.shiftKey && e.code === "KeyF"){ e.preventDefault(); rpToggle(); }
+    else if (e.ctrlKey && !e.shiftKey && !e.altKey && e.code === "KeyF" && DOC){ e.preventDefault(); activate("page"); findOpen(); }
+    else if (e.key === "F3"){ e.preventDefault(); if (!FIND.el) findOpen(); else findStep(e.shiftKey ? -1 : 1); }
+    else if (e.key === "F1"){ e.preventDefault(); keysSheet(); }
   });
   window.addEventListener("popstate", e => {         // زر الرجوع (Alt+←): الوثيقة السابقة، لا خروج من المحرر
     const st = e.state;
