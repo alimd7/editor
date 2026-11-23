@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <!-- أمان: لا يُسمح للصفحة بأي اتصال بالشبكة (لا fetch ولا XHR ولا مصادر خارجية) -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: 'self'; manifest-src 'self'; worker-src 'self' blob:; font-src 'self'; connect-src https://api.roamresearch.com https://*.api.roamresearch.com:*;">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: 'self'; manifest-src 'self'; worker-src 'self' blob:; font-src 'self'; connect-src https://api.roamresearch.com https://*.api.roamresearch.com:* http://127.0.0.1:47615; media-src http://127.0.0.1:47615;">
 <title>المحرر (Obsidian)</title>
 <link rel="manifest" href="manifest-obsidian.webmanifest">
 <script>window.DEST_START="obsidian";</script>
@@ -328,6 +328,65 @@ body.embed #outline.plain .row.col .tg{opacity:1}
 #dropLine{position:fixed;height:3px;border-radius:2px;background:var(--accent);pointer-events:none;z-index:60;display:none}
 body.bdrag,body.bdrag *{cursor:grabbing!important;user-select:none!important}
 html,body{overscroll-behavior-x:none}
+/* ---- تبويب المدوّن الصوتي: مراجعة ما حوّله البرنامج الخلفي من تسجيلات المسجّلات ---- */
+body.vcview #rpBar,body.vcview #rpRes,body.vcview #destbar,body.vcview #roamBox,body.vcview #obsBox,body.vcview #outline,body.vcview #docSlot,body.vcview #obsWrap,body.vcview #app>.actions,body.vcview #settings,body.vcview #rp,body.vcview #rpSep{display:none!important}
+.tab .tdot{flex:none;width:7px;height:7px;border-radius:50%;background:#e8912d}
+#vcView{padding:2px 2px 60px}
+#vcView[hidden]{display:none}
+.vch{display:flex;align-items:center;gap:8px;min-height:34px;color:var(--muted);font-size:.9em}
+.vch .sp{flex:1}
+.vcpend{display:flex;align-items:center;gap:10px;padding:6px 0;font-size:.95em}
+.vcpend b{font-weight:600}
+.vcbtn{background:color-mix(in srgb,var(--text) 4%,var(--bg));border:1px solid color-mix(in srgb,var(--text) 13%,var(--bg));color:var(--text);padding:4px 12px;border-radius:7px;font-size:.92em}
+.vcbtn:hover{border-color:var(--accent);color:var(--accent)}
+.vcbtn.q{background:none;border-color:transparent;color:var(--muted)}
+.vcset{border:1px dashed var(--line);border-radius:6px;padding:10px 12px;margin:4px 0 10px;display:flex;flex-direction:column;gap:8px;font-size:14px}
+.vcset h4{margin:6px 0 0;font-size:13px;color:var(--muted);font-weight:600}
+.vcset label{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.vcset input[type=text],.vcset input[type=password],.vcset input[type=number],.vcset select{font:inherit;padding:4px 8px;border:1px solid var(--line);border-radius:4px;background:var(--bg);color:var(--text)}
+.vcset input[type=text],.vcset input[type=password]{flex:1;min-width:120px}
+.vcset input[type=number]{width:76px}
+.vcset .dv{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:4px 0}
+.vcset .dv input[type=text]{flex:1 1 110px}
+.vcset .hint{color:var(--muted);font-size:.9em}
+.vcc{padding:12px 0 8px;outline:0}
+.vcc+.vcc{border-top:8px solid color-mix(in srgb,var(--text) 6%,var(--bg))}
+.vcc.cur .vcm::before{content:"";width:3px;align-self:stretch;border-radius:2px;background:var(--accent)}
+.vcm{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:.84em;margin-bottom:4px}
+.vcm .sp{flex:1}
+.vcap{border:1px solid var(--line);border-radius:999px;padding:0 9px;line-height:1.6;color:var(--text);background:none;font-size:1em;max-width:46%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vcap:hover{border-color:var(--accent)}
+.vcd{flex:none;width:8px;height:8px;border-radius:50%;background:var(--line)}
+.vcd.new{background:#e8912d}.vcd.sent{background:#2ea44f}.vcd.err{background:#d33}
+.vcl{color:var(--muted);font-size:.8em;margin-top:6px}
+.vcin{font-size:1.06em;line-height:1.8;outline:0;white-space:pre-wrap;word-break:break-word}
+.vcin .pm{color:var(--muted);cursor:pointer;user-select:none;font-size:.7em;padding:0 3px;opacity:.6}
+.vcin .pm:hover{opacity:1;color:var(--accent)}
+.vcin .sg.now{background:color-mix(in srgb,var(--accent) 14%,transparent);border-radius:3px}
+.vcin .pm.sig{color:var(--accent);opacity:1}
+.vcout{line-height:1.8;white-space:pre-wrap;word-break:break-word}
+.vcout .rf{color:var(--link)}
+.vcsg{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:6px;font-size:.92em}
+.vcsg .s{display:inline-flex;align-items:center;gap:4px;border-bottom:2px solid #e8b34a;padding-bottom:1px}
+.vcsg .s b{font-weight:400;color:var(--link)}
+.vcsg .s button{border:0;background:none;color:var(--muted);padding:0 3px;font-size:1em}
+.vcsg .s button:hover{color:var(--accent)}
+.vcw{color:var(--muted);font-size:.86em;margin-top:4px}
+.vcw summary{cursor:pointer;list-style:none;display:inline}
+.vcw summary::-webkit-details-marker{display:none}
+.vcbar{display:flex;align-items:center;gap:2px;margin-top:4px}
+.vcbar .sp{flex:1}
+.vcbar .rt{border:0;background:none;color:var(--muted);font-size:.82em;padding:4px 6px;border-radius:6px;direction:ltr}
+.vcbar .rt:hover{color:var(--accent);background:var(--hover)}
+.vcbar .sic:disabled{opacity:.3;cursor:default}
+.vcbar .sic.on{color:var(--accent)}
+.vcmsg{color:var(--muted);padding:6px 0}
+.vcempty{color:var(--muted);padding:26px 0;text-align:center}
+#vcPop{position:absolute;z-index:45;min-width:230px;max-width:360px;background:var(--bg);border:1px solid var(--line);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.18);padding:6px}
+#vcPop input,#vcPop select{width:100%;font:inherit;padding:4px 8px;border:1px solid var(--line);border-radius:5px;background:var(--bg);color:var(--text);margin-bottom:4px}
+#vcPop .it{padding:5px 9px;border-radius:6px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#vcPop .it:hover,#vcPop .it.sel{background:var(--hover)}
+#vcPop .ls{max-height:260px;overflow:auto}
 </style>
 </head>
 <body>
@@ -379,6 +438,7 @@ html,body{overscroll-behavior-x:none}
   <div id="outline"></div>
   <div id="docSlot"></div>
   <div id="obsWrap" hidden></div>
+  <div id="vcView" hidden></div>
 
   <div class="actions">
     <button class="send" id="btnSend" title="إرسال (Ctrl+Enter أو Ctrl+S)">إرسال</button>
@@ -1986,6 +2046,7 @@ async function sendToRoam(payload){
   return acts.length;
 }
 async function doSend(){
+  if (VC.active()) return;
   if (ACTIVE === "page"){ await saveDoc(); toast(RQ.pending() ? "يُرسل إلى Roam…" : "حُفظت الوثيقة"); return; }
   if (sending) return;
   const ob = CFG.dest==="obsidian";
@@ -3478,6 +3539,7 @@ function newDocEl(){
 function layout(){                                   // لسان غراف: وثيقته في مكانها، والمسودة لوحة على اليسار إن طُلبت · لسان المسودة: المسودة
   const t = TABS.cur, inG = !!t && t.kind === "graph", d = $("#rpDoc"), sp = inG && !!DOC && isSplit();
   document.body.classList.toggle("docview", inG); document.body.classList.toggle("rpopen", sp);
+  { const vc = !!t && t.kind === "voice"; document.body.classList.toggle("vcview", vc); const vv = $("#vcView"); if (vv) vv.hidden = !vc; }
   $("#rp").hidden = !sp; $("#tabs").hidden = false;
   const o = $("#outline"), bs = $("#btnSend"), bc = $("#btnClear"), db = $("#destbar"), ob = $("#obsBox");
   if (sp){ if (o.parentElement !== $("#sdBody")){ $("#sdBody").appendChild(o); $("#sdActs").append(bs, bc); $("#rp").prepend(db); $("#sdBody").before(ob); } }
@@ -3551,6 +3613,330 @@ function sideInit(){
 
 function rpToggle(){ if (obDraft()) return; $("#rpBox").classList.remove("tgt"); $("#rpQ").focus(); $("#rpQ").select(); }
 const specOf = d => d ? (d.kind === "page" ? {kind:"page", title:d.title} : {kind:"block", uid:d.uid}) : null;
+/* ============================================================
+   المدوّن الصوتي (نسخة الحاسب): تبويب المراجعة
+   البرنامج الخلفي يرصد المسجّلات وينسخ ويحوّل ويعنون، ويخدم هذا التبويب على 127.0.0.1 وحده.
+   التبويب يظهر من نفسه إذا وصلت ملاحظات لم تُراجَع، ويُغلق كسائر الألسنة، واسمه من إعداداته.
+   ============================================================ */
+const VC = (() => {
+  const BASE = "http://127.0.0.1:47615";
+  const V = {tok:"", on:false, st:null, rev:-1, cur:"", au:null, playId:"", rate:1, setOpen:false, tsig:"", timer:0, dirty:false, sending:{}};
+  const tabName = () => store.get("rq-vc-name") || "المدون الصوتي";
+  const enabled = () => !EMBED && store.get("rq-vc-off") !== "1";
+  const active = () => !!TABS.cur && TABS.cur.kind === "voice";
+  const view = () => $("#vcView");
+  const notes = () => (V.st && V.st.notes) || [];
+  const IC = {
+    play:'<svg viewBox="0 0 24 24"><path d="M8 5.5v13l10.5-6.5z"/></svg>', pause:'<svg viewBox="0 0 24 24"><path d="M8.5 5.5v13M15.5 5.5v13"/></svg>',
+    send:'<svg viewBox="0 0 24 24"><path d="M5 4.5h14M12 20V9M7.5 13L12 8.5l4.5 4.5"/></svg>',
+    again:'<svg viewBox="0 0 24 24"><path d="M3 12h2.5M7.5 8v8M10.5 5v14M13.5 9v6M16.5 6.5v11M19 12h2"/></svg>',
+    undo:'<svg viewBox="0 0 24 24"><path d="M8 5L4 9l4 4M4 9h10a6 6 0 0 1 0 12H9"/></svg>',
+    check:'<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
+    trash:'<svg viewBox="0 0 24 24"><path d="M5 7h14M10 7V4.5h4V7M7 7l1 12.5h8L17 7"/></svg>',
+    gear:'<svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>'};
+
+  async function api(path, body){
+    const r = await fetch(BASE + path, body === undefined ? {headers:{"X-Token":V.tok}} : {method:"POST", headers:{"X-Token":V.tok, "Content-Type":"application/json"}, body:JSON.stringify(body)});
+    const j = await r.json(); if (!r.ok) throw new Error(j.err || ("status " + r.status)); return j;
+  }
+  async function hello(){
+    try { const r = await fetch(BASE + "/hello"); const j = await r.json(); if (j.app !== "mudawwin-pc") throw 0; V.tok = j.token; V.on = true; V.rev = -1; }
+    catch(e){ V.on = false; }
+  }
+  const editing = () => { const a = document.activeElement; return !!a && !!a.closest && !!a.closest("#vcView .vcin, #vcView .vcset, #vcPop"); };
+  async function tick(){
+    clearTimeout(V.timer);
+    if (!enabled()) return;
+    const was = V.on;
+    if (!V.on) await hello();
+    if (V.on){
+      try { const s = await api("/state?rev=" + V.rev); if (!s.same){ V.st = s; V.rev = s.rev; changed(); } pushTitles(); }
+      catch(e){ V.on = false; }
+    }
+    if (was !== V.on) changed();
+    V.timer = setTimeout(tick, V.on ? (document.hidden ? 12000 : active() ? 2500 : 6000) : 20000);
+  }
+  function titlesSig(){ return CFG.roam.graphs.map(g => g.name + ":" + (store.get("rq-pages:" + g.name) || "").length + ":" + glabel(g.name)).join("|"); }
+  async function pushTitles(force){                    // فهارس العناوين المحمّلة في المحرر تُعطى للبرنامج الخلفي ليطابق بها
+    const sig = titlesSig(); if (!force && (sig === V.tsig || sig === store.get("rq-vc-tsig") && V.st && V.st.titles)) { V.tsig = sig; return; }
+    try { await api("/titles", {graphs:CFG.roam.graphs.map(g => ({name:g.name, label:glabel(g.name), titles:(store.get("rq-pages:" + g.name) || "").split("\n").filter(Boolean)}))});
+      V.tsig = sig; store.set("rq-vc-tsig", sig); } catch(e){}
+  }
+  const waiting = n => !n.reviewed && n.state !== "sent";
+  const autoSig = () => notes().filter(waiting).map(n => n.id).sort().join(",") + "|" + ((V.st && V.st.pending) || []).map(p => p.serial).join(",");
+  function changed(){
+    const has = TABS.list.some(t => t.kind === "voice"), sig = V.on ? autoSig() : "";
+    if (V.on && !has && sig.length > 1 && sig !== store.get("rq-vc-closed")){ tabNew("voice"); tabsSave(); }   // يظهر عند الحاجة، ولا يعود بعد إغلاقه حتى يصل جديد
+    tabsDraw();
+    if (active()){ if (editing()) V.dirty = true; else draw(); }
+  }
+  const dot = () => V.on && (notes().some(waiting) || ((V.st && V.st.pending) || []).length > 0);
+  function closed(){ store.set("rq-vc-closed", V.on ? autoSig() : ""); stop(); }
+
+  /* ---------- الصوت ---------- */
+  function au(){ if (!V.au){ V.au = new Audio(); V.au.preload = "metadata";
+      V.au.addEventListener("timeupdate", mark); V.au.addEventListener("pause", () => drawBar(V.playId)); V.au.addEventListener("play", () => drawBar(V.playId)); V.au.addEventListener("ended", mark); }
+    return V.au; }
+  function stop(){ if (V.au) V.au.pause(); }
+  function play(id, at){
+    const a = au();
+    if (V.playId !== id){ a.src = BASE + "/audio?id=" + encodeURIComponent(id) + "&k=" + encodeURIComponent(V.tok); const old = V.playId; V.playId = id; drawBar(old); }
+    if (at != null){ const go = () => { a.currentTime = Math.max(0, at); a.playbackRate = V.rate; a.play().catch(() => {}); };
+      if (a.readyState >= 1) go(); else a.addEventListener("loadedmetadata", go, {once:true}); }
+    else if (a.paused){ a.playbackRate = V.rate; a.play().catch(() => {}); } else a.pause();
+  }
+  function seek(d){ const a = V.au; if (a && V.playId) a.currentTime = Math.max(0, a.currentTime + d); }
+  function mark(){                                     // الجملة المسموعة تتلوّن
+    const c = card(V.playId); if (!c) return; const n = note(V.playId), t = V.au.currentTime; let k = -1;
+    if (n && !V.au.paused) n.segs.forEach((s, i) => { if (t >= s.t0 - 0.3) k = i; });
+    c.querySelectorAll(".vcin .sg").forEach(x => x.classList.toggle("now", +x.dataset.i === k));
+  }
+
+  /* ---------- أدوات ---------- */
+  const note = id => notes().find(n => n.id === id);
+  const card = id => id ? view().querySelector('.vcc[data-id="' + id + '"]') : null;
+  const mmss = s => Math.floor(s / 60) + ":" + p2(Math.floor(s % 60));
+  const when = ts => { const d = new Date(ts * 1000); return isoStr(d) + " " + timeStr(d); };
+  const destText = d => !d ? "" : (d.page.kind === "page" ? d.page.title : "اليوم") + (CFG.roam.graphs.length > 1 ? " · " + glabel(d.graph) : "");
+  const fmtOut = t => esc(t).replace(/#?\[\[[^\[\]]+\]\]|(^|\s)#[^\s#\[\]]+/g, m => '<span class="rf">' + m + '</span>');
+  async function op(id, body, quiet){
+    try { const r = await api("/note", Object.assign({id}, body)); if (r.note && V.st){ const i = V.st.notes.findIndex(n => n.id === id); if (i >= 0) V.st.notes[i] = r.note; redraw(id); } return r; }
+    catch(e){ if (!quiet) toast("تعذّر: " + e.message); throw e; }
+  }
+
+  /* ---------- الإرسال إلى Roam ---------- */
+  function dayOf(n){                                   // صفحة اليوم: يوم التسجيل (إن كانت ساعة المسجّل معقولة) أو يوم الإرسال
+    let d = new Date(); if (store.get("rq-vc-day") !== "send"){ const r = new Date(n.rec * 1000); if (r.getFullYear() >= 2024 && r.getTime() <= Date.now() + 864e5) d = r; }
+    return {uid:p2(d.getMonth() + 1) + "-" + p2(d.getDate()) + "-" + d.getFullYear(), title:dailyTitle(d)};
+  }
+  async function send(id){
+    const n = note(id); if (!n || V.sending[id]) return false;
+    if (!n.blocks || !n.blocks.length){ toast("لا نصّ يُرسل"); return false; }
+    const g = CFG.roam.graphs.find(x => x.name === n.dest.graph);
+    if (!g || !g.token){ toast("لا رمز للغراف «" + n.dest.graph + "» — أضفه من إعدادات المحرر"); return false; }
+    V.sending[id] = true; drawBar(id);
+    try {
+      const call = (kind, body) => roamFetch(g.name, g.token, kind, body);
+      let pageUid, title;
+      if (n.dest.page.kind === "page"){ title = n.dest.page.title;
+        const q = await call("q", {query:"[:find ?u . :in $ ?t :where [?e :node/title ?t] [?e :block/uid ?u]]", args:[title]});
+        if (!q.ok) throw new Error("استعلام الصفحة فشل (" + q.status + ")");
+        pageUid = JSON.parse(q.text).result || null;
+        if (!pageUid){ pageUid = newUid(); const c = await call("write", {action:"create-page", page:{title, uid:pageUid}}); if (!c.ok) throw new Error("إنشاء الصفحة فشل (" + c.status + ")"); }
+      } else { const d = dayOf(n); pageUid = d.uid; title = d.title; await ensurePage(call, pageUid, title); }
+      const acts = [], tops = [];
+      (function f(list, parent, top){ for (const b of list){ const uid = newUid(); if (top) tops.push(uid);
+        acts.push({action:"create-block", location:{"parent-uid":parent, order:"last"}, block:{uid, string:b.text}}); f(b.kids || [], uid, false); } })(n.blocks, pageUid, true);
+      if (n.sent && n.sent.uids)                        // استبدال: يُحذف ما أُرسل قبلُ ثم يُكتب الجديد
+        for (const u of n.sent.uids){ const gg = CFG.roam.graphs.find(x => x.name === n.sent.graph) || g; await roamFetch(gg.name, gg.token, "write", {action:"delete-block", block:{uid:u}}); }
+      const w = await call("write", {action:"batch-actions", actions:acts});
+      if (!w.ok) throw new Error("الكتابة فشلت (" + w.status + "): " + w.text.slice(0, 120));
+      const again = !!n.sent;
+      await op(id, {op:"sent", sent:{graph:g.name, pageUid, title, uids:tops, at:Math.floor(Date.now() / 1000)}});
+      toast((again ? "استُبدل في: " : "أُرسل إلى: ") + title); return true;
+    } catch(e){ toast("تعذّر الإرسال: " + e.message); return false; }
+    finally { delete V.sending[id]; drawBar(id); }
+  }
+
+  /* ---------- الوجهة ---------- */
+  function popClose(){ const p = $("#vcPop"); if (p) p.remove(); }
+  function destPop(id, anchor){
+    popClose(); const n = note(id); if (!n) return;
+    const p = el("div"); p.id = "vcPop"; let g = n.dest.graph, sel = 0, items = [];
+    const gs = el("select"); CFG.roam.graphs.forEach(x => { const o = el("option"); o.value = x.name; o.textContent = glabel(x.name); gs.appendChild(o); }); gs.value = g; gs.hidden = CFG.roam.graphs.length < 2;
+    const q = el("input"); q.type = "search"; q.placeholder = "صفحة الوجهة"; q.dir = "rtl"; q.autocomplete = "off";
+    const ls = el("div", "ls"); p.append(gs, q, ls);
+    const pick = it => { popClose(); op(id, {op:"dest", dest:{graph:g, page:it.today ? {kind:"today"} : {kind:"page", title:it.title}}}); };
+    const fill = () => { const ws = norm(q.value).split(/\s+/).filter(Boolean).map(w => w.replace(/^(وال|بال|لل|ال)(?=.{3})/, ""));   // تضييقٌ بكلماتٍ متفرقة من العنوان
+      const pages = (store.get("rq-pages:" + g) || "").split("\n").filter(Boolean);
+      items = [{today:true, title:"اليوم"}].concat((ws.length ? pages.filter(t => { const x = norm(t); return ws.every(w => x.includes(w)); }) : pins(g).concat(recentsD(g))).slice(0, 60).map(t => ({title:t})));
+      sel = ws.length && items.length > 1 ? 1 : 0; ls.innerHTML = "";
+      items.forEach((it, k) => { const d = el("div", "it" + (k === sel ? " sel" : "")); d.textContent = it.title; d.onclick = () => pick(it); ls.appendChild(d); }); };
+    gs.onchange = () => { g = gs.value; fill(); }; q.oninput = fill;
+    q.onkeydown = e => { e.stopPropagation();
+      if (e.key === "ArrowDown" || e.key === "ArrowUp"){ e.preventDefault(); sel = Math.max(0, Math.min(items.length - 1, sel + (e.key === "ArrowDown" ? 1 : -1))); [...ls.children].forEach((c, k) => c.classList.toggle("sel", k === sel)); const x = ls.children[sel]; if (x) x.scrollIntoView({block:"nearest"}); }
+      else if (e.key === "Enter"){ e.preventDefault(); if (items[sel]) pick(items[sel]); }
+      else if (e.key === "Escape"){ e.preventDefault(); popClose(); } };
+    document.body.appendChild(p); const r = anchor.getBoundingClientRect();
+    p.style.top = (r.bottom + scrollY + 4) + "px"; p.style.left = Math.max(8, Math.min(r.left + scrollX, innerWidth - p.offsetWidth - 8)) + "px";
+    fill(); q.focus();
+    setTimeout(() => document.addEventListener("mousedown", function off(e){ if (!e.target.closest("#vcPop")){ popClose(); document.removeEventListener("mousedown", off); } }), 0);
+  }
+  function againPop(id, anchor){                       // إعادة التحويل: خاماً أو منقّى
+    popClose(); const p = el("div"); p.id = "vcPop";
+    for (const [t, c] of [["أعد التحويل: خام", false], ["أعد التحويل: منقّى", true]]){ const d = el("div", "it"); d.textContent = t; d.onclick = () => { popClose(); op(id, {op:"transcribe", clean:c}).then(tick, () => {}); }; p.appendChild(d); }
+    document.body.appendChild(p); const r = anchor.getBoundingClientRect(); p.style.top = (r.bottom + scrollY + 4) + "px"; p.style.left = Math.max(8, r.left + scrollX - 60) + "px";
+    setTimeout(() => document.addEventListener("mousedown", function off(e){ if (!e.target.closest("#vcPop")){ popClose(); document.removeEventListener("mousedown", off); } }), 0);
+  }
+
+  /* ---------- البطاقة ---------- */
+  function readIn(box){                                // نصّ كل جملة كما عُدّل (وما كُتب خارج الجمل يُلحق بما قبله)
+    const n = note(box.closest(".vcc").dataset.id), out = n.segs.map(() => ""); let last = 0;
+    box.childNodes.forEach(c => { if (c.nodeType === 1 && c.classList.contains("pm")) return;
+      if (c.nodeType === 1 && c.classList.contains("sg")){ last = +c.dataset.i; out[last] += c.textContent; } else out[last] += c.textContent; });
+    return out.map(t => t.replace(/\s+/g, " ").trim());
+  }
+  function accept(id){                                 // أوّل اقتراح: ضع الإحالة مكان العبارة
+    const n = note(id); if (!n || !n.sugg.length) return false; const s = n.sugg[0]; let done = false;
+    const segs = n.segs.map(x => { if (done) return x.text; const i = x.text.indexOf(s.phrase); if (i < 0) return x.text; done = true; return x.text.slice(0, i) + "[[" + s.title + "]]" + x.text.slice(i + s.phrase.length); });
+    if (!done){ op(id, {op:"nosugg", title:s.title}); return true; }
+    op(id, {op:"apply", segs}); return true;
+  }
+  function reject(id){ const n = note(id); if (!n || !n.sugg.length) return false; op(id, {op:"nosugg", title:n.sugg[0].title}); return true; }
+  function barHtml(n){
+    const playing = V.playId === n.id && V.au && !V.au.paused, b = [];
+    const btn = (k, ic, title, extra) => '<button class="sic' + (extra || "") + '" data-a="' + k + '" title="' + title + '">' + IC[ic] + '</button>';
+    b.push(btn("play", playing ? "pause" : "play", "استماع / إيقاف (المسافة)"));
+    b.push('<button class="rt" data-a="rate" title="سرعة الاستماع">' + V.rate + "×</button>");
+    b.push('<span class="sp"></span>');
+    if (n.segs.length){
+      if (n.raw && n.segs.some((s, i) => s.text !== n.raw[i])) b.push(btn("reset", "undo", "أعد النصّ كما ورد من المحوّل"));
+      b.push(btn("again", "again", "أعد التحويل"));
+      if (!n.reviewed) b.push(btn("review", "check", "راجعتُها (بلا إرسال)"));
+      b.push('<button class="sic' + (n.sent ? " on" : "") + '" data-a="send" title="' + (n.sent ? "استبدل ما أُرسل بهذا النصّ (Enter)" : "أرسل إلى الوجهة (Enter)") + '"' + (V.sending[n.id] ? " disabled" : "") + '>' + IC.send + '</button>');
+    }
+    b.push(btn("del", "trash", "احذفها من القائمة (الصوت يبقى في الأرشيف)"));
+    return b.join("");
+  }
+  function drawBar(id){ const c = card(id), n = note(id); if (c && n){ const b = c.querySelector(".vcbar"); if (b) b.innerHTML = barHtml(n); } }
+  function cardEl(n){
+    const c = el("div", "vcc" + (n.id === V.cur ? " cur" : "")); c.dataset.id = n.id; c.tabIndex = -1;
+    const cls = n.state === "sent" ? "sent" : n.state === "error" ? "err" : n.reviewed ? "" : "new";
+    const tip = n.state === "sent" ? "أُرسلت إلى: " + (n.sent && n.sent.title || "") : n.reviewed ? "رُوجعت ولم تُرسل" : "لم تُراجَع";
+    let hd = '<div class="vcm"><span>' + esc(when(n.rec)) + '</span><span>' + (n.dur ? mmss(n.dur) : "") + '</span><span>' + esc(n.device || "") + '</span><span class="sp"></span>' +
+      (n.dest ? '<button class="vcap" data-a="dest" title="الوجهة — اضغط لتغييرها">' + esc(destText(n.dest)) + '</button>' : "") + '<span class="vcd ' + cls + '" title="' + esc(tip) + '"></span></div>';
+    let body = "";
+    if (n.state === "wait") body = '<div class="vcmsg">' + (V.st.busy === n.file ? "يُحوَّل الآن…" : "في الانتظار…") + '</div>';
+    else if (n.state === "long") body = '<div class="vcmsg">تسجيلٌ طويل لم يُحوَّل. <button class="vcbtn" data-a="force">حوّله (نحو ' + (n.dur * 0.006 / 60).toFixed(2) + ' دولار)</button></div>';
+    else if (n.state === "error") body = '<div class="vcmsg">تعذّر التحويل: ' + esc(n.err || "") + ' <button class="vcbtn" data-a="force">أعد المحاولة</button></div>';
+    else if (n.state === "empty") body = '<div class="vcmsg">لا كلام في هذا التسجيل.</div>';
+    else {
+      const same = n.segs.length && n.segs.map(s => s.text).join(" ") === n.out;      // إن تطابق الوارد والصادر حرفاً بحرف فسطرٌ واحد
+      body = '<div class="vcin" contenteditable="true" spellcheck="false" dir="rtl">' + n.segs.map((s, i) => '<span class="pm' + (s.sig ? " sig" : "") + '" contenteditable="false" data-i="' + i + '" title="' + (s.sig ? "إشارة — " : "") + 'استمع من هنا (' + mmss(s.t0) + ')">▸</span><span class="sg" data-i="' + i + '">' + esc(s.text) + ' </span>').join("") + '</div>';
+      if (!same) body += '<div class="vcl">الصادر</div><div class="vcout" dir="rtl">' + fmtOut(n.out) + '</div>';
+      if (n.sugg.length) body += '<div class="vcsg">' + n.sugg.map((s, k) => '<span class="s" title="' + esc(s.why || "") + (k ? "" : " — Tab يقبل، Esc يردّ") + '">«' + esc(s.phrase) + '» ← <b>[[' + esc(s.title) + ']]</b><button data-a="ok" data-k="' + k + '" title="اقبل">✓</button><button data-a="no" data-k="' + k + '" title="ردّ">✕</button></span>').join("") + '</div>';
+      if (n.notes && n.notes.length) body += '<details class="vcw"><summary title="تنبيهات">⚠ ' + AR(n.notes.length) + '</summary>' + n.notes.map(x => "<div>" + esc(x) + "</div>").join("") + '</details>';
+    }
+    c.innerHTML = hd + body + '<div class="vcbar">' + barHtml(n) + '</div>';
+    return c;
+  }
+  function redraw(id){ const old = card(id), n = note(id); if (!old) return; if (!n || n.state === "deleted"){ old.remove(); return; } old.replaceWith(cardEl(n)); tabsDraw(); }
+  function setCur(id, focus){ V.cur = id; view().querySelectorAll(".vcc").forEach(c => c.classList.toggle("cur", c.dataset.id === id)); const c = card(id); if (c && focus){ c.focus({preventScroll:true}); c.scrollIntoView({block:"nearest"}); } }
+  function step(d){ const ids = [...view().querySelectorAll(".vcc")].map(c => c.dataset.id), i = ids.indexOf(V.cur), j = Math.max(0, Math.min(ids.length - 1, i + d)); if (ids[j]) setCur(ids[j], true); }
+
+  /* ---------- الإعدادات ---------- */
+  function setEl(){
+    const s = V.st, box = el("div", "vcset"), cfg = s.cfg, T = t => box.appendChild(h("h4", {}, t));
+    const row = (...k) => box.appendChild(h("label", {}, ...k));
+    const txt = (val, on, attrs) => h("input", Object.assign({type:"text", value:val || "", onchange:e => on(e.target.value.trim())}, attrs || {}));
+    const save = b => api("/cfg", b).then(tick, e => toast("تعذّر: " + e.message));
+    T("التبويب");
+    row("اسمه:", txt(tabName(), v => { store.set("rq-vc-name", v || "المدون الصوتي"); tabsDraw(); }));
+    row("صفحة «اليوم» للملاحظة:", h("select", {onchange:e => store.set("rq-vc-day", e.target.value)}, h("option", {value:"rec"}, "يوم التسجيل"), h("option", {value:"send"}, "يوم الإرسال")));
+    box.lastChild.querySelector("select").value = store.get("rq-vc-day") === "send" ? "send" : "rec";
+    T("الأرشيف والتحويل");
+    row("مجلد الأرشيف:", txt(cfg.archive, v => v && save({archive:v}), {dir:"ltr"}));
+    row("مفتاح OpenAI:", h("input", {type:"password", autocomplete:"new-password", dir:"ltr", placeholder:s.hasKey ? "محفوظ — اكتب مفتاحاً آخر لتبديله" : "sk-…", onchange:e => { const v = e.target.value.trim(); if (v){ save({key:v}); e.target.value = ""; } }}));
+    row("المحوّل:", txt(cfg.stt, v => v && save({stt:v}), {dir:"ltr"}));
+    row("ما زاد على", h("input", {type:"number", min:"1", value:String(Math.round(cfg.longSec / 60)), onchange:e => save({longSec:Math.max(1, +e.target.value || 5) * 60})}), "دقيقة لا يُحوَّل إلا بطلب");
+    row("جملة التوجيه:", txt(cfg.prompt, v => save({prompt:v})));
+    T("العنونة");
+    { const sel = h("select", {onchange:e => save({rootGraph:e.target.value})}, h("option", {value:""}, "تلقائي (أكثرها جذوراً)"), ...CFG.roam.graphs.map(g => h("option", {value:g.name}, glabel(g.name)))); sel.value = cfg.rootGraph || "";
+      row("غراف الجذور:", sel, "بادئة الجذر:", txt(cfg.rootPrefix, v => v && save({rootPrefix:v}), {style:"flex:0 0 70px"})); }
+    row(h("input", {type:"checkbox", checked:!!cfg.useLlm, onchange:e => save({useLlm:e.target.checked})}), "اقتراحات النموذج المقيَّد بالفهرس", txt(cfg.llm, v => save({llm:v}), {dir:"ltr", placeholder:"النموذج: تلقائي (الأرخص المتاح)"}));
+    box.appendChild(h("div", {class:"hint"}, "في الفهرس " + AR(s.titles) + " عنواناً. ", h("button", {class:"vcbtn q", onclick:() => pushTitles(true).then(tick)}, "أعد إرسال الفهارس")));
+    T("الأجهزة المربوطة");
+    if (!s.devices.length) box.appendChild(h("div", {class:"hint"}, "لا جهاز مربوط. صِل مسجّلاً بالحاسب فيظهر هنا في الأعلى لتربطه."));
+    for (const d of s.devices){
+      const dv = b => api("/device", Object.assign({serial:d.serial}, b)).then(tick, e => toast("تعذّر: " + e.message));
+      const gs = h("select", {onchange:e => dv({graph:e.target.value}), title:"غراف الوجهة"}, ...CFG.roam.graphs.map(g => h("option", {value:g.name}, glabel(g.name)))); gs.value = d.graph || (CFG.roam.graphs[0] || {}).name;
+      const cp = h("select", {onchange:e => dv({capture:e.target.value}), title:"طريقة الالتقاط"}, h("option", {value:"raw"}, "خام"), h("option", {value:"clean"}, "منقّى")); cp.value = d.capture || "raw";
+      box.appendChild(h("div", {class:"dv"}, h("span", {class:"vcd " + (d.on ? "sent" : ""), title:d.on ? "موصول" : "غير موصول"}), txt(d.name, v => v && dv({name:v}), {title:"اسم الجهاز"}), gs,
+        txt(d.page, v => dv({page:v}), {placeholder:"الصفحة: اليوم", title:"صفحة الوجهة (فارغة = اليوم)"}), cp,
+        h("label", {title:"T-MARK في سوني، والنقر أو الطقطقة في غيره"}, h("input", {type:"checkbox", checked:d.signals !== false, onchange:e => dv({signals:e.target.checked})}), "الإشارة"),
+        h("button", {class:"vcbtn q", onclick:() => dv({unlink:true})}, "فكّ الربط")));
+    }
+    T("البرنامج الخلفي");
+    row(h("input", {type:"checkbox", checked:!!s.autostart, onchange:e => save({autostart:e.target.checked})}), "يبدأ مع ويندوز");
+    box.appendChild(h("div", {class:"dv"}, h("button", {class:"vcbtn", onclick:() => api("/rescan", {}).then(tick)}, "أعد قراءة الأرشيف"),
+      h("button", {class:"vcbtn q", onclick:() => api("/quit", {}).then(() => { V.on = false; changed(); }, () => {})}, "أوقف البرنامج"), h("span", {class:"hint", dir:"ltr"}, s.home)));
+    return box;
+  }
+
+  /* ---------- الرسم ---------- */
+  function draw(){
+    const v = view(); if (!v || v.hidden) return; V.dirty = false; const y = scrollY; v.innerHTML = "";
+    if (!V.on || !V.st){ v.appendChild(h("div", {class:"vcempty"}, "البرنامج الخلفي لا يعمل على هذا الحاسب. شغّله فيظهر هنا ما في الأرشيف.")); return; }
+    const s = V.st, wait = s.notes.filter(waiting).length;
+    const head = h("div", {class:"vch"}, h("span", {}, s.busy ? "يُحوَّل: " + s.busy : wait ? AR(wait) + " لم تُراجَع" : s.notes.length ? "كلّها رُوجعت" : ""), h("span", {class:"sp"}),
+      wait > 1 ? h("button", {class:"vcbtn q", title:"أرسل كل ما راجعته ولم يُرسل", onclick:sendReviewed}, "أرسل المراجَع") : null,
+      h("button", {class:"sic", title:"إعدادات المدوّن الصوتي", onclick:() => { V.setOpen = !V.setOpen; draw(); }}));
+    head.lastChild.innerHTML = IC.gear; v.appendChild(head);
+    for (const p of s.pending) v.appendChild(h("div", {class:"vcpend"}, h("span", {}, "جهازٌ جديد موصول: ", h("b", {}, p.label)), h("button", {class:"vcbtn", onclick:() => api("/device", {serial:p.serial, graph:(CFG.roam.graphs[0] || {}).name || ""}).then(() => { V.setOpen = true; tick(); })}, "اربطه"),
+      h("button", {class:"vcbtn q", onclick:() => api("/device", {serial:p.serial, ignore:true}).then(tick)}, "تجاهله")));
+    if (V.setOpen) v.appendChild(setEl());
+    if (!s.hasKey) v.appendChild(h("div", {class:"vcmsg"}, "لا مفتاح للمحوّل بعد: أضفه من الإعدادات (الرمز في أعلى اليسار)."));
+    const list = el("div"); list.id = "vcList";
+    if (!s.notes.length) list.appendChild(h("div", {class:"vcempty"}, "لا تسجيلات بعد. صِل مسجّلاً مربوطاً فتُنسخ تسجيلاته وتُحوَّل."));
+    if (!note(V.cur)) V.cur = (s.notes.find(waiting) || s.notes[0] || {}).id || "";
+    for (const n of s.notes) list.appendChild(cardEl(n));
+    v.appendChild(list); scrollTo(0, y); mark();
+  }
+  async function sendReviewed(){ for (const n of notes().filter(x => x.reviewed && x.state !== "sent" && x.segs.length)) if (!await send(n.id)) break; }
+  function shown(){ draw(); tick(); }
+
+  /* ---------- الأحداث ---------- */
+  function onClick(e){
+    const c = e.target.closest(".vcc"); if (!c) return; const id = c.dataset.id; if (V.cur !== id) setCur(id, false);
+    const pm = e.target.closest(".pm"); if (pm){ const n = note(id); play(id, n.segs[+pm.dataset.i].t0 - 0.25); return; }
+    const b = e.target.closest("[data-a]"); if (!b) return; const a = b.dataset.a, n = note(id);
+    if (a === "play") play(id); else if (a === "rate"){ const r = [1, 1.25, 1.5, 2]; V.rate = r[(r.indexOf(V.rate) + 1) % r.length]; if (V.au) V.au.playbackRate = V.rate; view().querySelectorAll(".rt").forEach(x => x.textContent = V.rate + "×"); }
+    else if (a === "send") send(id); else if (a === "dest") destPop(id, b); else if (a === "again") againPop(id, b);
+    else if (a === "reset") op(id, {op:"reset"}); else if (a === "review") op(id, {op:"review"});
+    else if (a === "del"){ if (V.playId === id) stop(); op(id, {op:"delete"}).then(() => { if (V.st) V.st.notes = V.st.notes.filter(x => x.id !== id); redraw(id); step(0); }, () => {}); }
+    else if (a === "force") op(id, {op:"transcribe"}).then(tick, () => {});
+    else if (a === "ok" || a === "no"){ const k = +b.dataset.k; if (k > 0){ n.sugg.unshift(n.sugg.splice(k, 1)[0]); } (a === "ok" ? accept : reject)(id); }
+  }
+  function onBlur(e){                                  // خرجتَ من الوارد: يُعاد التنسيق بما عدّلت
+    const box = e.target.closest && e.target.closest(".vcin"); if (!box) return; const c = box.closest(".vcc"), n = note(c.dataset.id); if (!n) return;
+    const segs = readIn(box);
+    if (segs.some((t, i) => t !== n.segs[i].text.replace(/\s+/g, " ").trim())) op(n.id, {op:"apply", segs}, true).catch(() => {}).then(() => { if (V.dirty && !editing()) draw(); });
+    else if (V.dirty) setTimeout(() => { if (!editing()) draw(); }, 0);
+  }
+  function key(e){                                     // مفاتيح التبويب (تُمنع عن اختصارات المحرر العامة)
+    if (!active()) return;
+    const t = e.target, inEd = !!(t.closest && t.closest(".vcin")), inField = !!(t.closest && t.closest(".vcset, #vcPop, #tabs")) || (!inEd && /^(INPUT|SELECT|TEXTAREA)$/.test(t.tagName));
+    if (e.key === "F1" || inField) return;              // الحقول والقوائم تتولّى مفاتيحها
+    e.stopPropagation(); const id = V.cur, mod = e.ctrlKey || e.metaKey;
+    if (!id) return;
+    if (inEd){
+      if (e.key === "Escape"){ e.preventDefault(); t.closest(".vcin").blur(); const c = card(id); if (c) c.focus({preventScroll:true}); }
+      else if (e.key === "Tab"){ e.preventDefault(); t.closest(".vcin").blur(); setTimeout(() => accept(id), 60); }
+      else if (mod && e.code === "Space"){ e.preventDefault(); play(id); }
+      else if (mod && e.key === "Enter"){ e.preventDefault(); t.closest(".vcin").blur(); setTimeout(() => send(id).then(ok => ok && step(1)), 120); }
+      else if (e.key === "Enter"){ e.preventDefault(); }
+      return;
+    }
+    if (mod || e.altKey) return;
+    if (e.code === "Space"){ e.preventDefault(); play(id); }
+    else if (e.key === "ArrowLeft" || e.key === "ArrowRight"){ e.preventDefault(); seek(e.key === "ArrowRight" ? -3 : 3); }   // اليمين رجوع في النص العربي
+    else if (e.key === "ArrowDown"){ e.preventDefault(); step(1); } else if (e.key === "ArrowUp"){ e.preventDefault(); step(-1); }
+    else if (e.key === "Tab"){ e.preventDefault(); accept(id); }
+    else if (e.key === "Escape"){ if (reject(id)) e.preventDefault(); }
+    else if (e.key === "Enter"){ e.preventDefault(); send(id).then(ok => ok && step(1)); }
+    else if (e.key === "Delete"){ e.preventDefault(); const c = card(id); if (c) c.querySelector('[data-a="del"]').click(); }
+  }
+  function start(){
+    if (!enabled()) return; const v = view(); if (!v) return;
+    v.addEventListener("click", onClick); v.addEventListener("focusout", onBlur);
+    v.addEventListener("focusin", e => { const c = e.target.closest && e.target.closest(".vcc"); if (c && V.cur !== c.dataset.id) setCur(c.dataset.id, false); });
+    window.addEventListener("keydown", key, true);
+    document.addEventListener("visibilitychange", () => { if (!document.hidden) tick(); });
+    setTimeout(tick, 1200);
+  }
+  return {start, shown, closed, dot, tabName, active, stop, get on(){ return V.on; }};
+})();
+
 function tabsSave(){
   store.set("rq-tabs", JSON.stringify({cur:TABS.cur ? TABS.cur.id : "", list:TABS.list.map(t => ({id:t.id, kind:t.kind, graph:t.graph, doc:t.kind === "graph" ? (specOf(t === TABS.cur ? DOC : t.DOC) || t.pending || null) : null}))}));
 }
@@ -3559,7 +3945,8 @@ function tabsDraw(){
   const bar = $("#tabs"); bar.innerHTML = "";
   for (const t of TABS.list){
     const d = el("div", "tab" + (t === TABS.cur ? " on" : "") + (t.kind === "draft" ? " dr" : "")), l = el("span", "tl"), x = el("button", "tx");
-    l.textContent = t.kind === "draft" ? "المسودة" : glabel(t.graph); d.title = t.kind === "draft" ? "المسودة: كتابة سريعة وإرسال" : t.graph;
+    l.textContent = t.kind === "draft" ? "المسودة" : t.kind === "voice" ? VC.tabName() : glabel(t.graph); d.title = t.kind === "draft" ? "المسودة: كتابة سريعة وإرسال" : t.kind === "voice" ? "مراجعة تسجيلات المسجّلات" : t.graph;
+    if (t.kind === "voice" && VC.dot()){ const dt = el("span", "tdot"); dt.title = "فيه ما لم يُراجَع"; d.append(dt); }
     x.textContent = "×"; x.title = "أغلق اللسان"; x.onclick = e => { e.stopPropagation(); tabClose(t.id); };
     d.onclick = () => tabSwitch(t.id); d.onauxclick = e => { if (e.button === 1){ e.preventDefault(); tabClose(t.id); } };
     d.append(l, x); bar.appendChild(d);
@@ -3579,6 +3966,7 @@ function tabMenu(anchor){
   m = el("div"); m.id = "tabMenu";
   const item = (t, fn) => { const b = el("div", "tmi"); b.textContent = t; b.onclick = () => { m.remove(); fn(); }; m.appendChild(b); };
   if (!TABS.list.some(t => t.kind === "draft")) item("المسودة", () => tabSwitch(tabNew("draft").id));
+  if (VC.on && !TABS.list.some(t => t.kind === "voice")) item(VC.tabName(), () => tabSwitch(tabNew("voice").id));
   for (const g of CFG.roam.graphs) item(glabel(g.name) + (GLAB[g.name] ? "  ·  " + g.name : ""), () => tabSwitch(tabNew("graph", g.name).id));
   $("#tabs").appendChild(m);
   setTimeout(() => document.addEventListener("mousedown", function off(e){ if (!e.target.closest("#tabMenu")){ m.remove(); document.removeEventListener("mousedown", off); } }), 0);
@@ -3605,12 +3993,13 @@ async function tabSwitch(id){
     DOC = null; CTXS.page.model = []; CTXS.page.hist = {past:[], future:[], mark:0}; RP.dirty = false;
     TABS.cur = t; $("#rpRes").hidden = true;
     if (!CFG.roam.graphs.some(g => g.name === DR.graph)) DR.graph = defGraph();
-    setGraph(t.kind === "draft" ? DR.graph : t.graph);
+    if (t.kind !== "voice") setGraph(t.kind === "draft" ? DR.graph : t.graph);
     if (t.kind === "graph"){
       const e = t.el || newDocEl(); t.el = null; $("#docSlot").appendChild(e);
       DOC = t.DOC || null; t.DOC = null; if (t.ctx){ CTXS.page.model = t.ctx.model; CTXS.page.hist = t.ctx.hist; t.ctx = null; }
-    } else S.page = DR.set ? DR.page : {kind:"today", title:""};
+    } else if (t.kind !== "voice") S.page = DR.set ? DR.page : {kind:"today", title:""};
     $("#rpQ").value = t.q || ""; layout(); tabsDraw(); barMark(); rpDot();
+    if (t.kind === "voice") VC.shown(); else VC.stop();
     if (t.kind === "graph" && !DOC && t.pending){ const sp = t.pending; t.pending = null; TABS.busy = false; await openDoc(sp, true); }
     else { window.scrollTo(0, t.scroll || 0); if (DOC && VIEW.roots) RQ.ROOTHL.set(DOC.rootT || "", $("#rpDoc"), true); if (t.kind === "draft"){ draftAdapt(); focusLastBlock(); DSYNC.now(false); } }
     DSYNC.drawNote(); tabsSave();
@@ -3621,6 +4010,7 @@ async function tabClose(id){
   const i = TABS.list.findIndex(x => x.id === id); if (i < 0 || TABS.busy) return; const t = TABS.list[i];
   if (t === TABS.cur){ const nx = TABS.list[i+1] || TABS.list[i-1] || tabNew("draft"); await tabSwitch(nx.id); }
   const k = TABS.list.indexOf(t); if (k >= 0) TABS.list.splice(k, 1);
+  if (t.kind === "voice") VC.closed();
   tabsDraw(); tabsSave();
 }
 async function openInGraph(g, spec){                 // افتح وثيقة في لسان غرافها (الأخير المفتوح له، أو لسان جديد)
@@ -3660,7 +4050,8 @@ function allPages(){                                 // أسماء صفحات ك
 }
 function tabsInit(){
   const sv = jget("rq-tabs", null), ok = g => CFG.roam.graphs.some(x => x.name === g);
-  if (sv && Array.isArray(sv.list)) for (const x of sv.list){ if (x.kind === "draft" && !TABS.list.some(t => t.kind === "draft")) tabNew("draft").id = x.id; else if (x.kind === "graph" && ok(x.graph)) tabNew("graph", x.graph, x.doc || null).id = x.id; }
+  if (sv && Array.isArray(sv.list)) for (const x of sv.list){ if (x.kind === "draft" && !TABS.list.some(t => t.kind === "draft")) tabNew("draft").id = x.id; else if (x.kind === "graph" && ok(x.graph)) tabNew("graph", x.graph, x.doc || null).id = x.id;
+    else if (x.kind === "voice" && !EMBED && !TABS.list.some(t => t.kind === "voice")) tabNew("voice").id = x.id; }
   if (!TABS.list.length) tabNew("draft");
   if (!ok(DR.graph)) DR.graph = defGraph();
   const first = (sv && TABS.list.find(t => t.id === sv.cur)) || TABS.list[0];
@@ -4405,8 +4796,8 @@ function rpMark(){ document.querySelectorAll("#rpRes .rpi").forEach((d, k) => { 
 function rpGraph(){                                  // عند تغيّر إعدادات الغرافات أو الوجهة (Roam / Obsidian)
   $("#rpBar").hidden = false; $("#rpBox").hidden = obDraft(); $("#rpRes").hidden = true; rpDot(); barMark(); ALLP = null;
   if (!TABS.cur){ layout(); return; }
-  TABS.list = TABS.list.filter(t => t.kind === "draft" || t === TABS.cur || CFG.roam.graphs.some(g => g.name === t.graph));
-  const want = TABS.cur.kind === "draft" ? DR.graph : TABS.cur.graph;
+  TABS.list = TABS.list.filter(t => t.kind === "draft" || t.kind === "voice" || t === TABS.cur || CFG.roam.graphs.some(g => g.name === t.graph));
+  const want = TABS.cur.kind === "graph" ? TABS.cur.graph : DR.graph;
   if (CFG.roam.current !== want && CFG.roam.graphs.some(g => g.name === want)){ CFG.roam.current = want; syncS(); loadPages(); }
   rpGraphKey = S.graph; RQ.loadQueue(); RQ.setLoc(); rpSyncUI(); layout(); tabsDraw(); barMark();
 }
@@ -4844,6 +5235,7 @@ applyView();
 init(); rpInit(); sideInit();
 if (draftLoad()) render();
 tabsInit();
+VC.start();
 setTimeout(() => DSYNC.now(false), 2000);
 document.addEventListener("visibilitychange", () => { if (!document.hidden && inDraft()) DSYNC.now(false); });
 }
