@@ -387,6 +387,20 @@ body.vcview #rpBar,body.vcview #rpRes,body.vcview #destbar,body.vcview #roamBox,
 #vcPop .it{padding:5px 9px;border-radius:6px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #vcPop .it:hover,#vcPop .it.sel{background:var(--hover)}
 #vcPop .ls{max-height:260px;overflow:auto}
+.vcd.rdy{background:none;box-shadow:inset 0 0 0 2px #2ea44f}
+.vccd{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:6px;font-size:.92em}
+.vccd>span{color:var(--muted)}
+.vccd .vcbtn{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border-color:#e8b34a}
+.vcdv{display:inline-flex;align-items:center;gap:0;color:var(--muted)}
+.vch .sic.on{color:var(--accent)}
+.vclh{margin:22px 0 2px;padding-top:10px;border-top:1px solid var(--line);color:var(--muted);font-size:.86em;font-weight:600}
+#vcLog .vcc{opacity:.86}
+.vcset .dv.sub{padding:0 18px 2px 0;font-size:.95em}
+#vcUndo{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);z-index:70;background:var(--text);color:var(--bg);border-radius:9px;padding:7px 10px 7px 14px;display:flex;align-items:center;gap:12px;font-size:.92em;box-shadow:0 6px 20px rgba(0,0,0,.25)}
+#vcUndo .vcbtn{background:none;border-color:color-mix(in srgb,var(--bg) 45%,transparent);color:var(--bg)}
+#vcSel{position:absolute;z-index:46;display:flex;gap:4px;background:var(--bg);border:1px solid var(--line);border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.16);padding:3px}
+#vcSel .vcbtn{padding:2px 9px}
+#vcPop.ref{min-width:260px;max-width:min(520px,90vw)}
 </style>
 </head>
 <body>
@@ -3623,12 +3637,13 @@ const specOf = d => d ? (d.kind === "page" ? {kind:"page", title:d.title} : {kin
    ============================================================ */
 const VC = (() => {
   const BASE = "http://127.0.0.1:47615";
-  const V = {tok:"", on:false, st:null, rev:-1, cur:"", au:null, playId:"", rate:1, setOpen:false, tsig:"", timer:0, dirty:false, sending:{}};
+  const V = {tok:"", on:false, st:null, rev:-1, cur:"", au:null, playId:"", rate:1, setOpen:false, logOpen:false, longOpen:{}, tsig:"", timer:0, dirty:false, sending:{}, hide:{}, undo:null, ref:null};
   const tabName = () => store.get("rq-vc-name") || "المدون الصوتي";
   const enabled = () => !EMBED && store.get("rq-vc-off") !== "1";
   const active = () => !!TABS.cur && TABS.cur.kind === "voice";
   const view = () => $("#vcView");
-  const notes = () => (V.st && V.st.notes) || [];
+  const notes = () => ((V.st && V.st.notes) || []).filter(n => !V.hide[n.id]);
+  const logs = () => (V.st && V.st.log) || [];
   const IC = {
     play:'<svg viewBox="0 0 24 24"><path d="M8 5.5v13l10.5-6.5z"/></svg>', pause:'<svg viewBox="0 0 24 24"><path d="M8.5 5.5v13M15.5 5.5v13"/></svg>',
     send:'<svg viewBox="0 0 24 24"><path d="M5 4.5h14M12 20V9M7.5 13L12 8.5l4.5 4.5"/></svg>',
@@ -3636,6 +3651,9 @@ const VC = (() => {
     undo:'<svg viewBox="0 0 24 24"><path d="M8 5L4 9l4 4M4 9h10a6 6 0 0 1 0 12H9"/></svg>',
     check:'<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
     trash:'<svg viewBox="0 0 24 24"><path d="M5 7h14M10 7V4.5h4V7M7 7l1 12.5h8L17 7"/></svg>',
+    out:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7.5"/><path d="M6.8 17.2L17.2 6.8"/></svg>',
+    log:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7.5"/><path d="M12 7.5V12l3 2"/></svg>',
+    eject:'<svg viewBox="0 0 24 24"><path d="M12 5.5l6 7.5H6zM6 17.5h12"/></svg>',
     gear:'<svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>'};
 
   async function api(path, body){
@@ -3665,7 +3683,7 @@ const VC = (() => {
     try { await api("/titles", {graphs:CFG.roam.graphs.map(g => ({name:g.name, label:glabel(g.name), titles:(store.get("rq-pages:" + g.name) || "").split("\n").filter(Boolean)}))});
       V.tsig = sig; store.set("rq-vc-tsig", sig); } catch(e){}
   }
-  const waiting = n => !n.reviewed && n.state !== "sent";
+  const waiting = n => !n.reviewed;                    // «راجعتها» علامةُ جاهزية: تبقى في القائمة ولا تُحسب في النقطة
   const autoSig = () => notes().filter(waiting).map(n => n.id).sort().join(",") + "|" + ((V.st && V.st.pending) || []).map(p => p.serial).join(",");
   function changed(){
     const has = TABS.list.some(t => t.kind === "voice"), sig = V.on ? autoSig() : "";
@@ -3674,7 +3692,7 @@ const VC = (() => {
     if (active()){ if (editing()) V.dirty = true; else draw(); }
   }
   const dot = () => V.on && (notes().some(waiting) || ((V.st && V.st.pending) || []).length > 0);
-  function closed(){ store.set("rq-vc-closed", V.on ? autoSig() : ""); stop(); }
+  function closed(){ store.set("rq-vc-closed", V.on ? autoSig() : ""); stop(); undoDone(true); refClose(); }
 
   /* ---------- الصوت ---------- */
   function au(){ if (!V.au){ V.au = new Audio(); V.au.preload = "metadata";
@@ -3696,14 +3714,18 @@ const VC = (() => {
   }
 
   /* ---------- أدوات ---------- */
-  const note = id => notes().find(n => n.id === id);
+  const note = id => notes().find(n => n.id === id) || logs().find(n => n.id === id);
   const card = id => id ? view().querySelector('.vcc[data-id="' + id + '"]') : null;
   const mmss = s => Math.floor(s / 60) + ":" + p2(Math.floor(s % 60));
   const when = ts => { const d = new Date(ts * 1000); return isoStr(d) + " " + timeStr(d); };
   const destText = d => !d ? "" : (d.page.kind === "page" ? d.page.title : "اليوم") + (CFG.roam.graphs.length > 1 ? " · " + glabel(d.graph) : "");
   const fmtOut = t => esc(t).replace(/#?\[\[[^\[\]]+\]\]|(^|\s)#[^\s#\[\]]+/g, m => '<span class="rf">' + m + '</span>');
   async function op(id, body, quiet){
-    try { const r = await api("/note", Object.assign({id}, body)); if (r.note && V.st){ const i = V.st.notes.findIndex(n => n.id === id); if (i >= 0) V.st.notes[i] = r.note; redraw(id); } return r; }
+    try { const r = await api("/note", Object.assign({id}, body));
+      if (r.note && V.st){ const n = r.note; let i = V.st.notes.findIndex(x => x.id === id), j = V.st.log.findIndex(x => x.id === id);
+        if (n.state === "sent" && i >= 0){ V.st.notes.splice(i, 1); V.st.log.unshift(n); draw(); }      // المرسَل يخرج من القائمة إلى السجل
+        else { if (i >= 0) V.st.notes[i] = n; if (j >= 0) V.st.log[j] = n; if (editing()) redraw(id); else draw(); } }
+      return r; }
     catch(e){ if (!quiet) toast("تعذّر: " + e.message); throw e; }
   }
 
@@ -3765,6 +3787,55 @@ const VC = (() => {
     fill(); q.focus();
     setTimeout(() => document.addEventListener("mousedown", function off(e){ if (!e.target.closest("#vcPop")){ popClose(); document.removeEventListener("mousedown", off); } }), 0);
   }
+  /* ---------- قائمة العناوين في الوارد: عند «[[» أو «#»، وعند تحديد كلمات ---------- */
+  const fold = t => norm(t).replace(/ة/g, "ه");
+  function rootGraph(){ const c = V.st.cfg; if (c.rootGraph) return c.rootGraph; let best = "", bn = 0;
+    for (const g of CFG.roam.graphs){ const k = (store.get("rq-pages:" + g.name) || "").split("\n").filter(t => t.startsWith(c.rootPrefix)).length; if (k > bn){ bn = k; best = g.name; } } return best; }
+  function refClose(){ V.ref = null; popClose(); const b = $("#vcSel"); if (b) b.remove(); }
+  function refItems(R){                                 // تضييقٌ بكلماتٍ متفرقة؛ و«ج/» في أوّله ينقل القائمة إلى غراف الجذور
+    const c = V.st.cfg, q = R.q.trim(), isRoot = !!c.rootPrefix && q.startsWith(c.rootPrefix), g = isRoot ? (rootGraph() || R.graph) : R.graph;
+    const pages = (store.get("rq-pages:" + g) || "").split("\n").filter(Boolean);
+    if (isRoot){ const k = fold(q); return pages.filter(t => fold(t).startsWith(k)).slice(0, 40); }
+    const ws = fold(q).split(/\s+/).filter(Boolean).map(w => w.replace(/^(وال|بال|لل|ال)(?=.{3})/, ""));
+    const base = pages.filter(t => !c.rootPrefix || !t.startsWith(c.rootPrefix));
+    return (ws.length ? base.filter(t => { const x = fold(t); return ws.every(w => x.includes(w)); }) : pins(g).concat(recentsD(g))).slice(0, 40);
+  }
+  function refDraw(){
+    const R = V.ref; if (!R) return; let p = $("#vcPop"); if (!p){ p = el("div"); p.id = "vcPop"; p.className = "ref"; document.body.appendChild(p); p.addEventListener("mousedown", e => e.preventDefault()); }
+    R.items = refItems(R); R.sel = Math.min(R.sel || 0, Math.max(0, R.items.length - 1)); p.innerHTML = "";
+    const ls = el("div", "ls"); if (!R.items.length){ const d = el("div", "it"); d.textContent = "لا عنوان يوافق"; d.style.color = "var(--muted)"; ls.appendChild(d); }
+    R.items.forEach((t, k) => { const d = el("div", "it" + (k === R.sel ? " sel" : "")); d.textContent = t; d.onclick = () => refPick(t); ls.appendChild(d); }); p.appendChild(ls);
+    const r = R.rect(); p.style.top = (r.bottom + scrollY + 4) + "px"; p.style.left = Math.max(8, Math.min(r.right + scrollX - p.offsetWidth, innerWidth - p.offsetWidth - 8)) + "px";
+    const x = ls.children[R.sel]; if (x) x.scrollIntoView({block:"nearest"});
+  }
+  function refPick(t){
+    const R = V.ref; if (!R) return; const txt = R.mode === "#" ? (/\s/.test(t) ? "#[[" + t + "]]" : "#" + t) : "[[" + t + "]]";
+    const rg = R.range(); rg.deleteContents(); const tn = document.createTextNode(txt + " "); rg.insertNode(tn);
+    const sel = getSelection(); const r2 = document.createRange(); r2.setStartAfter(tn); r2.collapse(true); sel.removeAllRanges(); sel.addRange(r2);
+    const box = R.box; refClose(); if (box && R.fromSel) box.blur();
+  }
+  function refScan(box){                                // أكتبتَ «[[» أو «#» قبل المؤشّر؟
+    const sel = getSelection(); if (!sel.rangeCount || !sel.isCollapsed){ return; } const nd = sel.anchorNode; if (!nd || nd.nodeType !== 3 || !box.contains(nd)){ if (V.ref && !V.ref.fromSel) refClose(); return; }
+    const before = nd.nodeValue.slice(0, sel.anchorOffset); let m = before.match(/\[\[([^\[\]]*)$/), mode = "[[";
+    if (!m){ m = before.match(/(?:^|\s)#([^\s#\[\]]*)$/); mode = "#"; }
+    if (!m){ if (V.ref && !V.ref.fromSel) refClose(); return; }
+    const start = before.length - m[1].length - (mode === "#" ? 1 : 2), end = sel.anchorOffset, n = note(box.closest(".vcc").dataset.id);
+    V.ref = {mode, q:m[1], graph:n.dest.graph, box, sel:V.ref && !V.ref.fromSel ? V.ref.sel : 0, fromSel:false,
+      rect:() => { const r = document.createRange(); r.setStart(nd, start); r.setEnd(nd, end); return r.getBoundingClientRect(); },
+      range:() => { const r = document.createRange(); r.setStart(nd, start); r.setEnd(nd, Math.min(end, nd.nodeValue.length)); return r; }};
+    refDraw();
+  }
+  function selBar(){                                    // حدّدتَ كلمات: زرّا «[[ ]]» و«#» يفتحان القائمة عليها
+    const old = $("#vcSel"); if (old) old.remove(); const sel = getSelection(); if (!sel.rangeCount || sel.isCollapsed) return;
+    const rg = sel.getRangeAt(0), box = rg.commonAncestorContainer.nodeType === 1 ? rg.commonAncestorContainer.closest(".vcin") : rg.commonAncestorContainer.parentElement.closest(".vcin");
+    if (!box || !active()) return; const txt = sel.toString().trim(); if (!txt || txt.length > 80) return;
+    const bar = el("div"); bar.id = "vcSel"; bar.addEventListener("mousedown", e => e.preventDefault());
+    for (const mode of ["[[", "#"]){ const b = el("button", "vcbtn"); b.textContent = mode === "#" ? "#" : "[[ ]]"; b.dir = "ltr";
+      b.onclick = () => { const keep = rg.cloneRange(), n = note(box.closest(".vcc").dataset.id); bar.remove();
+        V.ref = {mode, q:txt.replace(/[.،,؛:]+$/, ""), graph:n.dest.graph, box, sel:0, fromSel:true, rect:() => keep.getBoundingClientRect(), range:() => keep}; refDraw(); };
+      bar.appendChild(b); }
+    document.body.appendChild(bar); const r = rg.getBoundingClientRect(); bar.style.top = (r.top + scrollY - bar.offsetHeight - 6) + "px"; bar.style.left = Math.max(8, r.left + scrollX) + "px";
+  }
   function againPop(id, anchor){                       // إعادة التحويل: خاماً أو منقّى
     popClose(); const p = el("div"); p.id = "vcPop";
     for (const [t, c] of [["أعد التحويل: خام", false], ["أعد التحويل: منقّى", true]]){ const d = el("div", "it"); d.textContent = t; d.onclick = () => { popClose(); op(id, {op:"transcribe", clean:c}).then(tick, () => {}); }; p.appendChild(d); }
@@ -3787,36 +3858,55 @@ const VC = (() => {
   }
   function reject(id){ const n = note(id); if (!n || !n.sugg.length) return false; op(id, {op:"nosugg", title:n.sugg[0].title}); return true; }
   function barHtml(n){
-    const playing = V.playId === n.id && V.au && !V.au.paused, b = [];
+    const playing = V.playId === n.id && V.au && !V.au.paused, b = [], inLog = n.state === "sent" || n.state === "empty";
     const btn = (k, ic, title, extra) => '<button class="sic' + (extra || "") + '" data-a="' + k + '" title="' + title + '">' + IC[ic] + '</button>';
-    b.push(btn("play", playing ? "pause" : "play", "استماع / إيقاف (المسافة)"));
-    b.push('<button class="rt" data-a="rate" title="سرعة الاستماع">' + V.rate + "×</button>");
+    if (!n.audioGone){ b.push(btn("play", playing ? "pause" : "play", "استماع / إيقاف (المسافة)"));
+      b.push('<button class="rt" data-a="rate" title="سرعة الاستماع">' + V.rate + "×</button>"); }
     b.push('<span class="sp"></span>');
-    if (n.segs.length){
-      if (n.raw && n.segs.some((s, i) => s.text !== n.raw[i])) b.push(btn("reset", "undo", "أعد النصّ كما ورد من المحوّل"));
-      b.push(btn("again", "again", "أعد التحويل"));
-      if (!n.reviewed) b.push(btn("review", "check", "راجعتُها (بلا إرسال)"));
+    if (n.segs.length && n.state !== "wait"){
+      if (!inLog && n.raw && n.segs.some((s, i) => s.text !== n.raw[i] || s.pick)) b.push(btn("reset", "undo", "أعد النصّ كما ورد من المحوّل"));
+      if (!inLog) b.push(btn("again", "again", "أعد التحويل"));
+      if (!inLog) b.push(btn("review", "check", n.reviewed ? "جاهزةٌ للإرسال دفعةً — اضغط لإلغاء العلامة" : "راجعتُها: جاهزةٌ للإرسال دفعةً", n.reviewed ? " on" : ""));
       b.push('<button class="sic' + (n.sent ? " on" : "") + '" data-a="send" title="' + (n.sent ? "استبدل ما أُرسل بهذا النصّ (Enter)" : "أرسل إلى الوجهة (Enter)") + '"' + (V.sending[n.id] ? " disabled" : "") + '>' + IC.send + '</button>');
     }
-    b.push(btn("del", "trash", "احذفها من القائمة (الصوت يبقى في الأرشيف)"));
+    if (!inLog) b.push(btn("out", "out", "استبعد: يبقى في المسجّل ولا يُحوَّل ثانيةً ولا يدخل السجل (س)"));
+    b.push(btn("del", "trash", inLog ? "احذفها من السجل والأرشيف" : "احذف من الأرشيف والمسجّل (Delete)"));
     return b.join("");
+  }
+  function gone(id){ if (V.st){ V.st.notes = V.st.notes.filter(x => x.id !== id); V.st.log = V.st.log.filter(x => x.id !== id); } }
+  function undoDone(run){                               // ينفَّذ الحذف المعلّق (أو يُلغى)
+    const u = V.undo; if (!u) return; V.undo = null; clearTimeout(u.t); const bar = $("#vcUndo"); if (bar) bar.remove(); delete V.hide[u.id];
+    if (run) api("/note", {id:u.id, op:"delete"}).then(() => { gone(u.id); tabsDraw(); }, e => { toast("تعذّر الحذف: " + e.message); draw(); });
+    else draw();
+  }
+  function del(id){                                     // من الأرشيف والمسجّل معاً: لا يُستردّ، فله خمس ثوانٍ للتراجع بلا سؤال
+    const n = note(id); if (!n) return; undoDone(true); if (V.playId === id) stop();
+    const c = card(id), nx = c && (c.nextElementSibling || c.previousElementSibling); V.hide[id] = 1; if (c) c.remove();
+    if (nx && nx.dataset && nx.dataset.id) setCur(nx.dataset.id, true); tabsDraw();
+    const bar = el("div"); bar.id = "vcUndo"; bar.append("حُذف " + n.file + " ", h("button", {class:"vcbtn", onclick:() => undoDone(false)}, "تراجع")); document.body.appendChild(bar);
+    V.undo = {id, t:setTimeout(() => undoDone(true), 5000)};
+  }
+  function exclude(id){
+    const n = note(id); if (!n || n.state === "sent") return; if (V.playId === id) stop();
+    const c = card(id), nx = c && (c.nextElementSibling || c.previousElementSibling);
+    api("/note", {id, op:"exclude"}).then(() => { gone(id); if (c) c.remove(); if (nx && nx.dataset && nx.dataset.id) setCur(nx.dataset.id, true); tabsDraw(); toast("استُبعد: " + n.file); }, e => toast("تعذّر: " + e.message));
   }
   function drawBar(id){ const c = card(id), n = note(id); if (c && n){ const b = c.querySelector(".vcbar"); if (b) b.innerHTML = barHtml(n); } }
   function cardEl(n){
     const c = el("div", "vcc" + (n.id === V.cur ? " cur" : "")); c.dataset.id = n.id; c.tabIndex = -1;
-    const cls = n.state === "sent" ? "sent" : n.state === "error" ? "err" : n.reviewed ? "" : "new";
-    const tip = n.state === "sent" ? "أُرسلت إلى: " + (n.sent && n.sent.title || "") : n.reviewed ? "رُوجعت ولم تُرسل" : "لم تُراجَع";
+    const cls = n.state === "sent" ? "sent" : n.state === "error" ? "err" : n.reviewed ? "rdy" : "new";
+    const tip = n.state === "sent" ? "أُرسلت إلى: " + (n.sent && n.sent.title || "") : n.state === "empty" ? "لا كلام فيه" : n.reviewed ? "جاهزةٌ للإرسال" : "لم تُراجَع";
     let hd = '<div class="vcm"><span>' + esc(when(n.rec)) + '</span><span>' + (n.dur ? mmss(n.dur) : "") + '</span><span>' + esc(n.device || "") + '</span><span class="sp"></span>' +
       (n.dest ? '<button class="vcap" data-a="dest" title="الوجهة — اضغط لتغييرها">' + esc(destText(n.dest)) + '</button>' : "") + '<span class="vcd ' + cls + '" title="' + esc(tip) + '"></span></div>';
     let body = "";
     if (n.state === "wait") body = '<div class="vcmsg">' + (V.st.busy === n.file ? "يُحوَّل الآن…" : "في الانتظار…") + '</div>';
-    else if (n.state === "long") body = '<div class="vcmsg">تسجيلٌ طويل لم يُحوَّل. <button class="vcbtn" data-a="force">حوّله (نحو ' + (n.dur * 0.006 / 60).toFixed(2) + ' دولار)</button></div>';
     else if (n.state === "error") body = '<div class="vcmsg">تعذّر التحويل: ' + esc(n.err || "") + ' <button class="vcbtn" data-a="force">أعد المحاولة</button></div>';
     else if (n.state === "empty") body = '<div class="vcmsg">لا كلام في هذا التسجيل.</div>';
     else {
       const same = n.segs.length && n.segs.map(s => s.text).join(" ") === n.out;      // إن تطابق الوارد والصادر حرفاً بحرف فسطرٌ واحد
       body = '<div class="vcin" contenteditable="true" spellcheck="false" dir="rtl">' + n.segs.map((s, i) => '<span class="pm' + (s.sig ? " sig" : "") + '" contenteditable="false" data-i="' + i + '" title="' + (s.sig ? "إشارة — " : "") + 'استمع من هنا (' + mmss(s.t0) + ')">▸</span><span class="sg" data-i="' + i + '">' + esc(s.text) + ' </span>').join("") + '</div>';
       if (!same) body += '<div class="vcl">الصادر</div><div class="vcout" dir="rtl">' + fmtOut(n.out) + '</div>';
+      for (const c of (n.cands || [])) body += '<div class="vccd"><span>«' + esc(c.phrase) + '»</span>' + c.titles.map((t, k) => '<button class="vcbtn" data-a="pick" data-s="' + c.seg + '" data-at="' + c.at + '" data-n="' + c.n + '" data-t="' + esc(t) + '">' + esc(t) + '</button>').join("") + '</div>';
       if (n.sugg.length) body += '<div class="vcsg">' + n.sugg.map((s, k) => '<span class="s" title="' + esc(s.why || "") + (k ? "" : " — Tab يقبل، Esc يردّ") + '">«' + esc(s.phrase) + '» ← <b>[[' + esc(s.title) + ']]</b><button data-a="ok" data-k="' + k + '" title="اقبل">✓</button><button data-a="no" data-k="' + k + '" title="ردّ">✕</button></span>').join("") + '</div>';
       if (n.notes && n.notes.length) body += '<details class="vcw"><summary title="تنبيهات">⚠ ' + AR(n.notes.length) + '</summary>' + n.notes.map(x => "<div>" + esc(x) + "</div>").join("") + '</details>';
     }
@@ -3843,7 +3933,10 @@ const VC = (() => {
     row("المحوّل:", txt(cfg.stt, v => v && save({stt:v}), {dir:"ltr"}));
     row("ما زاد على", h("input", {type:"number", min:"1", value:String(Math.round(cfg.longSec / 60)), onchange:e => save({longSec:Math.max(1, +e.target.value || 5) * 60})}), "دقيقة لا يُحوَّل إلا بطلب");
     row("جملة التوجيه:", txt(cfg.prompt, v => save({prompt:v})));
+    row("صوت المرسَل يبقى في الأرشيف", h("input", {type:"number", min:"0", value:String(cfg.keepDays), onchange:e => save({keepDays:Math.max(0, +e.target.value || 0)})}), "يوماً (صفر = دائماً)");
     T("العنونة");
+    row("بوادئ العناوين:", txt(cfg.prefixes, v => save({prefixes:v}), {placeholder:"فقه اللغة، شواهد ونصوص", title:"تفصلها فاصلة. تُعطى للمحوّل، ويُضيَّق بها، وإذا نطقتَ إحداها فُتحت الإحالة بلا طرق"}));
+    for (const g of CFG.roam.graphs) row("الاسم المنطوق لـ" + glabel(g.name) + ":", txt((cfg.spoken || {})[g.name], v => save({spoken:Object.assign({}, cfg.spoken || {}, {[g.name]:v})}), {placeholder:glabel(g.name), title:"ما تقوله في أوّل التسجيل ليُوجَّه إلى هذا الغراف (ويجوز أكثر من اسم بفاصلة)"}));
     { const sel = h("select", {onchange:e => save({rootGraph:e.target.value})}, h("option", {value:""}, "تلقائي (أكثرها جذوراً)"), ...CFG.roam.graphs.map(g => h("option", {value:g.name}, glabel(g.name)))); sel.value = cfg.rootGraph || "";
       row("غراف الجذور:", sel, "بادئة الجذر:", txt(cfg.rootPrefix, v => v && save({rootPrefix:v}), {style:"flex:0 0 70px"})); }
     row(h("input", {type:"checkbox", checked:!!cfg.useLlm, onchange:e => save({useLlm:e.target.checked})}), "اقتراحات النموذج المقيَّد بالفهرس", txt(cfg.llm, v => save({llm:v}), {dir:"ltr", placeholder:"النموذج: تلقائي (الأرخص المتاح)"}));
@@ -3858,6 +3951,14 @@ const VC = (() => {
         txt(d.page, v => dv({page:v}), {placeholder:"الصفحة: اليوم", title:"صفحة الوجهة (فارغة = اليوم)"}), cp,
         h("label", {title:"T-MARK في سوني، والنقر أو الطقطقة في غيره"}, h("input", {type:"checkbox", checked:d.signals !== false, onchange:e => dv({signals:e.target.checked})}), "الإشارة"),
         h("button", {class:"vcbtn q", onclick:() => dv({unlink:true})}, "فكّ الربط")));
+      const fl = Object.keys(d.folders || {}).sort();
+      if (fl.length > 1 || (fl.length === 1 && fl[0] !== "")) box.appendChild(h("div", {class:"dv sub"}, h("span", {class:"hint"}, "يُحوَّل من:"), ...fl.map(f => h("label", {dir:"ltr"}, h("input", {type:"checkbox", checked:!!d.folders[f], onchange:e => dv({folders:{[f]:e.target.checked}})}), f || "/"))));
+      box.appendChild(h("div", {class:"dv sub"}, h("label", {}, h("input", {type:"checkbox", checked:d.delAfter !== false, onchange:e => dv({delAfter:e.target.checked})}), "بعد الإرسال يُحذف من المسجّل"),
+        d.excluded ? h("button", {class:"vcbtn q", title:"تعود المستبعَدات إلى التحويل عند أوّل وصل", onclick:() => dv({forgetExcluded:true})}, "انسَ المستبعَدات (" + AR(d.excluded) + ")") : null,
+        d.pendDel ? h("span", {class:"hint"}, AR(d.pendDel) + " تُحذف منه عند وصله") : null,
+        d.longN ? h("button", {class:"vcbtn q", onclick:() => { V.longOpen[d.serial] = !V.longOpen[d.serial]; draw(); }}, "فيه " + AR(d.longN) + " طويلة متروكة" + (d.on ? " — اعرضها" : " (صِله لتراها)")) : null));
+      if (V.longOpen[d.serial] && d.on) for (const x of d.long) box.appendChild(h("div", {class:"dv sub"}, h("span", {dir:"ltr"}, x.rel), h("span", {class:"hint"}, mmss(x.dur)),
+        h("button", {class:"vcbtn", onclick:() => api("/long", {fp:x.fp}).then(tick, e => toast(e.message))}, "حوّله (نحو " + (x.dur * 0.006 / 60).toFixed(2) + " دولار)")));
     }
     T("البرنامج الخلفي");
     row(h("input", {type:"checkbox", checked:!!s.autostart, onchange:e => save({autostart:e.target.checked})}), "يبدأ مع ويندوز");
@@ -3870,22 +3971,29 @@ const VC = (() => {
   function draw(){
     const v = view(); if (!v || v.hidden) return; V.dirty = false; const y = scrollY; v.innerHTML = "";
     if (!V.on || !V.st){ v.appendChild(h("div", {class:"vcempty"}, "البرنامج الخلفي لا يعمل على هذا الحاسب. شغّله فيظهر هنا ما في الأرشيف.")); return; }
-    const s = V.st, wait = s.notes.filter(waiting).length;
-    const head = h("div", {class:"vch"}, h("span", {}, s.busy ? "يُحوَّل: " + s.busy : wait ? AR(wait) + " لم تُراجَع" : s.notes.length ? "كلّها رُوجعت" : ""), h("span", {class:"sp"}),
-      wait > 1 ? h("button", {class:"vcbtn q", title:"أرسل كل ما راجعته ولم يُرسل", onclick:sendReviewed}, "أرسل المراجَع") : null,
-      h("button", {class:"sic", title:"إعدادات المدوّن الصوتي", onclick:() => { V.setOpen = !V.setOpen; draw(); }}));
-    head.lastChild.innerHTML = IC.gear; v.appendChild(head);
+    const s = V.st, wait = notes().filter(waiting).length, ready = notes().filter(n => n.reviewed && n.segs.length && n.state === "new").length;
+    const ic = (svg, title, fn, on) => { const b = h("button", {class:"sic" + (on ? " on" : ""), title, onclick:fn}); b.innerHTML = svg; return b; };
+    const head = h("div", {class:"vch"}, h("span", {}, s.busy ? "يُحوَّل: " + s.busy : wait ? AR(wait) + " لم تُراجَع" : ""), h("span", {class:"sp"}),
+      ...s.devices.filter(d => d.on).map(d => h("span", {class:"vcdv"}, d.name, ic(IC.eject, "أخرج «" + d.name + "» بأمان", () => api("/eject", {serial:d.serial}).then(() => { toast("أُخرج «" + d.name + "»: انزعه الآن"); tick(); }, e => toast(e.message))))),
+      ready ? h("button", {class:"vcbtn q", title:"أرسل كل ما علّمتَه جاهزاً", onclick:sendReviewed}, "أرسل المراجَع (" + AR(ready) + ")") : null,
+      ic(IC.log, "السجل: ما أُرسل وما خلا من الكلام", () => { V.logOpen = !V.logOpen; draw(); }, V.logOpen),
+      ic(IC.gear, "إعدادات المدوّن الصوتي", () => { V.setOpen = !V.setOpen; draw(); }, V.setOpen));
+    v.appendChild(head);
     for (const p of s.pending) v.appendChild(h("div", {class:"vcpend"}, h("span", {}, "جهازٌ جديد موصول: ", h("b", {}, p.label)), h("button", {class:"vcbtn", onclick:() => api("/device", {serial:p.serial, graph:(CFG.roam.graphs[0] || {}).name || ""}).then(() => { V.setOpen = true; tick(); })}, "اربطه"),
       h("button", {class:"vcbtn q", onclick:() => api("/device", {serial:p.serial, ignore:true}).then(tick)}, "تجاهله")));
     if (V.setOpen) v.appendChild(setEl());
     if (!s.hasKey) v.appendChild(h("div", {class:"vcmsg"}, "لا مفتاح للمحوّل بعد: أضفه من الإعدادات (الرمز في أعلى اليسار)."));
     const list = el("div"); list.id = "vcList";
-    if (!s.notes.length) list.appendChild(h("div", {class:"vcempty"}, "لا تسجيلات بعد. صِل مسجّلاً مربوطاً فتُنسخ تسجيلاته وتُحوَّل."));
-    if (!note(V.cur)) V.cur = (s.notes.find(waiting) || s.notes[0] || {}).id || "";
-    for (const n of s.notes) list.appendChild(cardEl(n));
-    v.appendChild(list); scrollTo(0, y); mark();
+    if (!notes().length) list.appendChild(h("div", {class:"vcempty"}, "لا شيء ينتظرك."));
+    if (!note(V.cur)) V.cur = (notes().find(waiting) || notes()[0] || {}).id || "";
+    for (const n of notes()) list.appendChild(cardEl(n));
+    v.appendChild(list);
+    if (V.logOpen){ const lg = el("div"); lg.id = "vcLog"; lg.appendChild(h("div", {class:"vclh"}, "السجل"));
+      if (!s.log.length) lg.appendChild(h("div", {class:"vcempty"}, "لا شيء في السجل بعد."));
+      for (const n of s.log) lg.appendChild(cardEl(n)); v.appendChild(lg); }
+    scrollTo(0, y); mark();
   }
-  async function sendReviewed(){ for (const n of notes().filter(x => x.reviewed && x.state !== "sent" && x.segs.length)) if (!await send(n.id)) break; }
+  async function sendReviewed(){ for (const n of notes().filter(x => x.reviewed && x.state === "new" && x.segs.length)) if (!await send(n.id)) break; }
   function shown(){ draw(); tick(); }
 
   /* ---------- الأحداث ---------- */
@@ -3895,13 +4003,15 @@ const VC = (() => {
     const b = e.target.closest("[data-a]"); if (!b) return; const a = b.dataset.a, n = note(id);
     if (a === "play") play(id); else if (a === "rate"){ const r = [1, 1.25, 1.5, 2]; V.rate = r[(r.indexOf(V.rate) + 1) % r.length]; if (V.au) V.au.playbackRate = V.rate; view().querySelectorAll(".rt").forEach(x => x.textContent = V.rate + "×"); }
     else if (a === "send") send(id); else if (a === "dest") destPop(id, b); else if (a === "again") againPop(id, b);
-    else if (a === "reset") op(id, {op:"reset"}); else if (a === "review") op(id, {op:"review"});
-    else if (a === "del"){ if (V.playId === id) stop(); op(id, {op:"delete"}).then(() => { if (V.st) V.st.notes = V.st.notes.filter(x => x.id !== id); redraw(id); step(0); }, () => {}); }
+    else if (a === "reset") op(id, {op:"reset"}); else if (a === "review") op(id, {op:"review", on:!n.reviewed});
+    else if (a === "del") del(id); else if (a === "out") exclude(id);
+    else if (a === "pick") op(id, {op:"pick", seg:+b.dataset.s, at:+b.dataset.at, n:+b.dataset.n, title:b.dataset.t});
     else if (a === "force") op(id, {op:"transcribe"}).then(tick, () => {});
     else if (a === "ok" || a === "no"){ const k = +b.dataset.k; if (k > 0){ n.sugg.unshift(n.sugg.splice(k, 1)[0]); } (a === "ok" ? accept : reject)(id); }
   }
   function onBlur(e){                                  // خرجتَ من الوارد: يُعاد التنسيق بما عدّلت
     const box = e.target.closest && e.target.closest(".vcin"); if (!box) return; const c = box.closest(".vcc"), n = note(c.dataset.id); if (!n) return;
+    if (V.ref && !V.ref.fromSel) refClose();
     const segs = readIn(box);
     if (segs.some((t, i) => t !== n.segs[i].text.replace(/\s+/g, " ").trim())) op(n.id, {op:"apply", segs}, true).catch(() => {}).then(() => { if (V.dirty && !editing()) draw(); });
     else if (V.dirty) setTimeout(() => { if (!editing()) draw(); }, 0);
@@ -3912,6 +4022,12 @@ const VC = (() => {
     if (e.key === "F1" || inField) return;              // الحقول والقوائم تتولّى مفاتيحها
     e.stopPropagation(); const id = V.cur, mod = e.ctrlKey || e.metaKey;
     if (!id) return;
+    if (V.ref){                                         // قائمة العناوين مفتوحة: الأسهم والإدخال لها
+      const R = V.ref;
+      if (e.key === "ArrowDown" || e.key === "ArrowUp"){ e.preventDefault(); R.sel = Math.max(0, Math.min(R.items.length - 1, R.sel + (e.key === "ArrowDown" ? 1 : -1))); refDraw(); return; }
+      if (e.key === "Enter" || e.key === "Tab"){ e.preventDefault(); if (R.items[R.sel]) refPick(R.items[R.sel]); else refClose(); return; }
+      if (e.key === "Escape"){ e.preventDefault(); refClose(); return; }
+    }
     if (inEd){
       if (e.key === "Escape"){ e.preventDefault(); t.closest(".vcin").blur(); const c = card(id); if (c) c.focus({preventScroll:true}); }
       else if (e.key === "Tab"){ e.preventDefault(); t.closest(".vcin").blur(); setTimeout(() => accept(id), 60); }
@@ -3927,11 +4043,14 @@ const VC = (() => {
     else if (e.key === "Tab"){ e.preventDefault(); accept(id); }
     else if (e.key === "Escape"){ if (reject(id)) e.preventDefault(); }
     else if (e.key === "Enter"){ e.preventDefault(); send(id).then(ok => ok && step(1)); }
-    else if (e.key === "Delete"){ e.preventDefault(); const c = card(id); if (c) c.querySelector('[data-a="del"]').click(); }
+    else if (e.key === "Delete"){ e.preventDefault(); del(id); }
+    else if (e.key === "س" || e.key === "x" || e.key === "X"){ e.preventDefault(); exclude(id); }
   }
   function start(){
     if (!enabled()) return; const v = view(); if (!v) return;
     v.addEventListener("click", onClick); v.addEventListener("focusout", onBlur);
+    v.addEventListener("input", e => { const box = e.target.closest && e.target.closest(".vcin"); if (box) refScan(box); });
+    document.addEventListener("selectionchange", () => { if (active() && !(V.ref && V.ref.fromSel)) selBar(); });
     v.addEventListener("focusin", e => { const c = e.target.closest && e.target.closest(".vcc"); if (c && V.cur !== c.dataset.id) setCur(c.dataset.id, false); });
     window.addEventListener("keydown", key, true);
     document.addEventListener("visibilitychange", () => { if (!document.hidden) tick(); });
