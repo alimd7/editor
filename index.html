@@ -141,6 +141,16 @@ button{font:inherit;cursor:pointer}
 .sbox li.sel,.sbox li:hover{background:var(--hover)}
 #oStatus,#oScan{padding:0 4px}
 #settings h4{margin:6px 0 0;font-size:13px;color:var(--muted)}
+#settings details.sec{border-bottom:1px solid var(--line);padding:2px 0}
+#settings details.sec:last-child{border-bottom:0}
+#settings details.sec>summary{cursor:pointer;font-size:16px;font-weight:700;color:var(--accent);padding:8px 2px;list-style:none;display:flex;align-items:center;gap:8px;user-select:none}
+#settings details.sec>summary::-webkit-details-marker{display:none}
+#settings details.sec>summary::before{content:"";width:7px;height:7px;border:solid currentColor;border-width:0 2px 2px 0;transform:rotate(135deg);transition:transform .15s;flex:none;margin-inline:3px}
+#settings details.sec[open]>summary::before{transform:rotate(45deg)}
+#settings .secb{display:flex;flex-direction:column;gap:8px;padding:2px 14px 12px}
+#settings .secsub{font-size:13px;font-weight:700;color:var(--text);margin-top:8px;padding-bottom:2px;border-bottom:1px dotted var(--line)}
+#settings .secb .secsub:first-child{margin-top:0}
+#settings .hint{font-size:12.5px;color:var(--muted);line-height:1.5}
 .srow{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .gform{border:1px solid var(--line);border-radius:6px;padding:8px 10px;display:flex;flex-direction:column;gap:8px}
 .gform label,#settings label{display:flex;gap:8px;align-items:center}
@@ -2202,18 +2212,40 @@ function applyDest(){
   renderSettings();
 }
 
+function secGroup(box, tag, MAP, ORDER, key){        // يجمع الإعدادات في أقسام قابلة للطيّ (مطويّة كلها حتى تفتحها)
+  const kids = [...box.childNodes], olds = []; let cur = {t:ORDER[0], nodes:[]}; olds.push(cur);
+  for (const n of kids){ if (n.nodeType === 1 && n.tagName === tag && n.parentNode === box){ cur = {t:n.textContent.trim(), nodes:[]}; olds.push(cur); } else cur.nodes.push(n); }
+  let open; try { open = new Set(JSON.parse(localStorage.getItem(key) || "[]")); } catch(e){ open = new Set(); }
+  const cats = new Map(ORDER.map(t => [t, []]));
+  for (const o of olds){ if (!o.nodes.length) continue; const c = MAP[o.t] || o.t; if (!cats.has(c)) cats.set(c, []); cats.get(c).push(o); }
+  box.textContent = "";
+  for (const [t, list] of cats){ if (!list.length) continue;
+    const d = document.createElement("details"); d.className = "sec"; d.open = open.has(t);
+    const sm = document.createElement("summary"); sm.textContent = t; d.appendChild(sm);
+    const b = document.createElement("div"); b.className = "secb";
+    for (const o of list){ if (list.length > 1 && o.t !== t){ const s2 = document.createElement("div"); s2.className = "secsub"; s2.textContent = o.t; b.appendChild(s2); } for (const n of o.nodes) b.appendChild(n); }
+    d.appendChild(b); box.appendChild(d);
+    d.addEventListener("toggle", () => { if (d.open) open.add(t); else open.delete(t); try { localStorage.setItem(key, JSON.stringify([...open])); } catch(e){} });
+  }
+}
 let editingGraph = null;
 function renderSettings(){
+  renderSettings0();
+  secGroup($("#settings"), "H4", {"عام":"العرض", "العرض":"العرض", "التحرير":"الكتابة والتحرير", "نسخة احتياطية":"المزامنة والنسخ", "مزامنة المسودة بين الأجهزة":"المزامنة والنسخ",
+    "غرافات Roam":"الغرافات والخزائن", "خزائن Obsidian":"الغرافات والخزائن"}, ["الغرافات والخزائن", "العرض", "الكتابة والتحرير", "المزامنة والنسخ", "عن التطبيق"], "rq-setopen");
+}
+function renderSettings0(){
   const box = $("#settings"); box.innerHTML = "";
   const title = t => box.appendChild(h("h4", {}, t));
 
-  title("عام");
+  title("العرض");
   const auto = h("input", {type:"checkbox", checked:CFG.dir==="auto", onchange:e => { S.dir = CFG.dir = e.target.checked ? "auto" : "rtl"; saveCfg(); render(); }});
   box.appendChild(h("label", {}, auto, "اتجاه الكتل تلقائي بحسب لغتها (الافتراضي: يمين←يسار دائماً)"));
 
   viewSettings(box);
   syncSettings(box);
 
+  title("عن التطبيق");
   box.appendChild(h("div", {class:"srow"},
     h("button", {class:"ghost", style:"border:1px solid var(--line)", onclick:() => keysSheet()}, "ورقة الاختصارات (F1)"),
     h("button", {class:"ghost", style:"border:1px solid var(--line)", onclick:() => appUpdate()}, "تحديث التطبيق")));
