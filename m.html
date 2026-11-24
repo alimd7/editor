@@ -1263,7 +1263,9 @@ async function syncGraph(full, scope){               // scope: معرّف صفح
       return r;
     }
   };
-  const parse = r => { try { return JSON.parse(r.text).result || []; } catch(e){ throw new Error("ردّ غير مفهوم من Roam"); } };
+  const parse = r => { let o; try { o = JSON.parse(r.text); } catch(e){ throw new Error("ردّ غير مفهوم من Roam — تحقّق من الاتصال"); }
+    if (!o || typeof o !== "object" || !("result" in o)) throw new Error("ردّ غير مفهوم من Roam — تحقّق من الاتصال");   // صفحة وسيط أو ردّ ناقص: لا نعدّه غرافاً فارغاً
+    return o.result || []; };
   try {
     const first = !isLocal(g.name); if (first){ full = true; scope = null; } if (scope) full = false;
     await openLocal();
