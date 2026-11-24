@@ -135,6 +135,14 @@ a.ext{color:var(--link);text-decoration:underline;word-break:break-all}
 /* ---- الإعدادات ---- */
 .set{flex:1;overflow-y:auto;padding:10px 14px 40px}
 .set h3{font-size:13px;color:var(--mut);margin:18px 0 6px;font-weight:600}
+#setBody details.sec{border-bottom:1px solid var(--line)}
+#setBody details.sec>summary{font-size:17px;font-weight:700;color:var(--acc);padding:14px 2px;list-style:none;display:flex;align-items:center;gap:10px;user-select:none}
+#setBody details.sec>summary::-webkit-details-marker{display:none}
+#setBody details.sec>summary::before{content:"";width:8px;height:8px;border:solid currentColor;border-width:0 2px 2px 0;transform:rotate(135deg);transition:transform .15s;flex:none;margin-inline:4px}
+#setBody details.sec[open]>summary::before{transform:rotate(45deg)}
+#setBody .secb{padding:0 4px 16px}
+#setBody .secsub{font-size:14px;font-weight:700;color:var(--fg);margin:16px 0 6px;padding-bottom:3px;border-bottom:1px dotted var(--line)}
+#setBody .secb .secsub:first-child{margin-top:2px}
 .card{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:8px}
 .card .gn{font-weight:700;direction:ltr;text-align:right;unicode-bidi:plaintext}
 .card .gs{font-size:12px;color:var(--mut);margin-top:2px}
@@ -203,27 +211,17 @@ textarea.live{flex:1;min-width:0;display:block;border:0;outline:0;resize:none;ov
 .k.dl{color:var(--danger)}
 #tabs{position:fixed;left:0;right:0;top:var(--vvt,0px);height:38px;display:flex;align-items:flex-end;gap:4px;padding:calc(env(safe-area-inset-top)) 8px 0;background:var(--card);border-bottom:1px solid var(--line);z-index:30;user-select:none;-webkit-user-select:none;box-sizing:content-box}
 #tabs[hidden]{display:none}
-#tabW{flex:2 1 0;min-width:0;display:flex;align-items:flex-end;gap:3px;height:33px;align-self:flex-end}
-#tabSc{flex:1 1 0;min-width:0;display:flex;gap:4px;height:100%;overflow-x:auto;overflow-y:visible;scroll-snap-type:x mandatory;scrollbar-width:none;align-items:flex-end}
-#tabSc::-webkit-scrollbar{display:none}
-#tabSc .tab{flex:1 1 0;scroll-snap-align:start}
-#tabSc.many .tab{flex:0 0 calc(50% - 2px)}
-.tab.two .tw{display:flex;flex-direction:column;min-width:0;line-height:1.1;align-items:center}.tab.two .tw span{font-size:13px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.tab.two small{font-size:10px;color:var(--mut);font-weight:400}
-.tab.drg{transition:none;z-index:2}.tab.bye{color:#c0392b}
+#tabFold{flex:none;display:flex;align-items:flex-end;height:33px;align-self:flex-end;margin-inline-start:-6px}
+.tab.fold{flex:none;width:44px;min-width:44px;padding:0;margin-inline-start:-33px;z-index:1}
+.tab.fold:first-child{margin-inline-start:-29px}
+.tab.fold span{visibility:hidden}
+.tab.drg{transition:none;z-index:12}.tab.bye{color:#c0392b}
 .tab:not(.drg){transition:transform .18s,opacity .18s}
-.tedge{flex:none;align-self:flex-end;display:flex;align-items:flex-end;height:33px;gap:2px;padding-bottom:0}
-.tedge[hidden]{display:none}
-.tedge span{display:block;width:6px;border-radius:3px 3px 0 0;background:var(--card);border:1px solid var(--line);border-bottom:0}
-.tedge span[hidden]{display:none}
-.tedge span:nth-child(1){height:28px;opacity:1}
-.tedge span:nth-child(2){height:22px;opacity:.72}
-.tedge span:nth-child(3){height:18px;opacity:.45}
-.tedge.l{flex-direction:row-reverse}
 .tadd{flex:none;width:30px;height:30px;margin-bottom:2px;display:grid;place-items:center;border:0;background:none;color:var(--mut);border-radius:8px}
 .tadd:active{background:var(--line)}
 #tabMenu .tmi.cls{color:#c0392b;border-top:1px solid var(--line);margin-top:4px}
-.tab{flex:1 1 0;min-width:0;height:32px;display:flex;align-items:center;justify-content:center;gap:6px;padding:0 10px;border:1px solid transparent;border-bottom:0;border-radius:10px 10px 0 0;color:var(--mut);font-size:14px;position:relative;top:1px}
-.tab.on{background:var(--bg);color:var(--fg);border-color:var(--line);font-weight:700;box-shadow:inset 0 2px 0 var(--acc)}
+.tab{flex:1 1 0;min-width:0;height:32px;display:flex;align-items:center;justify-content:center;gap:6px;padding:0 10px;border:1px solid var(--line);border-bottom:0;border-radius:10px 10px 0 0;background:var(--card2,var(--card));color:var(--mut);font-size:14px;position:relative;top:1px;z-index:10}
+.tab.on{background:var(--bg);color:var(--fg);border-color:var(--line);font-weight:700;box-shadow:inset 0 2px 0 var(--acc);z-index:11}
 .tab span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tab.on::after{content:"";flex:none;width:6px;height:6px;border:solid var(--mut);border-width:0 2px 2px 0;transform:rotate(45deg);margin-top:-3px;opacity:.7}
 #tabMenu{position:fixed;left:8px;right:8px;top:calc(var(--vvt,0px) + 40px + env(safe-area-inset-top));z-index:45;background:var(--bg);border:1px solid var(--line);border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.25);padding:6px;max-height:60vh;overflow:auto}
@@ -1406,7 +1404,7 @@ const MAXG = 5;                                       // أقصى عدد لأل�
 let TID = +(store.get("rqm-tid") || 1);
 const tid = t => { if (!t.id){ t.id = TID++; store.set("rqm-tid", String(TID)); } return t.id; };
 const hst = i => { const t = TABS[i] || {}; return {tab:i, tid:t.id || 0, g:t.graph || ""}; };   // كل خطوة في مسار الرجوع تحفظ لسانها وغرافه
-function tabsSave(){ store.set("rqm-tabs", JSON.stringify({cur:TABI, list:TABS.map(t => ({kind:t.kind, graph:t.graph || "", hash:t.hash || "", q:t.q || "", id:t.id || 0}))})); }
+function tabsSave(){ store.set("rqm-tabs", JSON.stringify({cur:TABI, head:(TABS[ringHead()] || {}).id || 0, list:TABS.map(t => ({kind:t.kind, graph:t.graph || "", hash:t.hash || "", q:t.q || "", id:t.id || 0}))})); }
 function tabsLoad(){
   const sv = jget("rqm-tabs", null), ok = g => graphs().some(x => x.name === g), cur = RAW.roam.current || (graphs()[0] && graphs()[0].name) || "";
   const gs = sv && Array.isArray(sv.list) ? sv.list.filter(x => x.kind === "graph").slice(0, MAXG).map(x => ({kind:"graph", graph:ok(x.graph) ? x.graph : cur, hash:ok(x.graph) ? x.hash : "", q:x.q || "", id:x.id || 0})) : [];
@@ -1415,30 +1413,23 @@ function tabsLoad(){
   TABI = 0;
   const was = sv && sv.list && sv.list[sv.cur];
   if (was && was.kind === "graph"){ const k = TABS.findIndex((t, i) => i > 0 && (was.id ? t.id === was.id : t.graph === was.graph)); TABI = k > 0 ? k : 1; }
+  if (sv && sv.head){ const k = TABS.findIndex((t, i) => i > 0 && t.id === sv.head); if (k > 0) TABS.LASTG = k; }
   if (!ok(DR.graph)) DR.graph = cur;
 }
 const tabLabel = t => t.kind === "draft" ? "المسودة" : glabel(t.graph);
-function tabsDraw(){
+const ringHead = () => TABI > 0 ? TABI : (TABS.LASTG && TABS[TABS.LASTG] ? TABS.LASTG : 1);        // اللسان المعروض بجانب المسودة
+const ringNext = i => TABS.length > 2 ? (i >= TABS.length - 1 ? 1 : i + 1) : -1;                    // التالي في الحلقة (المسودة خارجها)
+function ringOrder(){ const out = [], h = ringHead(); if (!TABS[h]) return out; let i = h; do { out.push(i); i = i >= TABS.length - 1 ? 1 : i + 1; } while (i !== h && out.length < TABS.length); return out; }
+function tabsDraw(){                                  // المسودة، ثم المعروض، ثم الذي بعده، والباقي مطويّ يساراً كأوراق اللعب
   const bar = $("#tabs"); bar.innerHTML = "";
-  const mk = i => { const t = TABS[i], b = el("button", "tab" + (i === TABI ? " on" : "")), sp = el("span"); sp.textContent = tabLabel(t); b.appendChild(sp); b.dataset.i = i;
-    b.onclick = () => { if (b._drag) return; if (i === TABI) tabMenu(i); else tabGo(i); }; if (t.kind === "graph") tabDragClose(b, i); return b; };
+  const mk = (i, fold) => { const t = TABS[i], b = el("button", "tab" + (i === TABI ? " on" : "") + (fold ? " fold" : "")), sp = el("span"); sp.textContent = tabLabel(t); b.appendChild(sp); b.dataset.i = i;
+    if (fold) b.setAttribute("aria-label", tabLabel(t));
+    b.onclick = () => { if (b._drag) return; if (i === TABI) tabMenu(i); else tabGo(i); }; if (t.kind === "graph" && !fold) tabDragClose(b, i); return b; };
   bar.appendChild(mk(0));
-  const w = el("div"); w.id = "tabW"; const sc = el("div"); sc.id = "tabSc"; w.appendChild(sc);
-  const n = TABS.length - 1; sc.classList.toggle("many", n > 2);
-  for (let i = 1; i < TABS.length; i++) sc.appendChild(mk(i));
-  const edge = side => { const e = el("div", "tedge " + side); for (let k = 0; k < 3; k++) e.appendChild(el("span")); e.hidden = true; return e; };
-  const eR = edge("r"), eL = edge("l"); w.prepend(eR); w.appendChild(eL); bar.appendChild(w);
+  const ord = ringOrder();
+  ord.slice(0, 2).forEach(i => bar.appendChild(mk(i)));
+  const st = el("div"); st.id = "tabFold"; ord.slice(2).forEach((i, k) => { const b = mk(i, true); b.style.zIndex = String(8 - k); st.appendChild(b); }); if (ord.length > 2) bar.appendChild(st);
   const add = el("button", "tadd"); add.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>'; add.title = "لسان جديد"; add.onclick = tabAdd; bar.appendChild(add);
-  const marks = () => {                              // حوافّ متراكمة في الجهة التي فيها ألسنة مطويّة (بلا عدد)
-    const r = sc.getBoundingClientRect(); let left = 0, right = 0, firstL = null, firstR = null;
-    for (const b of sc.children){ const x = b.getBoundingClientRect(); if (x.right <= r.left + 4){ left++; if (!firstL || x.right > firstL.getBoundingClientRect().right) firstL = b; } else if (x.left >= r.right - 4){ right++; if (!firstR || x.left < firstR.getBoundingClientRect().left) firstR = b; } }
-    const put = (e, n, first) => { e.hidden = !n; [...e.children].forEach((c, k) => { c.hidden = k >= Math.min(n, 3); });
-      e.onclick = () => first && first.scrollIntoView({inline:"nearest", block:"nearest", behavior:"smooth"}); };
-    put(eL, left, firstL); put(eR, right, firstR);
-  };
-  sc.addEventListener("scroll", () => { clearTimeout(sc._t); sc._t = setTimeout(marks, 60); }, {passive:true});
-  const on = sc.querySelector(".tab.on"); if (on) on.scrollIntoView({inline:"nearest", block:"nearest"});
-  requestAnimationFrame(marks);
 }
 function tabDragClose(b, i){                         // اسحب اللسان إلى أسفل لإغلاقه (يرجع إن لم تبلغ المسافة)
   let st = null; const LIM = 46;
@@ -1456,8 +1447,8 @@ function tabClose(i, then){                          // أغلق لسان غرا
   if (TABS.filter(t => t.kind === "graph").length <= 1){ toast("هذا آخر لسان غراف"); return; }
   liveClose().then(() => {
     const cur = i === TABI; if (cur) tabLeave();
-    TABS.splice(i, 1); TABS.LASTG = 0;
-    if (cur){ const j = Math.min(i, TABS.length - 1); TABI = -1; tabEnter(j); tabsSave();
+    const lg = TABS.LASTG || 0; TABS.splice(i, 1); TABS.LASTG = lg > i ? lg - 1 : (lg === i ? (i < TABS.length ? i : 1) : lg);
+    if (cur){ const j = i < TABS.length ? i : 1; TABI = -1; tabEnter(j); tabsSave();
       if (!then){ history.replaceState(Object.assign({}, history.state, hst(j)), "", "#" + (TABS[j].hash || (TABS[j].kind === "draft" ? "c" : "s"))); route(); } }
     else { if (i < TABI) TABI--; tabsSave(); tabsDraw(); }
     toast("أُغلق اللسان", 1200);
@@ -1485,7 +1476,8 @@ function tabMenu(i){                                 // لمس اللسان ال
   if (TABS[i].kind === "draft") return;
   tabPick("افتح في هذا اللسان:", (m, item) => {
     for (const g of graphs()) item(gItem(g), () => tabSet(i, {kind:"graph", graph:g.name, hash:"s", q:""}));
-    if (TABS.filter(t => t.kind === "graph").length > 1) item("✕  أغلق هذا اللسان", () => tabClose(i)).classList.add("cls");
+    item(PREFS.pview ? "عرض الكتل" : "عرض الفقرات", () => { PREFS.pview = !PREFS.pview; savePrefs(); document.body.classList.toggle("pview", !!PREFS.pview); toast(PREFS.pview ? "عرض الفقرات" : "عرض الكتل", 1200); }).classList.add("cls");
+    if (TABS.filter(t => t.kind === "graph").length > 1) item("✕  أغلق هذا اللسان", () => tabClose(i));
   });
 }
 function tabLeave(){                                 // احفظ حال اللسان الجاري قبل مغادرته
@@ -2647,9 +2639,10 @@ pullClose(pBody); pullClose($("#sList"));
 /* التنقّل بين الألسنة بسحب أفقي (اتجاهه يتبع الإصبع: السحب يميناً يأتي باللسان الذي عن اليسار) */
 const TSW = {
   ok(x){ return PREFS.tabSwipe !== false && x > 24 && x < innerWidth - 24 && !editingNow() && !hasSel() && !$("#tabMenu"); },
-  move(dx){ const s = $("#" + ROUTE.name); if (!s) return; const i = TABI + (dx > 0 ? 1 : -1), has = i >= 0 && i < TABS.length;
+  to(dx){ return dx > 0 ? (TABI === 0 ? ringHead() : ringNext(TABI)) : (TABI === 0 ? -1 : 0); },        // يساراً: التالي في الحلقة · يميناً: المسودة، وهي المنتهى
+  move(dx){ const s = $("#" + ROUTE.name); if (!s) return; const i = TSW.to(dx), has = i >= 0 && i < TABS.length && i !== TABI;
     s.style.transition = "none"; s.style.transform = "translateX(" + (has ? dx : dx * 0.2) + "px)"; },
-  end(dx, fast){ const s = $("#" + ROUTE.name); if (!s) return; const i = TABI + (dx > 0 ? 1 : -1), go = (Math.abs(dx) > innerWidth * 0.3 || (fast && Math.abs(dx) > 40)) && i >= 0 && i < TABS.length;
+  end(dx, fast){ const s = $("#" + ROUTE.name); if (!s) return; const i = TSW.to(dx), go = (Math.abs(dx) > innerWidth * 0.3 || (fast && Math.abs(dx) > 40)) && i >= 0 && i < TABS.length && i !== TABI;
     s.style.transition = "transform .18s"; s.style.transform = go ? "translateX(" + (dx > 0 ? innerWidth : -innerWidth) + "px)" : "";
     setTimeout(() => { s.style.transition = ""; s.style.transform = ""; if (go) tabGo(i); }, 185); }
 };
@@ -3420,8 +3413,29 @@ document.addEventListener("click", () => { fontPop.hidden = true; });
 /* ============================================================
    الإعدادات
    ============================================================ */
+function secGroup(box, tag, MAP, ORDER, key){        // يجمع الإعدادات في أقسام قابلة للطيّ (مطويّة كلها حتى تفتحها)
+  const kids = [...box.childNodes], olds = []; let cur = {t:ORDER[0], nodes:[]}; olds.push(cur);
+  for (const n of kids){ if (n.nodeType === 1 && n.tagName === tag && n.parentNode === box){ cur = {t:n.textContent.trim(), nodes:[]}; olds.push(cur); } else cur.nodes.push(n); }
+  let open; try { open = new Set(JSON.parse(localStorage.getItem(key) || "[]")); } catch(e){ open = new Set(); }
+  const cats = new Map(ORDER.map(t => [t, []]));
+  for (const o of olds){ if (!o.nodes.length) continue; const c = MAP[o.t] || o.t; if (!cats.has(c)) cats.set(c, []); cats.get(c).push(o); }
+  box.textContent = "";
+  for (const [t, list] of cats){ if (!list.length) continue;
+    const d = document.createElement("details"); d.className = "sec"; d.open = open.has(t);
+    const sm = document.createElement("summary"); sm.textContent = t; d.appendChild(sm);
+    const b = document.createElement("div"); b.className = "secb";
+    for (const o of list){ if (list.length > 1 && o.t !== t){ const s2 = document.createElement("div"); s2.className = "secsub"; s2.textContent = o.t; b.appendChild(s2); } for (const n of o.nodes) b.appendChild(n); }
+    d.appendChild(b); box.appendChild(d);
+    d.addEventListener("toggle", () => { if (d.open) open.add(t); else open.delete(t); try { localStorage.setItem(key, JSON.stringify([...open])); } catch(e){} });
+  }
+}
 let editing = null;                                  // اسم الغراف قيد التعديل، أو "" لجديد
 function renderSettings(){
+  renderSettings0();
+  secGroup($("#setBody"), "H3", {"أسماء الألسنة":"الغرافات", "التلوين":"العرض", "القراءة":"العرض", "عند فتح التطبيق":"الكتابة والتحرير", "الكتابة من المسودة":"الكتابة والتحرير", "التحرير":"الكتابة والتحرير",
+    "الإيماءات والاختصارات":"عن التطبيق"}, ["الغرافات", "العرض", "الكتابة والتحرير", "المزامنة", "التدوين الصوتي", "عن التطبيق"], "rqm-setopen");
+}
+function renderSettings0(){
   const box = $("#setBody"); box.innerHTML = "";
   const h3 = t => box.appendChild(el("h3", "", t));
   if (!graphs().length && editing == null) editing = "";
@@ -3448,6 +3462,8 @@ function renderSettings(){
   sel("الغراف الافتراضي", [["","بلا افتراضي — آخر غراف استعملته"]].concat(graphs().map(g => [g.name, g.name])), graphs().some(g => g.name === PREFS.defGraph) ? PREFS.defGraph : "", v => { PREFS.defGraph = v; savePrefs(); });
 
   h3("العرض");
+  { const cp = el("label", "ck"), bp = el("input"); bp.type = "checkbox"; bp.checked = !!PREFS.pview; bp.onchange = () => { PREFS.pview = bp.checked; savePrefs(); document.body.classList.toggle("pview", !!PREFS.pview); };
+    cp.append(bp, "عرض الفقرات: الكتل التي لا أبناء لها بلا نقاط، والنسخ يتبع العرض"); box.appendChild(cp); }
   { const c1 = el("label", "ck"), b1 = el("input"), cl = el("input"); b1.type = "checkbox"; b1.checked = PREFS.pgn !== false; b1.onchange = () => { PREFS.pgn = b1.checked; savePrefs(); pageCache.clear(); };
     cl.type = "color"; cl.value = PREFS.pgc || "#c2410c"; cl.style.cssText = "width:36px;height:24px;padding:0;border:0;margin-inline-start:8px"; cl.oninput = () => { PREFS.pgc = cl.value; savePrefs(); document.documentElement.style.setProperty("--pgn", cl.value); };
     c1.append(b1, "تلوين أرقام الصفحات داخل | | (الرقم وحده)", cl); box.appendChild(c1); }
@@ -3458,8 +3474,9 @@ function renderSettings(){
   sel("تباعد الأسطر", [["1.45","ضيّق"],["1.7","وسط"],["1.95","واسع"]], String(PREFS.lh || 1.7), v => { PREFS.lh = +v; savePrefs(); applyFont(); });
   { const ckm = el("label", "ck"), cbm = el("input"); cbm.type = "checkbox"; cbm.checked = SMODE === 2; cbm.onchange = () => { SMODE = cbm.checked ? 2 : 1; PREFS.smode = SMODE; savePrefs(); }; ckm.append(cbm, "البحث المجرّد: تجريد الكلمات من الزوائد، ووجودها كلها في الكتلة ولو متفرقة"); box.appendChild(ckm); }
   { const ckn = el("label", "ck"), cbn = el("input"); cbn.type = "checkbox"; cbn.checked = !!PREFS.ns; cbn.onchange = () => { PREFS.ns = cbn.checked; savePrefs(); pageCache.clear(); }; ckn.append(cbn, "اختصار أسماء الصفحات ذات / إلى جزئها الأخير، داخل النصوص فقط (كما في Roam)"); box.appendChild(ckn); }
-  h3("الكتابة من المسودة");
+  h3("المزامنة");
   sel("مزامنة المسودة مع الأجهزة الأخرى (صفحة «المحرر/المسودة» في الغراف)", [["","الغراف الافتراضي"],["-","بلا مزامنة"]].concat(graphs().filter(g => g.token).map(g => [g.name, g.name])), PREFS.dsGraph || "", v => { PREFS.dsGraph = v; savePrefs(); if (ENGW) ENGW.ENGAPI.sync(true); });
+  h3("الكتابة من المسودة");
   { const ckh = el("label", "ck"), cbh = el("input"); cbh.type = "checkbox"; cbh.checked = graphs().length > 0 && graphs().every(g => g.header !== false);
     cbh.onchange = () => { graphs().forEach(g => { g.header = cbh.checked; }); saveCfg(); }; ckh.append(cbh, "ترويسة التاريخ والوقت فوق كل ما يُرسل من المسودة"); box.appendChild(ckh); }
   voiceSettings(box, h3);
@@ -3473,8 +3490,8 @@ function renderSettings(){
   cb.onchange = () => { PREFS.autoRefs = cb.checked; savePrefs(); };
   ck.append(cb, "جلب المراجع المرتبطة تلقائياً (للغراف غير المحمَّل)");
   box.appendChild(ck);
-  { const d = el("details", "keysbox"), sm = el("summary"); sm.textContent = "الإيماءات والاختصارات"; d.appendChild(sm);
-    const g = el("div", "keysl");
+  h3("الإيماءات والاختصارات");
+  { const d = el("div"), g = el("div", "keysl");
     for (const [k, v] of [["مسك النقطة","تحديد الكتل، ثم السحب لنقلها"],["النقطة","الدخول إلى الكتلة"],["المثلث","طيّ ونشر"],["مسك مكان فارغ","طيّ الكلّ أو نشره، وعرض الفقرات"],
       ["سحب أفقي","التنقّل بين الألسنة"],["سحب اللسان لأسفل","إغلاقه"],["سحب لأعلى من آخر الصفحة","إغلاق اللسان"],["سحب لأسفل من أعلاها","تحديث الصفحة أو مزامنة المسودة"],
       ["قرصة بإصبعين","حجم الخط"],["تظليل النص","شريط الحذف والنسخ والقصّ واللصق"],["نقر المربع ☐","إنجاز المهمة"]]){
