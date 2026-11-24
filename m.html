@@ -1138,6 +1138,117 @@ const Q_MAN2 = "[:find ?u ?pu ?o :where [?b :block/string] [?b :block/uid ?u] [?
 const Q_CHECK = "[:find ?u ?n ?pu ?o :in $ [?u ...] :where [?b :block/uid ?u] [?b :block/string ?s] [(count ?s) ?n] [?par :block/children ?b] [?par :block/uid ?pu] [?b :block/order ?o]]";
 const Q_CHANGED = "[:find ?u :in $ ?since :where [?b :edit/time ?t] [(> ?t ?since)] [?b :block/string] [?b :block/uid ?u]]";
 const Q_BATCH = "[:find ?pu (pull ?b [:block/uid :block/string :block/order :block/heading :block/open]) :in $ [?u ...] :where [?b :block/uid ?u] [?par :block/children ?b] [?par :block/uid ?pu]]";
+async function importTree(pages, onP){               // استيراد نسخة محفوظة: يبني النسخة المحلية كاملة
+  const g = G(); if (!g) throw new Error("لا غراف");
+  if (SYNC.running) throw new Error("تجري مزامنة — أعد بعد انتهائها");
+  await openLocal(); SYNC.running = true; syncMsg("يستورد…");
+  try {
+  { const t = DB.transaction(["blocks","tree","pages","kv"], "readwrite");
+    t.objectStore("blocks").clear(); t.objectStore("tree").clear(); t.objectStore("pages").clear(); t.objectStore("kv").clear(); await txDone(t); }
+  try { await W("close"); } catch(e){}
+  PT.clear(); const names = [];
+  let recs = [], done = 0, total = 0;
+  const count = L => { for (const x of L || []){ total++; count(x.children); } };
+  for (const p of pages) count(p.children);
+  const walk = async (list, parent, pg) => {
+    let o = 0;
+    for (const n of list || []){
+      const u = n.uid || newUid(), rec = {u, s:n.string || "", p:parent, g:pg, o:o++};
+      if (n.heading) rec.h = n.heading; if (n.open === false) rec.c = 1;
+      if (n["create-time"]) rec.ct = n["create-time"]; if (n["edit-time"]) rec.et = n["edit-time"];
+      recs.push(rec);
+      if (recs.length >= 3000){ await lPutRecs(recs, true); done += recs.length; recs = []; onP && onP(done, total); }
+      if (n.children && n.children.length) await walk(n.children, u, pg);
+    }
+  };
+  for (const p of pages){
+    const u = p.uid || newUid(), t = p.title || ""; if (!t) continue;
+    const tx = DB.transaction("pages", "readwrite"); const o = {u, t}; if (p["create-time"]) o.ct = p["create-time"]; if (p["edit-time"]) o.et = p["edit-time"];
+    tx.objectStore("pages").put(o); await txDone(tx); PT.set(u, t); names.push(t);
+    await walk(p.children, u, u);
+  }
+  if (recs.length){ await lPutRecs(recs, true); done += recs.length; onP && onP(done, total); }
+  await W("persist");
+  store.set("rq-pages:"+g.name, names.join("\n")); store.set("rqm-pagesAt:"+g.name, String(Date.now()));
+  store.set("rqm-local:"+g.name, "1"); store.set("rqm-syncAt:"+g.name, String(Date.now()));
+  await kvSet("since", 0); LOC = true;
+  return done;
+  } finally { SYNC.running = false; SYNC.msg = ""; loadPages(); }
+}
+async function restoreFile(name){                    // اختر ملف نسخة من الجهاز (أو من تطبيق التخزين السحابي)
+  const text = await new Promise(res => { const i = el("input"); i.type = "file"; i.accept = ".json,application/json";
+    i.onchange = () => { const f = i.files[0]; if (!f){ res(null); return; } const rd = new FileReader(); rd.onload = () => res(String(rd.result)); rd.onerror = () => res(null); rd.readAsText(f, "utf-8"); }; i.click(); });
+  if (!text) return false;
+  let o; try { o = JSON.parse(text); } catch(e){ toast("الملف ليس JSON سليماً", 3500); return false; }
+  const pages = Array.isArray(o) ? o : (o && Array.isArray(o.pages) ? o.pages : null);
+  if (!pages){ toast("ليس ملف نسخة", 3500); return false; }
+  if (o && o.graph && o.graph !== name && !confirm("هذا الملف لغراف «" + o.graph + "» لا «" + name + "». أتتابع؟")) return false;
+  if (isLocal(name) && !confirm("ستُستبدل النسخة المحلية الحالية لهذا الغراف. أتتابع؟")) return false;
+  busy(true);
+  try { const n = await importTree(pages, (a, b) => syncMsg("يستورد: " + AR(a) + " من " + AR(b)));
+    toast("استُورد " + AR(n) + " كتلة — يُنصح بمزامنة بعده", 5000); return true; }
+  catch(e){ toast("تعذّر الاستيراد: " + e.message, 5000); return false; }
+  finally { busy(false); }
+}
+const Q_PTREE = "[:find (pull ?p [:block/uid :block/string :block/order :block/heading :block/open :create/time :edit/time {:block/children ...}]) :in $ [?u ...] :where [?p :block/uid ?u]]";
+async function rebuildPages(){                       // إعادة بناء النسخة المحلية صفحةً صفحة: بلا الفهرس الكبير
+  const g = G(); if (!g || SYNC.running) return 0;
+  if (!g.token){ toast("أضف رمز الغراف أولاً"); return 0; }
+  if (!navigator.onLine){ toast("لا اتصال"); return 0; }
+  SYNC.running = true; SYNC.stop = false; const t0 = Date.now(); let lastReq = 0;
+  const paced = async (q, args, timeout) => {
+    for (let tries = 0;; tries++){
+      const wait = 1300 - (Date.now() - lastReq); if (wait > 0) await sleep(wait); lastReq = Date.now();
+      let r; try { r = await roam("q", args ? {query:q, args} : {query:q}, {graph:g, soft:true, timeout:timeout || 120000}); }
+      catch(e){ if (tries >= 3) throw e; syncMsg("انقطاع، يعيد المحاولة…"); await sleep(4000); continue; }
+      if (r.status === 429){ if (tries >= 8) throw new Error("حدّ الطلبات — أعد لاحقاً"); syncMsg("حدّ الطلبات؛ ينتظر قليلاً…"); await sleep(20000); continue; }
+      if (r.status === 401 || r.status === 403) throw new Error("الرمز غير صالح ("+r.status+")");
+      return r;
+    }
+  };
+  const K = (o, k) => o[k] !== undefined ? o[k] : o[":"+k];
+  try {
+    await openLocal();
+    syncMsg("يجلب أسماء الصفحات…");
+    let r = await paced(Q_PAGES); if (!r.ok) throw new Error("جلب الصفحات فشل ("+r.status+")");
+    const pages = (JSON.parse(r.text).result || []).filter(x => x[0] && x[1]);
+    if (!pages.length) throw new Error("لم يردّ Roam بأي صفحة — لم يُحذف شيء");
+    { const t = DB.transaction(["pages","blocks","tree"], "readwrite");
+      const P = t.objectStore("pages"); P.clear(); for (const x of pages) P.put({u:x[0], t:x[1]});
+      t.objectStore("blocks").clear(); t.objectStore("tree").clear(); await txDone(t); }
+    PT.clear(); for (const x of pages) PT.set(x[0], x[1]);
+    store.set("rq-pages:"+g.name, pages.map(x => x[1]).join("\n")); store.set("rqm-pagesAt:"+g.name, String(Date.now()));
+    try { await W("close"); } catch(e){}
+    let recs = [], done = 0, n = 0;
+    const flat = (node, parent, pg, order) => {
+      const u = K(node, "block/uid"); if (!u) return;
+      if (parent){ const rec = {u, s:K(node, "block/string") || "", p:parent, g:pg, o:order};
+        const h = K(node, "block/heading"); if (h) rec.h = h; if (K(node, "block/open") === false) rec.c = 1;
+        const ct = K(node, "create/time"), et = K(node, "edit/time"); if (ct) rec.ct = ct; if (et) rec.et = et;
+        recs.push(rec); n++; }
+      const kids = K(node, "block/children") || [];
+      kids.sort((a, b) => (K(a, "block/order") || 0) - (K(b, "block/order") || 0));
+      kids.forEach((k, i) => flat(k, u, pg, i));
+    };
+    const STEP = 8;
+    for (let i = 0; i < pages.length; i += STEP){
+      if (SYNC.stop) throw new Error("أُوقف");
+      syncMsg("يبني: " + AR(Math.min(i + STEP, pages.length)) + " من " + AR(pages.length) + " صفحة · " + AR(n) + " كتلة");
+      const uids = pages.slice(i, i + STEP).map(x => x[0]);
+      r = await paced(Q_PTREE, [uids], 180000); if (!r.ok) throw new Error("جلب صفحة فشل ("+r.status+")");
+      for (const row of (JSON.parse(r.text).result || [])){ const node = Array.isArray(row) ? row[0] : row; if (node) flat(node, null, K(node, "block/uid"), 0); }
+      if (recs.length >= 3000){ await lPutRecs(recs, true); done += recs.length; recs = []; }
+    }
+    if (recs.length){ await lPutRecs(recs, true); done += recs.length; }
+    await W("persist");
+    store.set("rqm-local:"+g.name, "1"); store.set("rqm-syncAt:"+g.name, String(Date.now()));
+    store.set("rqm-fullv:"+g.name, "3"); await kvSet("since", t0 - 600000); await kvSet("fullAt", t0);
+    LOC = true; SYNC.msg = "أُعيد البناء ✓ " + AR(done) + " كتلة في " + AR(Math.round((Date.now() - t0)/1000)) + " ث";
+    toast(SYNC.msg, 4000);
+    return done;
+  } catch(e){ SYNC.msg = ""; toast("تعذّرت إعادة البناء: " + e.message, 6000); return 0; }
+  finally { SYNC.running = false; SYNC.stop = false; renderSettings(); }
+}
 async function syncGraph(full, scope){               // scope: معرّف صفحة لمزامنتها وحدها
   const g = G(); if (!g || SYNC.running) return;
   if (!g.token){ toast("أضف رمز الغراف أولاً"); return; }
@@ -1180,8 +1291,17 @@ async function syncGraph(full, scope){               // scope: معرّف صفح
       } else {
         syncMsg("يجلب فهرس الكتل…");
         r = await paced(Q_MAN, null, 180000);
-        if (r.ok) rows = parse(r);
-        else { r = await paced(Q_MAN2, null, 180000); if (!r.ok) throw new Error("جلب فهرس الكتل فشل ("+r.status+")"); rows = parse(r).map(x => [x[0], null, x[1], x[2]]); }
+        rows = r.ok ? parse(r) : [];
+        if (!rows.length){                           // فارغ أو فشل: جرّب الاستعلام الأخفّ قبل الحكم
+          r = await paced(Q_MAN2, null, 180000);
+          if (!r.ok) throw new Error("جلب فهرس الكتل فشل ("+r.status+")");
+          rows = parse(r).map(x => [x[0], null, x[1], x[2]]);
+        }
+        { const have = (await W("stats") || {}).n || 0;             // لا نحذف محتوىً كاملاً اعتماداً على فهرس ناقص
+          if (have > 0 && (!rows.length || (have > 20 && rows.length < have * 0.5))){
+            SYNC.suspect = {rows:rows.length, have};
+            throw new Error("فهرس الكتل جاء ناقصاً (" + AR(rows.length) + " مقابل " + AR(have) + " عندك) — لم يُحذف شيء. أعد المحاولة، أو استعمل «إعادة بناء صفحةً صفحة»");
+          } }
         pmap = new Map(); for (const x of rows) pmap.set(x[0], x[2]);
         syncMsg("يقارن بما على الجهاز…");
       }
@@ -3413,10 +3533,11 @@ document.addEventListener("click", () => { fontPop.hidden = true; });
 /* ============================================================
    الإعدادات
    ============================================================ */
-function secGroup(box, tag, MAP, ORDER, key){        // يجمع الإعدادات في أقسام قابلة للطيّ (مطويّة كلها حتى تفتحها)
+function secGroup(box, tag, MAP, ORDER, key, force){        // يجمع الإعدادات في أقسام قابلة للطيّ (مطويّة كلها حتى تفتحها)
   const kids = [...box.childNodes], olds = []; let cur = {t:ORDER[0], nodes:[]}; olds.push(cur);
   for (const n of kids){ if (n.nodeType === 1 && n.tagName === tag && n.parentNode === box){ cur = {t:n.textContent.trim(), nodes:[]}; olds.push(cur); } else cur.nodes.push(n); }
   let open; try { open = new Set(JSON.parse(localStorage.getItem(key) || "[]")); } catch(e){ open = new Set(); }
+  if (force) open.add(force);                        // لا غراف بعدُ: افتح قسمه، وإلا ظهرت العناوين وحدها
   const cats = new Map(ORDER.map(t => [t, []]));
   for (const o of olds){ if (!o.nodes.length) continue; const c = MAP[o.t] || o.t; if (!cats.has(c)) cats.set(c, []); cats.get(c).push(o); }
   box.textContent = "";
@@ -3433,7 +3554,7 @@ let editing = null;                                  // اسم الغراف قي
 function renderSettings(){
   renderSettings0();
   secGroup($("#setBody"), "H3", {"أسماء الألسنة":"الغرافات", "التلوين":"العرض", "القراءة":"العرض", "عند فتح التطبيق":"الكتابة والتحرير", "الكتابة من المسودة":"الكتابة والتحرير", "التحرير":"الكتابة والتحرير",
-    "الإيماءات والاختصارات":"عن التطبيق"}, ["الغرافات", "العرض", "الكتابة والتحرير", "المزامنة", "التدوين الصوتي", "عن التطبيق"], "rqm-setopen");
+    "الإيماءات والاختصارات":"عن التطبيق"}, ["الغرافات", "العرض", "الكتابة والتحرير", "المزامنة", "التدوين الصوتي", "عن التطبيق"], "rqm-setopen", graphs().length ? null : "الغرافات");
 }
 function renderSettings0(){
   const box = $("#setBody"); box.innerHTML = "";
@@ -3514,10 +3635,13 @@ function localBox(g){
   if (SYNC.running){ msg.textContent = SYNC.msg; btn("إيقاف", "d", () => { SYNC.stop = true; }); }
   else {
     msg.textContent = SYNC.msg || (loc ? "نسخة محلية كاملة على هذا الجهاز" + (at ? " · آخر مزامنة " + new Date(at).toLocaleString("ar-EG", {dateStyle:"short", timeStyle:"short"}) : "") : "لا نسخة محلية. تحميل الغراف يتيح البحث الحي داخل النصوص، وفتح الصفحات فوراً وبلا شبكة.");
-    if (!loc) btn("تحميل الغراف إلى الجهاز", "p", () => { syncGraph(true); renderSettings(); });
+    if (!loc){ btn("تحميل الغراف إلى الجهاز", "p", () => { syncGraph(true); renderSettings(); });
+      btn("استورد نسخة…", "", () => restoreFile(g.name).then(() => renderSettings())); }
     else {
       btn("مزامنة", "p", () => { syncGraph(false); renderSettings(); });
       btn("مزامنة كاملة", "", () => { syncGraph(true); renderSettings(); });
+      btn("إعادة بناء صفحةً صفحة", "", () => { rebuildPages(); renderSettings(); });
+      btn("استورد نسخة…", "", () => restoreFile(g.name).then(() => renderSettings()));
       const d = btn("حذف النسخة", "d", async () => { if (d.dataset.arm !== "1"){ d.dataset.arm = "1"; d.textContent = "اضغط ثانية للتأكيد"; setTimeout(() => { d.dataset.arm = ""; d.textContent = "حذف النسخة"; }, 2500); return; } await dropLocal(); SYNC.msg = ""; renderSettings(); });
       W("stats").then(s => { if (!SYNC.running && !SYNC.msg && msg.isConnected && s.n) msg.textContent += " · " + AR(s.n) + " كتلة · فهرس البحث " + AR(Math.round(s.bytes / 1048576)) + " م.ب"; }).catch(() => {});
     }
